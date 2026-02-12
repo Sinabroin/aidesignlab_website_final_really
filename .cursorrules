@@ -1,0 +1,71 @@
+# General Rules
+- Always prioritize concise, readable, and maintainable code.
+- Apply DRY (Don't Repeat Yourself) principles aggressively.
+- When modifying code, check if the change renders existing code obsolete. If so, remove the dead code.
+- Avoid large files. If a file exceeds 300 lines, suggest splitting it into smaller modules.
+- Do not leave commented-out code (legacy code). Just remove it.
+- Use modern syntax (e.g., arrow functions, async/await, destructuring).
+
+# Refactoring Instructions
+- Before adding new features, scan the file for duplication.
+- If a function does more than one thing, split it.
+- Extract repeated JSX patterns into reusable components.
+- Consolidate similar state management logic.
+- Remove unused imports and variables immediately.
+
+# React/Next.js Specific
+- Prefer functional components over class components.
+- Use hooks effectively (useState, useEffect, useMemo, useCallback).
+- Extract complex logic into custom hooks when appropriate.
+- Keep components under 200 lines. If larger, split into sub-components.
+- Co-locate related components in the same directory.
+
+# TypeScript
+- Define interfaces for all props and state.
+- Avoid `any` type. Use proper typing.
+- Extract repeated type definitions into shared types file.
+
+# File Organization
+- Group related functionality together.
+- Separate business logic from presentation logic.
+- Use barrel exports (index.ts) for cleaner imports.
+
+# Performance
+- Memoize expensive calculations with useMemo.
+- Memoize callbacks with useCallback when passed to child components.
+- Lazy load heavy components when possible.
+
+# Project Structure Rules
+- New page sections must go in `components/sections/`
+- Common UI components must go in `components/common/`
+- All type definitions must be in `types/index.ts`
+- Mock data must be centralized in `data/mockData.ts`
+- Constants must be in `lib/constants.ts`
+- Requirements must be in `config/requirements.ts`
+
+# Component Naming Conventions
+- Page components: `*Page` (e.g., AdminPage)
+- Section components: `*Section` (e.g., HomeSection)
+- Common UI: Noun form (e.g., TabButton, GalleryCard)
+- Modals: `*Modal` (e.g., GalleryModal)
+
+# Color Usage
+- Always use colors from `lib/constants.ts` COLORS object
+- Primary: #87CEEB (Sky Blue)
+- Primary Light: #B0E0E6
+- Accent: #4A90A4
+- Never hardcode color values directly in components
+
+# REQ Implementation
+- When implementing admin features, map to specific REQ ID
+- Document REQ ID in comments above implementation
+- Keep REQ definitions in sync with `config/requirements.ts`
+
+# Code Review Checklist
+- File size < 300 lines
+- No duplicate code (DRY)
+- Types properly defined
+- No unused imports/variables
+- Consistent naming
+- Colors from constants
+- REQ mapping documented (for admin features)

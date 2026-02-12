@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Next.js
+.next/
+out/
+
+# Environment variables (보안 중요!)
+.env
+.env.local
+.env*.local
+
+# Build files
+*.log
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Windows
+desktop.ini
+Thumbs.db
