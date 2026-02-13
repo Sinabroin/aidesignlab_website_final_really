@@ -22,7 +22,6 @@ function isAllowedEmailDomain(email: string | null | undefined): boolean {
 }
 
 export const authOptions: NextAuthOptions = {
-  trustHost: true,
   providers: [
     AzureADProvider({
       clientId: process.env.AZURE_AD_CLIENT_ID!,
