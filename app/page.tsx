@@ -9,18 +9,12 @@ import { TypewriterSimple } from '@/components/TypewriterSimple';
  * 메인 랜딩 페이지
  * 
  * Aurora 배경 효과 + Typewriter 효과의 랜딩 페이지입니다.
- * 텍스트가 한 글자씩 타이핑되고, 자동으로 PLAYGROUND로 이동합니다.
- * 아무 곳이나 클릭하면 즉시 이동할 수 있습니다.
+ * 텍스트가 한 글자씩 타이핑되고, Enter 버튼이 뜨면 클릭하여 Playground로 이동합니다.
  */
 export default function Home() {
   const [currentPhase, setCurrentPhase] = useState(0);
   const [showButton, setShowButton] = useState(false);
   const [buttonPressed, setButtonPressed] = useState(false);
-
-  // 전체 화면 클릭 시 즉시 이동 (보호 경로라 window.location 사용 - prefetch 302 충돌 방지)
-  const handleClick = () => {
-    window.location.href = '/playground';
-  };
 
   // Phase 0 완료 → Phase 1로
   const handlePhase0Complete = () => {
@@ -37,26 +31,14 @@ export default function Home() {
     }, 500);
   };
 
-  // Phase 2에서 버튼 표시 후 자동 클릭 및 이동
-  useEffect(() => {
-    if (currentPhase === 2 && showButton) {
-      const pressTimer = setTimeout(() => {
-        setButtonPressed(true);
-      }, 1000);
-
-      const redirectTimer = setTimeout(() => {
-        window.location.href = '/playground';
-      }, 1800);
-
-      return () => {
-        clearTimeout(pressTimer);
-        clearTimeout(redirectTimer);
-      };
-    }
-  }, [currentPhase, showButton]);
+  // Enter 버튼 클릭 시에만 이동 (자동 리다이렉트 제거)
+  const handleEnterClick = () => {
+    setButtonPressed(true);
+    window.location.href = '/playground';
+  };
 
   return (
-    <div onClick={handleClick} className="cursor-pointer relative">
+    <div className="relative">
       <AuroraBackground>
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-6">
           <div className="max-w-5xl mx-auto text-center space-y-12">
@@ -98,8 +80,10 @@ export default function Home() {
             {showButton && (
               <div className="pt-8 animate-fade-in">
                 <button
+                  type="button"
+                  onClick={handleEnterClick}
                   className={`
-                    relative overflow-visible inline-flex items-center justify-center px-10 py-4 
+                    relative overflow-visible inline-flex items-center justify-center px-10 py-4 cursor-pointer
                     text-lg md:text-xl font-normal tracking-tight text-white 
                     bg-gray-900 hover:bg-gray-800
                     rounded-none shadow-2xl
@@ -167,12 +151,14 @@ export default function Home() {
         </div>
       </AuroraBackground>
       
-      {/* 클릭 안내 메시지 */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
-        <p className="text-sm text-gray-500 font-normal tracking-tight bg-white/80 backdrop-blur-sm px-4 py-2 rounded-none shadow-lg">
-          Click anywhere to continue
-        </p>
-      </div>
+      {/* 안내 메시지 - Enter 버튼이 뜨면 클릭하여 진행 */}
+      {showButton && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
+          <p className="text-sm text-gray-500 font-normal tracking-tight bg-white/80 backdrop-blur-sm px-4 py-2 rounded-none shadow-lg">
+            Enter 버튼을 클릭하여 시작하세요
+          </p>
+        </div>
+      )}
     </div>
   );
 }

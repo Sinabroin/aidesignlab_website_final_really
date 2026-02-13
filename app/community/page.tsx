@@ -26,7 +26,7 @@ export default async function CommunityPage() {
   
   // 로그인 안 됨 (middleware에서 걸러야 하지만 이중 체크)
   if (!user) {
-    redirect("/api/auth/login?next=/community&user=lab001@hdec.co.kr");
+    redirect("/login?callbackUrl=/community");
   }
 
   // community 권한 체크

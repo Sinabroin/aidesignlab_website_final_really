@@ -1,15 +1,25 @@
-import { getAuthProvider } from "@/lib/auth/provider";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import type { User } from "@/lib/auth/rbac";
 
 /**
  * 현재 로그인한 사용자 정보 가져오기
  * 
- * Server Component 또는 Server Action에서 사용
+ * NextAuth (Azure AD) 세션 기반.
+ * Server Component 또는 Server Action에서 사용.
  * 
  * @returns 사용자 정보 또는 null (미로그인)
  */
-export async function getCurrentUser() {
-  const provider = getAuthProvider();
-  return provider.getUser();
+export async function getCurrentUser(): Promise<User | null> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return null;
+
+  const u = session.user;
+  return {
+    id: u.email ?? u.name ?? "unknown",
+    name: u.name ?? undefined,
+    email: u.email ?? undefined,
+  };
 }
 
 /**
