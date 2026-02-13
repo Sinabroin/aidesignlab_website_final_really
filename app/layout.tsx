@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import CookieBanner from "@/components/CookieBanner";
+import SessionProvider from "@/components/providers/SessionProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+const notoSansKr = Noto_Sans_KR({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-noto-sans-kr",
+});
 
 export const metadata: Metadata = {
   title: "AI 디자인랩 - 현대건설",
@@ -16,12 +22,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body className={inter.className}>
-        <main>
-          {children}
-        </main>
-        <CookieBanner />
+    <html lang="ko" className={notoSansKr.variable}>
+      <body className={notoSansKr.className}>
+        <SessionProvider>
+          <main>
+            {children}
+          </main>
+          <CookieBanner />
+        </SessionProvider>
       </body>
     </html>
   );

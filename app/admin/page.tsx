@@ -17,7 +17,7 @@ export default function AdminPage() {
         <div className="max-w-[1600px] mx-auto px-6 md:px-12">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-white/10 rounded-none flex items-center justify-center">
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -30,7 +30,7 @@ export default function AdminPage() {
             </div>
             <button
               onClick={() => router.back()}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-none transition-colors flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -100,7 +100,7 @@ function DashboardTab() {
       {/* 주요 지표 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white rounded-lg border border-gray-200 p-6">
+          <div key={idx} className="bg-white rounded-none border border-gray-200 p-6">
             <div className="text-sm text-gray-600 mb-1">{stat.label}</div>
             <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
             <div className={`text-sm font-semibold ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
@@ -111,7 +111,7 @@ function DashboardTab() {
       </div>
 
       {/* 최근 활동 */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white rounded-none border border-gray-200 p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">최근 활동</h3>
         <div className="space-y-3">
           {[
@@ -119,7 +119,7 @@ function DashboardTab() {
             { action: '배너 "AI 트렌드 세미나" 게시', user: '운영진', time: '1시간 전' },
             { action: '신규 ACE 멤버 5명 추가', user: '운영진', time: '2시간 전' },
           ].map((activity, idx) => (
-            <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+            <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-none">
               <div>
                 <span className="font-semibold text-gray-900">{activity.action}</span>
                 <span className="text-sm text-gray-600 ml-2">by {activity.user}</span>
@@ -145,7 +145,7 @@ function PermissionsTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">권한 관리</h2>
-        <button className="px-4 py-2 bg-[#87CEEB] text-white rounded-lg hover:bg-[#77BED5] transition-colors flex items-center gap-2">
+        <button className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 transition-colors flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
@@ -153,7 +153,7 @@ function PermissionsTab() {
         </button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
@@ -173,7 +173,7 @@ function PermissionsTab() {
                 <td className="px-6 py-4">
                   <select 
                     value={user.role}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm"
+                    className="px-3 py-1 border border-gray-300 rounded-none text-sm"
                   >
                     <option value="R1">R1 (전사)</option>
                     <option value="R2">R2 (ACE)</option>
@@ -206,20 +206,20 @@ function ContentManagementTab() {
       <div className="flex gap-4">
         <button
           onClick={() => setSelectedType('featured')}
-          className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+          className={`px-6 py-3 rounded-none font-semibold transition-all ${
             selectedType === 'featured'
-              ? 'bg-[#87CEEB] text-white'
-              : 'bg-white border border-gray-300 text-gray-700 hover:border-[#87CEEB]'
+              ? 'bg-gray-900 text-white'
+              : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-900'
           }`}
         >
           대표 콘텐츠 편성
         </button>
         <button
           onClick={() => setSelectedType('banners')}
-          className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+          className={`px-6 py-3 rounded-none font-semibold transition-all ${
             selectedType === 'banners'
-              ? 'bg-[#87CEEB] text-white'
-              : 'bg-white border border-gray-300 text-gray-700 hover:border-[#87CEEB]'
+              ? 'bg-gray-900 text-white'
+              : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-900'
           }`}
         >
           배너 관리
@@ -229,16 +229,16 @@ function ContentManagementTab() {
       {selectedType === 'featured' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* PlayDay 대표작 */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-none border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">PlayDay 대표작</h3>
-              <button className="text-sm text-[#87CEEB] hover:text-[#77BED5] font-semibold">
+              <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
                 편성 변경
               </button>
             </div>
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded">
+                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-none">
                   <span className="text-gray-600 font-semibold">{i}</span>
                   <div className="flex-1">
                     <div className="font-semibold text-gray-900">AI 프로필 만들기</div>
@@ -255,16 +255,16 @@ function ContentManagementTab() {
           </div>
 
           {/* Playbook 대표작 */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-none border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">Playbook 대표작</h3>
-              <button className="text-sm text-[#87CEEB] hover:text-[#77BED5] font-semibold">
+              <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
                 편성 변경
               </button>
             </div>
             <div className="space-y-3">
               {[1, 2].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded">
+                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-none">
                   <span className="text-gray-600 font-semibold">{i}</span>
                   <div className="flex-1">
                     <div className="font-semibold text-gray-900">계약서 분석 자동화</div>
@@ -283,10 +283,10 @@ function ContentManagementTab() {
       )}
 
       {selectedType === 'banners' && (
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div className="bg-white rounded-none border border-gray-200">
           <div className="p-6 border-b flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900">배너 목록</h3>
-            <button className="px-4 py-2 bg-[#87CEEB] text-white rounded-lg hover:bg-[#77BED5] transition-colors">
+            <button className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 transition-colors">
               배너 추가
             </button>
           </div>
@@ -300,11 +300,11 @@ function ContentManagementTab() {
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-900 mb-2">{banner.title}</h4>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-none text-xs font-semibold">
                         {banner.range}
                       </span>
                       <span>{banner.period}</span>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      <span className={`px-2 py-1 rounded-none text-xs font-semibold ${
                         banner.status === '활성' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
                       }`}>
                         {banner.status}
@@ -312,7 +312,7 @@ function ContentManagementTab() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button className="px-3 py-1 text-sm text-[#87CEEB] hover:text-[#77BED5] font-semibold">
+                    <button className="px-3 py-1 text-sm text-gray-900 hover:text-gray-800 font-semibold">
                       수정
                     </button>
                     <button className="px-3 py-1 text-sm text-red-600 hover:text-red-800 font-semibold">
@@ -341,7 +341,7 @@ function RoundsManagementTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">PlayDay 회차 운영</h2>
-        <button className="px-4 py-2 bg-[#87CEEB] text-white rounded-lg hover:bg-[#77BED5] transition-colors flex items-center gap-2">
+        <button className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 transition-colors flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
@@ -349,7 +349,7 @@ function RoundsManagementTab() {
         </button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
@@ -366,7 +366,7 @@ function RoundsManagementTab() {
                 <td className="px-6 py-4 text-sm font-semibold text-gray-900">{round.name}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{round.startDate} ~ {round.endDate}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  <span className={`px-3 py-1 rounded-none text-xs font-semibold ${
                     round.status === '진행중' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
                   }`}>
                     {round.status}
@@ -414,9 +414,9 @@ function LogsTab() {
       <div className="flex gap-4">
         <button
           onClick={() => setLogType('download')}
-          className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+          className={`px-6 py-3 rounded-none font-semibold transition-all ${
             logType === 'download'
-              ? 'bg-[#87CEEB] text-white'
+              ? 'bg-gray-900 text-white'
               : 'bg-white border border-gray-300 text-gray-700'
           }`}
         >
@@ -424,9 +424,9 @@ function LogsTab() {
         </button>
         <button
           onClick={() => setLogType('moderation')}
-          className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+          className={`px-6 py-3 rounded-none font-semibold transition-all ${
             logType === 'moderation'
-              ? 'bg-[#87CEEB] text-white'
+              ? 'bg-gray-900 text-white'
               : 'bg-white border border-gray-300 text-gray-700'
           }`}
         >
@@ -434,7 +434,7 @@ function LogsTab() {
         </button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
         {logType === 'download' ? (
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -452,7 +452,7 @@ function LogsTab() {
                   <td className="px-6 py-4 text-sm text-gray-900">{log.user}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{log.file}</td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">{log.type}</span>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-none">{log.type}</span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{log.date}</td>
                   <td className="px-6 py-4 text-sm text-gray-500 font-mono">{log.ip}</td>
@@ -475,7 +475,7 @@ function LogsTab() {
               {moderationLogs.map((log, idx) => (
                 <tr key={idx} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded font-semibold">
+                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-none font-semibold">
                       {log.action}
                     </span>
                   </td>
@@ -491,7 +491,7 @@ function LogsTab() {
       </div>
 
       <div className="flex justify-end">
-        <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+        <button className="px-4 py-2 border border-gray-300 rounded-none hover:bg-gray-50 transition-colors flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
@@ -515,7 +515,7 @@ function TagsManagementTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">태그 표준 관리</h2>
-        <button className="px-4 py-2 bg-[#87CEEB] text-white rounded-lg hover:bg-[#77BED5] transition-colors flex items-center gap-2">
+        <button className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 transition-colors flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
@@ -523,7 +523,7 @@ function TagsManagementTab() {
         </button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
@@ -537,13 +537,13 @@ function TagsManagementTab() {
             {tags.map((tag) => (
               <tr key={tag.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
-                  <span className="px-3 py-1 bg-[#E8F6F8] text-[#4A90A4] rounded-full text-sm font-medium">
+                  <span className="px-3 py-1 bg-gray-200 text-gray-900 rounded-none text-sm font-medium">
                     #{tag.name}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">{tag.usage}회</td>
                 <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  <span className={`px-3 py-1 rounded-none text-xs font-semibold ${
                     tag.status === '활성' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
                   }`}>
                     {tag.status}
@@ -551,7 +551,7 @@ function TagsManagementTab() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-2">
-                    <button className="text-sm text-[#87CEEB] hover:text-[#77BED5] font-semibold">
+                    <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
                       {tag.status === '활성' ? '비활성화' : '활성화'}
                     </button>
                     <button className="text-sm text-gray-600 hover:text-gray-800 font-semibold">
@@ -565,7 +565,7 @@ function TagsManagementTab() {
         </table>
       </div>
 
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-none">
         <p className="text-sm text-blue-900">
           <strong>참고:</strong> 비활성화된 태그는 신규 선택 불가하지만, 기존 콘텐츠에는 계속 표시됩니다.
         </p>
@@ -635,7 +635,7 @@ function ArchiveTab() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+          <button className="px-4 py-2 border border-gray-300 rounded-none hover:bg-gray-50 transition-colors flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
@@ -645,7 +645,7 @@ function ArchiveTab() {
       </div>
 
       {/* 필터 및 검색 */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+      <div className="bg-white rounded-none border border-gray-200 p-6 space-y-4">
         {/* 섹션 필터 */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">섹션</label>
@@ -654,9 +654,9 @@ function ArchiveTab() {
               <button
                 key={section}
                 onClick={() => setSelectedSection(section)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`px-4 py-2 rounded-none text-sm font-semibold transition-all ${
                   selectedSection === section
-                    ? 'bg-[#87CEEB] text-white'
+                    ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -675,7 +675,7 @@ function ArchiveTab() {
               placeholder="제목, 작성자, 설명으로 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#87CEEB]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900"
             />
           </div>
           <div>
@@ -683,7 +683,7 @@ function ArchiveTab() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'date' | 'author')}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#87CEEB]"
+              className="px-4 py-2 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900"
             >
               <option value="date">최신순</option>
               <option value="author">작성자순</option>
@@ -693,7 +693,7 @@ function ArchiveTab() {
       </div>
 
       {/* 콘텐츠 목록 */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
@@ -717,7 +717,7 @@ function ArchiveTab() {
               filteredContent.map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-[#E8F6F8] text-[#4A90A4] rounded text-xs font-semibold">
+                    <span className="px-2 py-1 bg-gray-200 text-gray-900 rounded-none text-xs font-semibold">
                       {item.section}
                     </span>
                   </td>
@@ -728,7 +728,7 @@ function ArchiveTab() {
                   <td className="px-6 py-4 text-sm text-gray-900">{item.author}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{item.date}</td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-none text-xs">
                       {item.category}
                     </span>
                   </td>
@@ -746,7 +746,7 @@ function ArchiveTab() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
-                      <button className="text-sm text-[#87CEEB] hover:text-[#77BED5] font-semibold">
+                      <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
                         보기
                       </button>
                       <button className="text-sm text-gray-600 hover:text-gray-800 font-semibold">
@@ -766,7 +766,7 @@ function ArchiveTab() {
 
       {/* 태그 분석 */}
       {filteredContent.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-none border border-gray-200 p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">태그 분석</h3>
           <div className="flex flex-wrap gap-2">
             {Array.from(
@@ -778,7 +778,7 @@ function ArchiveTab() {
             ).map((tag, idx) => (
               <span
                 key={idx}
-                className="px-3 py-1 bg-[#E8F6F8] text-[#4A90A4] rounded-full text-sm font-medium"
+                className="px-3 py-1 bg-gray-200 text-gray-900 rounded-none text-sm font-medium"
               >
                 #{tag}
               </span>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import UnauthorizedActions from "@/components/common/UnauthorizedActions";
 
 interface UnauthorizedPageProps {
   searchParams: Promise<{ 
@@ -35,6 +35,12 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
           description: "사내 인증 시스템(AUTOWAY)을 통한 로그인이 필요합니다.",
           suggestion: "IT 지원팀에 문의하거나 다시 로그인해주세요.",
         };
+      case "email_domain_not_allowed":
+        return {
+          title: "접근이 제한됩니다",
+          description: "현대건설(@hdec.co.kr) 이메일로 가입된 계정만 로그인할 수 있습니다.",
+          suggestion: "회사 이메일로 로그인했는지 확인해주세요.",
+        };
       default:
         return {
           title: "접근 권한이 없습니다",
@@ -48,11 +54,11 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 max-w-2xl w-full">
+      <div className="bg-white rounded-none shadow-2xl p-8 md:p-12 max-w-2xl w-full">
         {/* 아이콘 */}
         <div className="text-center mb-8">
           <div className="text-8xl mb-4">🔒</div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">
+          <h1 className="text-3xl font-normal tracking-tight text-gray-900 mb-3">
             {message.title}
           </h1>
           <p className="text-lg text-gray-600">
@@ -62,8 +68,8 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
 
         {/* 권한 안내 */}
         {reason === "community_only" && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-            <h3 className="font-semibold text-blue-900 mb-2">
+          <div className="bg-blue-50 border border-blue-200 rounded-none p-6 mb-6">
+            <h3 className="font-normal tracking-tight text-blue-900 mb-2">
               📋 ACE 커뮤니티 접근 권한 안내
             </h3>
             <ul className="text-sm text-blue-800 space-y-1">
@@ -74,7 +80,7 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
         )}
 
         {/* 제안 */}
-        <div className="bg-gray-50 rounded-lg p-6 mb-6">
+        <div className="bg-gray-50 rounded-none p-6 mb-6">
           <p className="text-gray-700">
             💡 <strong>도움이 필요하신가요?</strong>
           </p>
@@ -84,20 +90,7 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
         </div>
 
         {/* 액션 버튼 */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link
-            href={next}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-[#87CEEB] to-[#B0E0E6] hover:from-[#77BED5] hover:to-[#A0D0D6] text-white font-semibold rounded-lg transition-all text-center"
-          >
-            이전 페이지로
-          </Link>
-          <Link
-            href="/playground"
-            className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg transition-colors text-center"
-          >
-            Playground로
-          </Link>
-        </div>
+        <UnauthorizedActions next={next} />
 
         {/* 문의 정보 */}
         <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">

@@ -41,7 +41,7 @@ export const AuroraBackground = ({
             style={{
               backgroundImage: `
                 repeating-linear-gradient(100deg, var(--white) 0%, var(--white) 7%, var(--transparent) 10%, var(--transparent) 12%, var(--white) 16%),
-                repeating-linear-gradient(100deg, var(--blue-500) 10%, var(--indigo-300) 15%, var(--blue-300) 20%, var(--violet-200) 25%, var(--blue-400) 30%)
+                repeating-linear-gradient(100deg, var(--gray-200) 10%, var(--gray-300) 15%, var(--gray-400) 20%, var(--gray-300) 25%, var(--gray-200) 30%)
               `,
             }}
           ></div>
@@ -52,7 +52,7 @@ export const AuroraBackground = ({
             style={{
               backgroundImage: `
                 repeating-linear-gradient(100deg, var(--white) 0%, var(--white) 7%, var(--transparent) 10%, var(--transparent) 12%, var(--white) 16%),
-                repeating-linear-gradient(100deg, var(--blue-500) 10%, var(--indigo-300) 15%, var(--blue-300) 20%, var(--violet-200) 25%, var(--blue-400) 30%)
+                repeating-linear-gradient(100deg, var(--gray-200) 10%, var(--gray-300) 15%, var(--gray-400) 20%, var(--gray-300) 25%, var(--gray-200) 30%)
               `,
               backgroundSize: '200% 100%',
               animation: 'aurora 60s linear infinite',

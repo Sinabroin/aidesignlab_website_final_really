@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { GlowingEffect } from '@/components/common/GlowingEffect';
 import { useRouter } from 'next/navigation';
 
 interface HelpRequest {
@@ -87,7 +88,7 @@ export default function HelpRequestsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-700';
-      case 'in-progress': return 'bg-blue-100 text-blue-700';
+      case 'in-progress': return 'bg-gray-700 text-gray-100';
       case 'completed': return 'bg-green-100 text-green-700';
       default: return 'bg-gray-100 text-gray-700';
     }
@@ -105,7 +106,7 @@ export default function HelpRequestsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <div className="bg-gradient-to-r from-[#C1E7ED] to-[#87CEEB] text-white py-12">
+      <div className="bg-gray-900 text-white py-12">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <button
             onClick={() => router.back()}
@@ -116,7 +117,7 @@ export default function HelpRequestsPage() {
             </svg>
             돌아가기
           </button>
-          <h1 className="text-4xl md:text-5xl font-bold">도와줘요 ACE! 신청 목록</h1>
+          <h1 className="text-4xl md:text-5xl font-normal tracking-tight">도와줘요 ACE! 신청 목록</h1>
           <p className="text-lg mt-2 text-white/90">모든 도움 요청을 확인하고 답변할 수 있습니다</p>
         </div>
       </div>
@@ -125,26 +126,26 @@ export default function HelpRequestsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 요청 목록 */}
           <div className="lg:col-span-1 space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">요청 목록</h2>
+            <h2 className="text-2xl font-normal tracking-tight text-gray-900 mb-6">요청 목록</h2>
             {requests.map((request) => (
               <div
                 key={request.id}
                 onClick={() => setSelectedRequest(request)}
-                className={`p-4 bg-white rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+                className={`p-4 bg-white rounded-none border-2 cursor-pointer transition-all hover:shadow-md ${
                   selectedRequest?.id === request.id
-                    ? 'border-[#87CEEB] shadow-md'
+                    ? 'border-gray-900 shadow-md'
                     : 'border-gray-200'
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(request.status)}`}>
+                  <span className={`px-3 py-1 rounded-none text-xs font-normal tracking-tight ${getStatusColor(request.status)}`}>
                     {getStatusText(request.status)}
                   </span>
                   <span className="text-xs text-gray-500">{request.date}</span>
                 </div>
-                <h3 className="font-bold text-gray-900 mb-1">{request.title}</h3>
+                <h3 className="font-normal tracking-tight text-gray-900 mb-1">{request.title}</h3>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="px-2 py-0.5 bg-[#E8F6F8] text-[#4A90A4] rounded text-xs">
+                  <span className="px-2 py-0.5 bg-gray-200 text-gray-900 rounded-none text-xs">
                     {request.category}
                   </span>
                   <span>•</span>
@@ -165,13 +166,13 @@ export default function HelpRequestsPage() {
           {/* 상세 내용 */}
           <div className="lg:col-span-2">
             {selectedRequest ? (
-              <div className="bg-white rounded-lg border border-gray-200 p-8">
+              <div className="bg-white rounded-none border border-gray-200 p-8">
                 <div className="mb-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedRequest.title}</h2>
+                      <h2 className="text-3xl font-normal tracking-tight text-gray-900 mb-2">{selectedRequest.title}</h2>
                       <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <span className="px-3 py-1 bg-[#E8F6F8] text-[#4A90A4] rounded-full font-semibold">
+                        <span className="px-3 py-1 bg-gray-200 text-gray-900 rounded-none font-normal tracking-tight">
                           {selectedRequest.category}
                         </span>
                         <span>{selectedRequest.author}</span>
@@ -179,7 +180,7 @@ export default function HelpRequestsPage() {
                         <span>{selectedRequest.date}</span>
                       </div>
                     </div>
-                    <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(selectedRequest.status)}`}>
+                    <span className={`px-4 py-2 rounded-none text-sm font-normal tracking-tight ${getStatusColor(selectedRequest.status)}`}>
                       {getStatusText(selectedRequest.status)}
                     </span>
                   </div>
@@ -189,22 +190,22 @@ export default function HelpRequestsPage() {
                 {/* 답변 목록 */}
                 {selectedRequest.replies.length > 0 && (
                   <div className="mb-6 border-t pt-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">답변 ({selectedRequest.replies.length})</h3>
+                    <h3 className="text-xl font-normal tracking-tight text-gray-900 mb-4">답변 ({selectedRequest.replies.length})</h3>
                     <div className="space-y-4">
                       {selectedRequest.replies.map((reply, index) => (
                         <div
                           key={index}
-                          className={`p-4 rounded-lg ${
-                            reply.isAdmin ? 'bg-[#E8F6F8]/50 border-l-4 border-[#87CEEB]' : 'bg-gray-50'
+                          className={`p-4 rounded-none ${
+                            reply.isAdmin ? 'bg-gray-100 border-l-4 border-gray-900' : 'bg-gray-50'
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-2">
                             {reply.isAdmin && (
-                              <span className="px-2 py-0.5 bg-[#87CEEB] text-white text-xs font-bold rounded">
+                              <span className="px-2 py-0.5 bg-gray-900 text-white text-xs font-normal tracking-tight rounded-none">
                                 운영진
                               </span>
                             )}
-                            <span className="font-semibold text-gray-900">{reply.author}</span>
+                            <span className="font-normal tracking-tight text-gray-900">{reply.author}</span>
                             <span className="text-sm text-gray-500">{reply.date}</span>
                           </div>
                           <p className="text-gray-700">{reply.content}</p>
@@ -216,14 +217,14 @@ export default function HelpRequestsPage() {
 
                 {/* 답변 작성 폼 */}
                 <div className="border-t pt-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">답변 작성</h3>
+                  <h3 className="text-xl font-normal tracking-tight text-gray-900 mb-4">답변 작성</h3>
                   <form onSubmit={handleReplySubmit}>
                     <textarea
                       value={replyContent}
                       onChange={(e) => setReplyContent(e.target.value)}
                       placeholder="답변을 입력하세요. 작성자의 이메일로도 자동 발송됩니다."
                       rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#87CEEB] transition-colors resize-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900 transition-colors resize-none"
                       required
                     />
                     <div className="flex items-center justify-between mt-4">
@@ -235,16 +236,17 @@ export default function HelpRequestsPage() {
                       </p>
                       <button
                         type="submit"
-                        className="px-6 py-3 bg-gradient-to-r from-[#87CEEB] to-[#B0E0E6] hover:from-[#77BED5] hover:to-[#A0D8E1] text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl"
+                        className="relative overflow-visible px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-all shadow-lg hover:shadow-xl"
                       >
-                        답변 등록
+                        <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+                        <span className="relative z-10">답변 등록</span>
                       </button>
                     </div>
                   </form>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+              <div className="bg-white rounded-none border border-gray-200 p-12 text-center">
                 <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>

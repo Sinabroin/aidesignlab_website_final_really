@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { GlowingEffect } from '@/components/common/GlowingEffect';
 
 interface WritePostProps {
   onClose: () => void;
@@ -84,21 +85,21 @@ export default function WritePost({ onClose, section }: WritePostProps) {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-4xl my-8 bg-white rounded-2xl shadow-2xl">
+      <div className="relative w-full max-w-4xl my-8 bg-white rounded-none shadow-2xl">
         {/* 헤더 */}
-        <div className="bg-gradient-to-r from-[#87CEEB]/90 to-[#B0E0E6]/90 p-6 rounded-t-2xl">
+        <div className="bg-gray-900 p-6 rounded-none">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-white/20 rounded-none flex items-center justify-center">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-[#2C5F6F]">새 게시글 작성</h2>
+              <h2 className="text-2xl font-normal tracking-tight text-white">새 게시글 작성</h2>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="w-10 h-10 rounded-none bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
             >
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -111,7 +112,7 @@ export default function WritePost({ onClose, section }: WritePostProps) {
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* 제목 */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
               제목 <span className="text-red-500">*</span>
             </label>
             <input
@@ -119,20 +120,20 @@ export default function WritePost({ onClose, section }: WritePostProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="게시글 제목을 입력하세요"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#87CEEB] transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900 transition-colors"
               required
             />
           </div>
 
           {/* 카테고리 */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
               카테고리 <span className="text-red-500">*</span>
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#87CEEB] transition-colors appearance-none cursor-pointer"
+              className="w-full px-4 py-3 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900 transition-colors appearance-none cursor-pointer"
               required
             >
               <option value="">선택해주세요</option>
@@ -165,7 +166,7 @@ export default function WritePost({ onClose, section }: WritePostProps) {
 
           {/* 내용 */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
               내용 <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -173,14 +174,14 @@ export default function WritePost({ onClose, section }: WritePostProps) {
               onChange={(e) => setContent(e.target.value)}
               placeholder="게시글 내용을 입력하세요"
               rows={8}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#87CEEB] transition-colors resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900 transition-colors resize-none"
               required
             />
           </div>
 
           {/* 해시태그 + 키워드 */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
               해시태그 + 키워드
             </label>
             <div className="flex gap-2">
@@ -190,14 +191,15 @@ export default function WritePost({ onClose, section }: WritePostProps) {
                 onChange={(e) => setHashtagInput(e.target.value)}
                 onKeyPress={handleHashtagKeyPress}
                 placeholder="키워드 입력 후 Enter"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#87CEEB] transition-colors"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900 transition-colors"
               />
               <button
                 type="button"
                 onClick={addHashtag}
-                className="px-6 py-3 bg-[#87CEEB] hover:bg-[#77BED5] text-white font-semibold rounded-lg transition-colors"
+                className="relative overflow-visible px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-colors"
               >
-                추가
+                <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+                <span className="relative z-10">추가</span>
               </button>
             </div>
             {hashtags.length > 0 && (
@@ -205,7 +207,7 @@ export default function WritePost({ onClose, section }: WritePostProps) {
                 {hashtags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#E8F6F8] text-[#4A90A4] rounded-full text-sm font-medium"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-900 rounded-none text-sm font-normal tracking-tight"
                   >
                     #{tag}
                     <button
@@ -228,12 +230,13 @@ export default function WritePost({ onClose, section }: WritePostProps) {
             <button
               type="button"
               onClick={() => imageInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-[#00aad2] text-[#00aad2] rounded-lg hover:bg-[#e8f4f8] transition-colors font-semibold"
+              className="relative overflow-visible flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-900 text-gray-900 rounded-none hover:bg-gray-50 transition-colors font-normal tracking-tight"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <GlowingEffect disabled={false} spread={16} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+              <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              사진 추가
+              <span className="relative z-10">사진 추가</span>
             </button>
             <input
               ref={imageInputRef}
@@ -247,12 +250,13 @@ export default function WritePost({ onClose, section }: WritePostProps) {
             <button
               type="button"
               onClick={() => videoInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-[#00aad2] text-[#00aad2] rounded-lg hover:bg-[#e8f4f8] transition-colors font-semibold"
+              className="relative overflow-visible flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-900 text-gray-900 rounded-none hover:bg-gray-50 transition-colors font-normal tracking-tight"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <GlowingEffect disabled={false} spread={16} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+              <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              영상 추가
+              <span className="relative z-10">영상 추가</span>
             </button>
             <input
               ref={videoInputRef}
@@ -266,12 +270,13 @@ export default function WritePost({ onClose, section }: WritePostProps) {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-[#00aad2] text-[#00aad2] rounded-lg hover:bg-[#e8f4f8] transition-colors font-semibold"
+              className="relative overflow-visible flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-900 text-gray-900 rounded-none hover:bg-gray-50 transition-colors font-normal tracking-tight"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <GlowingEffect disabled={false} spread={16} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+              <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
-              첨부파일
+              <span className="relative z-10">첨부파일</span>
             </button>
             <input
               ref={fileInputRef}
@@ -285,12 +290,12 @@ export default function WritePost({ onClose, section }: WritePostProps) {
           {/* 업로드된 이미지 미리보기 */}
           {images.length > 0 && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
                 사진 ({images.length})
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {images.map((image, index) => (
-                  <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group">
+                  <div key={index} className="relative aspect-square bg-gray-100 rounded-none overflow-hidden group">
                     <img
                       src={URL.createObjectURL(image)}
                       alt={`Upload ${index + 1}`}
@@ -299,7 +304,7 @@ export default function WritePost({ onClose, section }: WritePostProps) {
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -314,14 +319,14 @@ export default function WritePost({ onClose, section }: WritePostProps) {
           {/* 업로드된 영상 목록 */}
           {videos.length > 0 && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
                 영상 ({videos.length})
               </label>
               <div className="space-y-2">
                 {videos.map((video, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-none">
                     <div className="flex items-center gap-3">
-                      <svg className="w-8 h-8 text-[#00aad2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
                       <span className="text-sm font-medium">{video.name}</span>
@@ -344,14 +349,14 @@ export default function WritePost({ onClose, section }: WritePostProps) {
           {/* 업로드된 파일 목록 */}
           {files.length > 0 && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
                 첨부파일 ({files.length})
               </label>
               <div className="space-y-2">
                 {files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-none">
                     <div className="flex items-center gap-3">
-                      <svg className="w-8 h-8 text-[#00aad2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       <div>
@@ -379,15 +384,17 @@ export default function WritePost({ onClose, section }: WritePostProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg transition-colors"
+              className="relative overflow-visible flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-normal tracking-tight rounded-none transition-colors"
             >
-              취소
+              <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+              <span className="relative z-10">취소</span>
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 bg-gradient-to-r from-[#87CEEB] to-[#B0E0E6] hover:from-[#77BED5] hover:to-[#A0D8E1] text-[#2C5F6F] font-bold rounded-lg transition-all shadow-lg"
+              className="relative overflow-visible flex-1 py-3 bg-gray-900 hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-all shadow-lg"
             >
-              등록하기
+              <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+              <span className="relative z-10">등록하기</span>
             </button>
           </div>
         </form>

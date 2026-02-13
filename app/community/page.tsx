@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { hasRole } from "@/lib/auth/rbac";
 import ACECommunitySection from "@/components/sections/ACECommunitySection";
+import LogoutButton from "@/components/common/LogoutButton";
 import { useState } from "react";
 import GalleryModal from "@/components/GalleryModal";
 import { GalleryItem } from "@/data/mockData";
@@ -37,28 +38,23 @@ export default async function CommunityPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* 헤더 */}
-      <div className="bg-gradient-to-r from-[#C1E7ED] to-[#87CEEB] text-white pt-12 pb-12">
+      <div className="bg-gray-900 text-white pt-12 pb-12">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+              <h1 className="text-5xl md:text-6xl font-normal tracking-tight">
                 ACE 커뮤니티
               </h1>
               <p className="text-lg mt-2">ACE & AI디자인랩 운영진 전용</p>
             </div>
             
             {/* 사용자 정보 & 로그아웃 */}
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
+            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-none px-6 py-3">
               <div className="text-right">
-                <p className="font-semibold">{user.name || user.id}</p>
+                <p className="font-normal tracking-tight">{user.name || user.id}</p>
                 <p className="text-sm opacity-90">{user.email}</p>
               </div>
-              <a
-                href="/api/auth/logout"
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-semibold"
-              >
-                로그아웃
-              </a>
+              <LogoutButton />
             </div>
           </div>
         </div>
@@ -70,7 +66,7 @@ export default async function CommunityPage() {
           <div className="flex gap-8">
             <a
               href="/playground"
-              className="px-4 py-4 text-gray-600 hover:text-[#87CEEB] transition-colors"
+              className="px-4 py-4 text-gray-600 hover:text-gray-900 transition-colors"
             >
               ← Playground로 돌아가기
             </a>

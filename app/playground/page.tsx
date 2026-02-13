@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { GlowingEffect } from '@/components/common/GlowingEffect';
 import GalleryModal from '@/components/GalleryModal';
 import HelpButton from '@/components/HelpButton';
 import HelpModal from '@/components/HelpModal';
@@ -43,23 +44,24 @@ export default function PlaygroundPage() {
       <div className="fixed top-4 left-4 z-50">
         <button
           onClick={() => window.location.href = '/admin'}
-          className="px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-600 hover:to-gray-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+          className="relative overflow-visible px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-600 hover:to-gray-800 text-white font-normal tracking-tight rounded-none shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <GlowingEffect disabled={false} spread={16} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+          <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          운영자 페이지
+          <span className="relative z-10">운영자 페이지</span>
         </button>
       </div>
 
       {/* 페이지 헤더 */}
       <div 
-        className="bg-gradient-to-r from-[#C1E7ED] to-[#87CEEB] text-white pt-12 pb-12 cursor-pointer hover:from-[#B0E0E6] hover:to-[#77BED5] transition-all"
+        className="bg-gray-900 text-white pt-12 pb-12 cursor-pointer hover:bg-gray-800 transition-all"
         onClick={() => setActiveTab('home')}
       >
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+          <h1 className="text-5xl md:text-6xl font-normal tracking-tight">
             PLAYGROUND
           </h1>
           <p className="text-lg mt-2">Connect ai to your work</p>
@@ -80,13 +82,21 @@ export default function PlaygroundPage() {
               PlayDay
             </TabButton>
             
-            {/* ACE 커뮤니티 - 별도 페이지로 이동 */}
+            {/* ACE 커뮤니티 - 별도 페이지로 이동 (호버 시 무지개만, 클릭 후 검은선 없음) */}
             <a
               href="/community"
-              className="px-2 py-4 text-gray-600 hover:text-[#4A90A4] font-semibold text-base transition-colors border-b-2 border-transparent hover:border-[#87CEEB] flex items-center gap-2"
+              className="group relative px-2 py-4 text-gray-600 hover:text-gray-900 font-normal tracking-tight text-base transition-colors flex items-center gap-2"
             >
+              <span
+                className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                style={{
+                  background:
+                    'linear-gradient(90deg, #dd7bbb, #d79f1e, #5a922c, #4c7894, #dd7bbb)',
+                }}
+                aria-hidden
+              />
               ACE 커뮤니티
-              <span className="text-xs bg-[#87CEEB] text-white px-2 py-0.5 rounded font-medium">
+              <span className="text-xs bg-gray-700 text-white px-2 py-0.5 rounded-none font-normal tracking-tight">
                 권한 필요
               </span>
             </a>

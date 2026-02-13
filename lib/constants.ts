@@ -1,14 +1,14 @@
-// 앱 전체에서 사용되는 상수
+// 앱 전체에서 사용되는 상수 (에디토리얼/미니멀 톤)
 
 export const COLORS = {
-  primary: '#87CEEB',
-  primaryLight: '#B0E0E6',
-  primaryDark: '#77BED5',
-  accent: '#4A90A4',
-  accentDark: '#2C5F6F',
-  background: '#E8F6F8',
-  backgroundLight: '#D4EEF7',
-  border: '#C1E7ED',
+  primary: '#171717',
+  primaryLight: '#404040',
+  primaryDark: '#0a0a0a',
+  accent: '#525252',
+  accentDark: '#262626',
+  background: '#fafafa',
+  backgroundLight: '#f5f5f5',
+  border: '#e5e5e5',
 } as const;
 
 export const PRIORITY_COLORS = {

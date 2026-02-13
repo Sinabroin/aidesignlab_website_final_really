@@ -8,14 +8,22 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-noto-sans-kr)", "system-ui", "sans-serif"],
+      },
+      letterSpacing: {
+        "tight-editorial": "-0.02em",
+        "wider-caption": "0.08em",
+      },
       colors: {
         primary: {
-          sky: '#8EC5FC',
-          deep: '#0F172A',
+          DEFAULT: '#171717',
+          light: '#404040',
+          dark: '#0a0a0a',
         },
         accent: {
-          blue: '#6C8CFF',
-          cyan: '#4CC9F0',
+          DEFAULT: '#525252',
+          dark: '#262626',
         },
       },
       animation: {

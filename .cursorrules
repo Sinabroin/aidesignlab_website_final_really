@@ -51,9 +51,9 @@
 
 # Color Usage
 - Always use colors from `lib/constants.ts` COLORS object
-- Primary: #87CEEB (Sky Blue)
-- Primary Light: #B0E0E6
-- Accent: #4A90A4
+- Primary: #171717 (Neutral Gray)
+- Primary Light: #404040
+- Accent: #525252
 - Never hardcode color values directly in components
 
 # REQ Implementation

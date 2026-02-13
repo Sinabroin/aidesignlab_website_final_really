@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { GlowingEffect } from '@/components/common/GlowingEffect';
 import { AuroraBackground } from '@/components/AuroraBackground';
 import { TypewriterSimple } from '@/components/TypewriterSimple';
 
@@ -13,14 +13,13 @@ import { TypewriterSimple } from '@/components/TypewriterSimple';
  * 아무 곳이나 클릭하면 즉시 이동할 수 있습니다.
  */
 export default function Home() {
-  const router = useRouter();
   const [currentPhase, setCurrentPhase] = useState(0);
   const [showButton, setShowButton] = useState(false);
   const [buttonPressed, setButtonPressed] = useState(false);
 
-  // 전체 화면 클릭 시 즉시 이동
+  // 전체 화면 클릭 시 즉시 이동 (보호 경로라 window.location 사용 - prefetch 302 충돌 방지)
   const handleClick = () => {
-    router.push('/playground');
+    window.location.href = '/playground';
   };
 
   // Phase 0 완료 → Phase 1로
@@ -46,7 +45,7 @@ export default function Home() {
       }, 1000);
 
       const redirectTimer = setTimeout(() => {
-        router.push('/playground');
+        window.location.href = '/playground';
       }, 1800);
 
       return () => {
@@ -54,7 +53,7 @@ export default function Home() {
         clearTimeout(redirectTimer);
       };
     }
-  }, [currentPhase, showButton, router]);
+  }, [currentPhase, showButton]);
 
   return (
     <div onClick={handleClick} className="cursor-pointer relative">
@@ -64,7 +63,7 @@ export default function Home() {
             {/* Typewriter 텍스트 */}
             <div className="space-y-6 min-h-[200px] flex flex-col items-center justify-center">
               {currentPhase === 0 && (
-                <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight">
+                <h1 className="text-4xl md:text-6xl font-normal tracking-tight text-gray-900 tracking-tight">
                   <TypewriterSimple 
                     text="Welcome to HDEC AI Design Lab"
                     speed={80}
@@ -74,7 +73,7 @@ export default function Home() {
               )}
               
               {currentPhase === 1 && (
-                <h1 className="text-4xl md:text-6xl font-bold text-[#00aad2] tracking-tight">
+                <h1 className="text-4xl md:text-6xl font-normal tracking-tight text-gray-900 tracking-tight">
                   <TypewriterSimple 
                     text="Connect your work to AI"
                     speed={80}
@@ -85,10 +84,10 @@ export default function Home() {
 
               {currentPhase === 2 && (
                 <div className="space-y-4 animate-fade-in">
-                  <h1 className="text-5xl md:text-7xl font-bold text-gray-900 tracking-tight">
+                  <h1 className="text-5xl md:text-7xl font-normal tracking-tight text-gray-900 tracking-tight">
                     AI Design Lab
                   </h1>
-                  <p className="text-xl md:text-2xl text-gray-700 font-medium">
+                  <p className="text-xl md:text-2xl text-gray-700 font-normal tracking-tight">
                     현대건설 워크이노베이션센터
                   </p>
                 </div>
@@ -100,10 +99,10 @@ export default function Home() {
               <div className="pt-8 animate-fade-in">
                 <button
                   className={`
-                    inline-flex items-center justify-center px-10 py-4 
-                    text-lg md:text-xl font-bold text-white 
-                    bg-gradient-to-r from-[#00aad2] to-[#3dbdd6]
-                    rounded-full shadow-2xl
+                    relative overflow-visible inline-flex items-center justify-center px-10 py-4 
+                    text-lg md:text-xl font-normal tracking-tight text-white 
+                    bg-gray-900 hover:bg-gray-800
+                    rounded-none shadow-2xl
                     transition-all duration-300 transform
                     ${buttonPressed 
                       ? 'scale-95 shadow-lg opacity-80' 
@@ -111,9 +110,10 @@ export default function Home() {
                     }
                   `}
                 >
-                  <span className="mr-2">Enter</span>
+                  <GlowingEffect disabled={false} spread={24} movementDuration={1.5} inactiveZone={0.25} borderWidth={3} proximity={20} />
+                  <span className="relative z-10 mr-2">Enter</span>
                   <svg 
-                    className={`w-6 h-6 transition-transform duration-300 ${buttonPressed ? 'translate-x-2' : ''}`}
+                    className={`relative z-10 w-6 h-6 transition-transform duration-300 ${buttonPressed ? 'translate-x-2' : ''}`}
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -134,28 +134,28 @@ export default function Home() {
               <div className="flex flex-col items-center gap-3">
                 <div className="flex gap-2">
                   <div 
-                    className="w-2 h-2 rounded-full bg-[#00aad2]"
+                    className="w-2 h-2 rounded-none bg-gray-900"
                     style={{
                       animation: 'bounce 1s infinite',
                       animationDelay: '0ms'
                     }}
                   ></div>
                   <div 
-                    className="w-2 h-2 rounded-full bg-[#3dbdd6]"
+                    className="w-2 h-2 rounded-none bg-gray-600"
                     style={{
                       animation: 'bounce 1s infinite',
                       animationDelay: '200ms'
                     }}
                   ></div>
                   <div 
-                    className="w-2 h-2 rounded-full bg-[#aacae6]"
+                    className="w-2 h-2 rounded-none bg-gray-400"
                     style={{
                       animation: 'bounce 1s infinite',
                       animationDelay: '400ms'
                     }}
                   ></div>
                 </div>
-                <p className="text-sm text-gray-500 font-medium">
+                <p className="text-sm text-gray-500 font-normal tracking-tight">
                   {currentPhase === 0 && 'Initializing...'}
                   {currentPhase === 1 && 'Loading...'}
                   {currentPhase === 2 && !buttonPressed && 'Ready'}
@@ -169,7 +169,7 @@ export default function Home() {
       
       {/* 클릭 안내 메시지 */}
       <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
-        <p className="text-sm text-gray-500 font-medium bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+        <p className="text-sm text-gray-500 font-normal tracking-tight bg-white/80 backdrop-blur-sm px-4 py-2 rounded-none shadow-lg">
           Click anywhere to continue
         </p>
       </div>

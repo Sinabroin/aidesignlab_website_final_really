@@ -153,49 +153,49 @@ export const notices = [
     title: "[중요] AI 디자인랩 이용 안내",
     date: "2024.02.09",
     badge: "필독",
-    badgeColor: "bg-[#87CEEB]"
+    badgeColor: "bg-gray-900"
   },
   {
     title: "PlayDay 3월 일정 공지",
     date: "2024.02.08",
     badge: "공지",
-    badgeColor: "bg-[#B0E0E6]"
+    badgeColor: "bg-gray-700"
   },
   {
     title: "ACE 2기 모집 안내",
     date: "2024.02.07",
     badge: "모집",
-    badgeColor: "bg-[#C1E7ED]"
+    badgeColor: "bg-gray-600"
   },
   {
     title: "AI 윤리 가이드라인 업데이트",
     date: "2024.02.05",
     badge: "공지",
-    badgeColor: "bg-[#B0E0E6]"
+    badgeColor: "bg-gray-700"
   },
   {
     title: "새로운 AI 도구 추가 안내",
     date: "2024.02.03",
     badge: "공지",
-    badgeColor: "bg-[#B0E0E6]"
+    badgeColor: "bg-gray-700"
   },
   {
     title: "2월 정기 점검 일정 안내",
     date: "2024.02.01",
     badge: "공지",
-    badgeColor: "bg-[#B0E0E6]"
+    badgeColor: "bg-gray-700"
   },
   {
     title: "AI 프롬프트 경진대회 개최",
     date: "2024.01.28",
     badge: "이벤트",
-    badgeColor: "bg-[#C1E7ED]"
+    badgeColor: "bg-gray-600"
   },
   {
     title: "1월 우수 활용 사례 선정 결과",
     date: "2024.01.25",
     badge: "공지",
-    badgeColor: "bg-[#B0E0E6]"
+    badgeColor: "bg-gray-700"
   }
 ];
 

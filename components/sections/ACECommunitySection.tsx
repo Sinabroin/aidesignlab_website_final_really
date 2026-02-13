@@ -60,7 +60,7 @@ export default function ACECommunitySection({ onWriteClick, onCardClick }: ACECo
       </div>
 
       {/* 갤러리 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
+      <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
         {filteredData.map((item, index) => (
           <GalleryCard
             key={index}
