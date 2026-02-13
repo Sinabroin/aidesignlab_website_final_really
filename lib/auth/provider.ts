@@ -52,7 +52,7 @@ const devProvider: AuthProvider = {
   name: "dev",
   
   async getUser() {
-    const c = cookies().get("session_user")?.value;
+    const c = (await cookies()).get("session_user")?.value;
     if (!c) return null;
     
     try {
@@ -86,7 +86,7 @@ const proxyHeaderProvider: AuthProvider = {
   name: "proxy_header",
   
   async getUser() {
-    const h = headers();
+    const h = await headers();
     const id = h.get("x-employee-id");
     
     if (!id) return null;
