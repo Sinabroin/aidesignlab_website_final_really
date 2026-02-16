@@ -64,6 +64,15 @@ npm start
 
 개발 서버: http://localhost:3000
 
+## 🚢 실시간 배포 (수정 후 웹사이트에서 바로 확인)
+
+코드 수정 → `git push` 만 하면 배포 사이트에 자동 반영되게 하려면:
+
+1. **Vercel**에 이 프로젝트의 GitHub 저장소를 연결 (최초 1회)
+2. 이후 `git push origin main` 할 때마다 자동 빌드·배포됨 (1~2분 내 반영)
+
+자세한 절차는 **[DEPLOY.md](./DEPLOY.md)** 참고.
+
 ## 📚 문서
 
 - [프로젝트 구조 가이드](./PROJECT_STRUCTURE.md)

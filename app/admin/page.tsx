@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { playdayData, playbookUsecases, playbookTrends, playbookPrompts, playbookHAI, activityData, GalleryItem } from '@/data/mockData';
+
+const FIXED_OPERATOR_EMAIL = '2501034@hdec.co.kr';
 
 type AdminTab = 'dashboard' | 'permissions' | 'content' | 'rounds' | 'logs' | 'tags' | 'archive';
 
@@ -133,62 +135,190 @@ function DashboardTab() {
   );
 }
 
-// 권한 관리 탭 (REQ6.3)
+// 권한 관리 탭 (REQ6.3) - 운영진·ACE 목록 API 연동
 function PermissionsTab() {
-  const [users, setUsers] = useState([
-    { id: 1, name: '김철수', email: 'kim@company.com', role: 'R3', department: 'IT' },
-    { id: 2, name: '이영희', email: 'lee@company.com', role: 'R2', department: 'Design' },
-    { id: 3, name: '박민수', email: 'park@company.com', role: 'R1', department: 'Sales' },
-  ]);
+  const [operators, setOperators] = useState<string[]>([]);
+  const [community, setCommunity] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [addEmail, setAddEmail] = useState('');
+  const [addRole, setAddRole] = useState<'operator' | 'community'>('community');
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
+
+  const fetchAllowlist = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/allowlist');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || `조회 실패 (${res.status})`);
+      }
+      const data = await res.json();
+      setOperators(data.operators ?? []);
+      setCommunity(data.community ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '목록을 불러올 수 없습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllowlist();
+  }, []);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = addEmail.trim().toLowerCase();
+    if (!email) return;
+    setAdding(true);
+    try {
+      const res = await fetch('/api/admin/allowlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role: addRole }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || '추가 실패');
+      setAddEmail('');
+      await fetchAllowlist();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '추가할 수 없습니다.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleRemove = async (email: string, role: 'operator' | 'community') => {
+    if (role === 'operator' && email === FIXED_OPERATOR_EMAIL) return;
+    setRemoving(email);
+    try {
+      const res = await fetch(
+        `/api/admin/allowlist?email=${encodeURIComponent(email)}&role=${role}`,
+        { method: 'DELETE' }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || '제거 실패');
+      await fetchAllowlist();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '제거할 수 없습니다.');
+    } finally {
+      setRemoving(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900">권한 관리</h2>
+        <p className="text-gray-600">목록을 불러오는 중...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">권한 관리</h2>
-        <button className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 transition-colors flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          멤버 추가
+      <h2 className="text-2xl font-bold text-gray-900">권한 관리</h2>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-none">
+          {error}
+        </div>
+      )}
+
+      {/* 멤버 추가 */}
+      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 p-4 bg-gray-50 rounded-none border border-gray-200">
+        <div className="flex-1 min-w-[200px]">
+          <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+          <input
+            type="email"
+            value={addEmail}
+            onChange={(e) => setAddEmail(e.target.value)}
+            placeholder="user@hdec.co.kr"
+            className="w-full px-3 py-2 border border-gray-300 rounded-none text-sm"
+            required
+          />
+        </div>
+        <div className="w-[160px]">
+          <label className="block text-sm font-medium text-gray-700 mb-1">권한</label>
+          <select
+            value={addRole}
+            onChange={(e) => setAddRole(e.target.value as 'operator' | 'community')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-none text-sm"
+          >
+            <option value="community">ACE 멤버</option>
+            <option value="operator">운영진</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          disabled={adding}
+          className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 disabled:opacity-50 transition-colors flex items-center gap-2"
+        >
+          {adding ? '추가 중...' : '멤버 추가'}
         </button>
+      </form>
+
+      {/* 운영진 */}
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+        <h3 className="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-900 border-b border-gray-200">
+          운영진 (AI디자인랩 운영진)
+        </h3>
+        <ul className="divide-y divide-gray-200">
+          {operators.length === 0 ? (
+            <li className="px-6 py-4 text-sm text-gray-500">등록된 운영진이 없습니다.</li>
+          ) : (
+            operators.map((email) => (
+              <li key={email} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50">
+                <span className="text-sm text-gray-900">
+                  {email}
+                  {email === FIXED_OPERATOR_EMAIL && (
+                    <span className="ml-2 text-xs text-gray-500">(고정 운영자)</span>
+                  )}
+                </span>
+                {email === FIXED_OPERATOR_EMAIL ? (
+                  <span className="text-xs text-gray-400">삭제 불가</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(email, 'operator')}
+                    disabled={removing === email}
+                    className="text-red-600 hover:text-red-800 text-sm font-semibold disabled:opacity-50"
+                  >
+                    {removing === email ? '처리 중...' : '삭제'}
+                  </button>
+                )}
+              </li>
+            ))
+          )}
+        </ul>
       </div>
 
+      {/* ACE 멤버 */}
       <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">이름</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">이메일</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">부서</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">권한</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작업</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-900">{user.name}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{user.department}</td>
-                <td className="px-6 py-4">
-                  <select 
-                    value={user.role}
-                    className="px-3 py-1 border border-gray-300 rounded-none text-sm"
-                  >
-                    <option value="R1">R1 (전사)</option>
-                    <option value="R2">R2 (ACE)</option>
-                    <option value="R3">R3 (운영진)</option>
-                  </select>
-                </td>
-                <td className="px-6 py-4">
-                  <button className="text-red-600 hover:text-red-800 text-sm font-semibold">
-                    삭제
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <h3 className="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-900 border-b border-gray-200">
+          ACE 멤버 (30명)
+        </h3>
+        <ul className="divide-y divide-gray-200">
+          {community.length === 0 ? (
+            <li className="px-6 py-4 text-sm text-gray-500">등록된 ACE 멤버가 없습니다.</li>
+          ) : (
+            community.map((email) => (
+              <li key={email} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50">
+                <span className="text-sm text-gray-900">{email}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(email, 'community')}
+                  disabled={removing === email}
+                  className="text-red-600 hover:text-red-800 text-sm font-semibold disabled:opacity-50"
+                >
+                  {removing === email ? '처리 중...' : '삭제'}
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
       </div>
     </div>
   );

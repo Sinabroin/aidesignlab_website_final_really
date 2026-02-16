@@ -41,6 +41,12 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
           description: "현대건설(@hdec.co.kr) 이메일로 가입된 계정만 로그인할 수 있습니다.",
           suggestion: "회사 이메일로 로그인했는지 확인해주세요.",
         };
+      case "admin_only":
+        return {
+          title: "운영자 콘솔 접근 권한이 없습니다",
+          description: "이 영역은 AI디자인랩 운영진 전용입니다.",
+          suggestion: "접근 권한이 필요하시면 기존 운영진에게 문의해주세요.",
+        };
       default:
         return {
           title: "접근 권한이 없습니다",
