@@ -1,0 +1,93 @@
+---
+description: Core coding standards - 30-line rule, file headers, error handling
+alwaysApply: true
+---
+
+# Core Coding Standards
+
+## The 30-Line Rule
+
+**STRICTLY enforce**: Functions and component bodies MUST NOT exceed 30 lines of code.
+
+- If a function exceeds 30 lines, immediately refactor into smaller, named helper functions or custom hooks.
+- Do not ask for permission - just refactor.
+- Count only executable code (exclude blank lines and comments for readability).
+
+**Example (Python)**:
+```python
+# ❌ BAD - 45 lines
+def process_user_data(user_id: int) -> dict[str, Any]:
+    # ... 45 lines of code ...
+
+# ✅ GOOD - Split into helpers
+def process_user_data(user_id: int) -> dict[str, Any]:
+    user = _fetch_user(user_id)
+    validated = _validate_user_data(user)
+    enriched = _enrich_with_metadata(validated)
+    return _format_response(enriched)
+
+def _fetch_user(user_id: int) -> User:
+    # ... < 30 lines ...
+
+def _validate_user_data(user: User) -> ValidatedUser:
+    # ... < 30 lines ...
+```
+
+## One-Line File Header
+
+**EVERY new file** must start with a comment explaining its purpose:
+
+- **Python**: `# This file handles [purpose]...`
+- **TypeScript/TSX**: `/** This component displays [purpose]... */`
+
+**Example**:
+```python
+# Service for calculating user tax rates
+from typing import Protocol
+
+class TaxCalculator:
+    ...
+```
+
+```typescript
+/** Component for displaying user profile information */
+export const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
+  ...
+};
+```
+
+## Safety & Error Handling
+
+Assume external services (DB, API) will fail. Always wrap logic in error handling:
+
+- **Python**: Use `try/except` blocks, raise `HTTPException` explicitly
+- **TypeScript**: Use `try/catch`, show UI fallbacks (Error Boundaries) or toast notifications
+
+**Example (Python)**:
+```python
+async def get_user(user_id: int) -> User:
+    try:
+        user = await db.get(User, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+    except DatabaseError as e:
+        logger.error(f"Database error: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
+```
+
+**Example (TypeScript)**:
+```typescript
+async function fetchUser(userId: string): Promise<User> {
+  try {
+    const response = await fetch(`/api/users/${userId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    toast.error("Failed to load user");
+    throw error;
+  }
+}
+```

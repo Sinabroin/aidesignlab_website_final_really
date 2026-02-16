@@ -2,9 +2,20 @@
 node_modules/
 package-lock.json
 
-# Next.js
-.next/
-out/
+# Next.js (apps/web)
+apps/web/.next/
+apps/web/out/
+
+# Python (apps/api)
+apps/api/__pycache__/
+apps/api/*.py[cod]
+apps/api/*$py.class
+apps/api/.venv/
+apps/api/venv/
+apps/api/env/
+apps/api/*.db
+apps/api/*.sqlite
+apps/api/*.sqlite3
 
 # Environment variables (보안 중요!)
 .env
@@ -26,3 +37,11 @@ out/
 # Windows
 desktop.ini
 Thumbs.db
+
+# Pre-commit
+.pre-commit-config.yaml.backup
+
+# Testing
+apps/api/.pytest_cache/
+apps/api/.coverage
+apps/api/htmlcov/

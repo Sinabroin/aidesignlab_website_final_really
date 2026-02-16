@@ -1,71 +1,91 @@
-# General Rules
-- Always prioritize concise, readable, and maintainable code.
-- Apply DRY (Don't Repeat Yourself) principles aggressively.
-- When modifying code, check if the change renders existing code obsolete. If so, remove the dead code.
-- Avoid large files. If a file exceeds 300 lines, suggest splitting it into smaller modules.
-- Do not leave commented-out code (legacy code). Just remove it.
-- Use modern syntax (e.g., arrow functions, async/await, destructuring).
+# Project Context
+- **Architecture**: Monorepo
+- **Frontend**: `apps/web` (Next.js App Router, TypeScript, TailwindCSS)
+- **Backend**: `apps/api` (FastAPI, Python 3.12+, SQLModel, Pydantic, uv package manager)
+- **AI Model**: Claude Code (via Cursor)
 
-# Refactoring Instructions
-- Before adding new features, scan the file for duplication.
-- If a function does more than one thing, split it.
-- Extract repeated JSX patterns into reusable components.
-- Consolidate similar state management logic.
-- Remove unused imports and variables immediately.
+# Core Philosophy
+"Vibe Coding" means writing robust, production-ready code swiftly. We value **Strict Typing**, **Modularity**, and **Stability**.
 
-# React/Next.js Specific
-- Prefer functional components over class components.
-- Use hooks effectively (useState, useEffect, useMemo, useCallback).
-- Extract complex logic into custom hooks when appropriate.
-- Keep components under 200 lines. If larger, split into sub-components.
-- Co-locate related components in the same directory.
+<critical_rules>
+1. **The 30-Line Rule**:
+   - STRICTLY enforce a limit of **30 lines of code** per function or component body.
+   - If a function grows beyond 30 lines, YOU MUST refactor it into smaller, named helper functions or custom hooks immediately.
+   - Do not ask for permission to refactor; just do it.
 
-# TypeScript
-- Define interfaces for all props and state.
-- Avoid `any` type. Use proper typing.
-- Extract repeated type definitions into shared types file.
+2. **One-Line File Header**:
+   - EVERY new file must start with a comment explaining its purpose.
+   - Python: `# This file handles [purpose]...`
+   - TS/TSX: `/** This component displays [purpose]... */`
 
-# File Organization
-- Group related functionality together.
-- Separate business logic from presentation logic.
-- Use barrel exports (index.ts) for cleaner imports.
+3. **Strict Typing (No 'Any')**:
+   - **Python**: Use Pydantic models for ALL data structures. Use Type Hints for ALL function arguments and return values.
+   - **TypeScript**: No `any`. Define interfaces/types for all props and API responses.
 
-# Performance
-- Memoize expensive calculations with useMemo.
-- Memoize callbacks with useCallback when passed to child components.
-- Lazy load heavy components when possible.
+4. **Safety & Error Handling**:
+   - Assume external services (DB, API) will fail. Wrap logic in try/except (Python) or try/catch (TS).
+   - Python: Raise HTTPExceptions explicitly.
+   - Frontend: Show UI fallbacks (Error Boundaries) or toast notifications on error.
+</critical_rules>
 
-# Project Structure Rules
-- New page sections must go in `components/sections/`
-- Common UI components must go in `components/common/`
-- All type definitions must be in `types/index.ts`
-- Mock data must be centralized in `data/mockData.ts`
-- Constants must be in `lib/constants.ts`
-- Requirements must be in `config/requirements.ts`
+<tech_stack_rules>
 
-# Component Naming Conventions
-- Page components: `*Page` (e.g., AdminPage)
-- Section components: `*Section` (e.g., HomeSection)
-- Common UI: Noun form (e.g., TabButton, GalleryCard)
-- Modals: `*Modal` (e.g., GalleryModal)
+  <backend_python>
+    - **Package Manager**: Use `uv` strictly. (e.g., `uv add fastapi`, `uv run main.py`).
+    - **FastAPI**: Use `APIRouter` for modularity.
+    - **SQLModel**: Use `SessionDep` pattern for DB injection.
+    - **Pydantic**: Use `Field` for validation and schema documentation.
+    - **Naming**: snake_case for functions/variables, PascalCase for Classes/Models.
+  </backend_python>
 
-# Color Usage
-- Always use colors from `lib/constants.ts` COLORS object
-- Primary: #171717 (Neutral Gray)
-- Primary Light: #404040
-- Accent: #525252
-- Never hardcode color values directly in components
+  <frontend_typescript>
+    - **Structure**: Use Functional Components (`const Component = () => {}`).
+    - **State**: Use `zustand` or `React Context` for global state if needed.
+    - **Data Fetching**: Use `tanstack-query` (react-query) for API calls if applicable, or server actions.
+    - **Naming**: camelCase for functions/variables, PascalCase for Components.
+  </frontend_typescript>
 
-# REQ Implementation
-- When implementing admin features, map to specific REQ ID
-- Document REQ ID in comments above implementation
-- Keep REQ definitions in sync with `config/requirements.ts`
+</tech_stack_rules>
 
-# Code Review Checklist
-- File size < 300 lines
-- No duplicate code (DRY)
-- Types properly defined
-- No unused imports/variables
-- Consistent naming
-- Colors from constants
-- REQ mapping documented (for admin features)
+<planning_phase>
+Before writing any code, specifically for complex tasks:
+1. **Analyze**: briefly list the necessary changes.
+2. **Structure**: Plan the function splits to ensure the <30 lines rule.
+3. **Safety Check**: Identify potential error points (null values, API failures).
+4. **Execute**: Write the code.
+</planning_phase>
+
+<format_example>
+# Python Example
+# Service for calculating user tax rates
+def calculate_tax(income: float) -> float:
+    """Calculates tax based on income brackets."""
+    try:
+        if income < 0:
+            raise ValueError("Income cannot be negative")
+        return _apply_tax_rules(income)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# TypeScript Example
+/** Component for displaying user profile information */
+interface UserProfileProps {
+  userId: string;
+  onUpdate?: (user: User) => void;
+}
+
+export const UserProfile: React.FC<UserProfileProps> = ({ userId, onUpdate }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchUser(userId).catch((err) => {
+      setError(err.message);
+    });
+  }, [userId]);
+
+  if (error) return <ErrorFallback message={error} />;
+  if (!user) return <LoadingSpinner />;
+  return <ProfileCard user={user} />;
+};
+</format_example>

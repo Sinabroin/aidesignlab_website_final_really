@@ -1,0 +1,83 @@
+---
+description: TypeScript frontend standards - strict typing, component patterns
+globs: apps/web/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# TypeScript Frontend Standards
+
+## Strict Typing (No 'any')
+
+- **NEVER use `any`**. Define interfaces/types for all props and API responses.
+- Use TypeScript's `strict` mode (already enabled in tsconfig.json).
+- Prefer `unknown` over `any` when type is truly unknown, then narrow with type guards.
+
+**Example**:
+```typescript
+// ❌ BAD
+function processData(data: any) {
+  return data.value;
+}
+
+// ✅ GOOD
+interface ApiResponse {
+  value: number;
+  status: string;
+}
+
+function processData(data: ApiResponse): number {
+  return data.value;
+}
+```
+
+## Function Parameter & Return Types
+
+**ALL functions** must have explicit parameter types and return types:
+
+```typescript
+// ❌ BAD
+function calculateTotal(items) {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+
+// ✅ GOOD
+interface Item {
+  price: number;
+  name: string;
+}
+
+function calculateTotal(items: Item[]): number {
+  return items.reduce((sum: number, item: Item) => sum + item.price, 0);
+}
+```
+
+## React Component Patterns
+
+- Use **Functional Components** only: `const Component = () => {}`
+- Extract custom hooks for reusable logic
+- Keep components under 30 lines - split into smaller components if needed
+
+**Example**:
+```typescript
+/** Component for displaying user profile card */
+interface UserProfileProps {
+  userId: string;
+  onUpdate?: (user: User) => void;
+}
+
+export const UserProfile: React.FC<UserProfileProps> = ({ userId, onUpdate }) => {
+  const { user, error, isLoading } = useUser(userId);
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorFallback message={error.message} />;
+  if (!user) return null;
+
+  return <ProfileCard user={user} onUpdate={onUpdate} />;
+};
+```
+
+## Data Fetching
+
+- Use `tanstack-query` (react-query) for API calls when applicable
+- Or use Next.js Server Actions for server-side data fetching
+- Always handle loading and error states

@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #fafafa;
+  --bg-surface: #ffffff;
+  --primary: #171717;
+  --text-primary: #0a0a0a;
+  --text-secondary: #525252;
+  --border: #e5e5e5;
+  --white: #ffffff;
+  --transparent: transparent;
+  --black: #000000;
+  /* Aurora 배경용 (neutral) */
+  --gray-100: #f5f5f5;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-[#0F172A] antialiased font-normal tracking-tight;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-normal tracking-tight;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* 랜딩 페이지 페이드인 애니메이션 */
+  .animate-fade-in {
+    animation: fadeIn 1s ease-out;
+  }
+  
+  .animate-fade-in-delay {
+    animation: fadeIn 1s ease-out 0.3s both;
+  }
+  
+  .animate-fade-in-delay-2 {
+    animation: fadeIn 1s ease-out 0.6s both;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes aurora {
+  from {
+    background-position: 50% 50%, 50% 50%;
+  }
+  to {
+    background-position: 350% 50%, 350% 50%;
+  }
+}

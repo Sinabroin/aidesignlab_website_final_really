@@ -1,0 +1,921 @@
+'use client';
+
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { playdayData, playbookUsecases, playbookTrends, playbookPrompts, playbookHAI, activityData, GalleryItem } from '@/data/mockData';
+
+const FIXED_OPERATOR_EMAIL = '2501034@hdec.co.kr';
+
+type AdminTab = 'dashboard' | 'permissions' | 'content' | 'rounds' | 'logs' | 'tags' | 'archive';
+
+export default function AdminPage() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* 헤더 */}
+      <div className="bg-gradient-to-r from-gray-700 to-gray-900 text-white py-6 sticky top-0 z-40 shadow-lg">
+        <div className="max-w-[1600px] mx-auto px-6 md:px-12">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/10 rounded-none flex items-center justify-center">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">운영자 관리 콘솔</h1>
+                <p className="text-white/70 text-sm">AI 디자인랩 통합 관리 시스템</p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.back()}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-none transition-colors flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              돌아가기
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 탭 메뉴 */}
+      <div className="bg-white border-b border-gray-200 sticky top-[88px] z-30">
+        <div className="max-w-[1600px] mx-auto px-6 md:px-12">
+          <div className="flex gap-1 overflow-x-auto">
+            {[
+              { id: 'dashboard', label: '📊 대시보드', icon: '📊' },
+              { id: 'archive', label: '📦 콘텐츠 아카이브', icon: '📦' },
+              { id: 'permissions', label: '👥 권한 관리', icon: '👥' },
+              { id: 'content', label: '📝 콘텐츠 관리', icon: '📝' },
+              { id: 'rounds', label: '🎯 회차 운영', icon: '🎯' },
+              { id: 'logs', label: '📋 로그 조회', icon: '📋' },
+              { id: 'tags', label: '🏷️ 태그 관리', icon: '🏷️' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as AdminTab)}
+                className={`py-3 px-4 font-semibold text-sm border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'border-gray-700 text-gray-900'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 컨텐츠 영역 */}
+      <div className="max-w-[1600px] mx-auto px-6 md:px-12 py-8">
+        {activeTab === 'dashboard' && <DashboardTab />}
+        {activeTab === 'archive' && <ArchiveTab />}
+        {activeTab === 'permissions' && <PermissionsTab />}
+        {activeTab === 'content' && <ContentManagementTab />}
+        {activeTab === 'rounds' && <RoundsManagementTab />}
+        {activeTab === 'logs' && <LogsTab />}
+        {activeTab === 'tags' && <TagsManagementTab />}
+      </div>
+    </div>
+  );
+}
+
+// 대시보드 탭 (REQ6.7)
+function DashboardTab() {
+  const stats = [
+    { label: 'HOME CTR', value: '12.5%', change: '+2.3%', trend: 'up' },
+    { label: 'PlayDay 참여율', value: '68%', change: '+5.1%', trend: 'up' },
+    { label: 'Playbook 다운로드', value: '234', change: '-3%', trend: 'down' },
+    { label: 'ACE 활동 지표', value: '89', change: '+12%', trend: 'up' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">통합 대시보드</h2>
+      
+      {/* 주요 지표 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, idx) => (
+          <div key={idx} className="bg-white rounded-none border border-gray-200 p-6">
+            <div className="text-sm text-gray-600 mb-1">{stat.label}</div>
+            <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
+            <div className={`text-sm font-semibold ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+              {stat.change} {stat.trend === 'up' ? '↑' : '↓'}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 최근 활동 */}
+      <div className="bg-white rounded-none border border-gray-200 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">최근 활동</h3>
+        <div className="space-y-3">
+          {[
+            { action: 'PlayDay 3월 회차 생성', user: '운영진', time: '10분 전' },
+            { action: '배너 "AI 트렌드 세미나" 게시', user: '운영진', time: '1시간 전' },
+            { action: '신규 ACE 멤버 5명 추가', user: '운영진', time: '2시간 전' },
+          ].map((activity, idx) => (
+            <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-none">
+              <div>
+                <span className="font-semibold text-gray-900">{activity.action}</span>
+                <span className="text-sm text-gray-600 ml-2">by {activity.user}</span>
+              </div>
+              <span className="text-sm text-gray-500">{activity.time}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 권한 관리 탭 (REQ6.3) - 운영진·ACE 목록 API 연동
+function PermissionsTab() {
+  const [operators, setOperators] = useState<string[]>([]);
+  const [community, setCommunity] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [addEmail, setAddEmail] = useState('');
+  const [addRole, setAddRole] = useState<'operator' | 'community'>('community');
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
+
+  const fetchAllowlist = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/allowlist');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || `조회 실패 (${res.status})`);
+      }
+      const data = await res.json();
+      setOperators(data.operators ?? []);
+      setCommunity(data.community ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '목록을 불러올 수 없습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllowlist();
+  }, []);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = addEmail.trim().toLowerCase();
+    if (!email) return;
+    setAdding(true);
+    try {
+      const res = await fetch('/api/admin/allowlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role: addRole }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || '추가 실패');
+      setAddEmail('');
+      await fetchAllowlist();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '추가할 수 없습니다.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleRemove = async (email: string, role: 'operator' | 'community') => {
+    if (role === 'operator' && email === FIXED_OPERATOR_EMAIL) return;
+    setRemoving(email);
+    try {
+      const res = await fetch(
+        `/api/admin/allowlist?email=${encodeURIComponent(email)}&role=${role}`,
+        { method: 'DELETE' }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || '제거 실패');
+      await fetchAllowlist();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '제거할 수 없습니다.');
+    } finally {
+      setRemoving(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900">권한 관리</h2>
+        <p className="text-gray-600">목록을 불러오는 중...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">권한 관리</h2>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-none">
+          {error}
+        </div>
+      )}
+
+      {/* 멤버 추가 */}
+      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 p-4 bg-gray-50 rounded-none border border-gray-200">
+        <div className="flex-1 min-w-[200px]">
+          <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+          <input
+            type="email"
+            value={addEmail}
+            onChange={(e) => setAddEmail(e.target.value)}
+            placeholder="user@hdec.co.kr"
+            className="w-full px-3 py-2 border border-gray-300 rounded-none text-sm"
+            required
+          />
+        </div>
+        <div className="w-[160px]">
+          <label className="block text-sm font-medium text-gray-700 mb-1">권한</label>
+          <select
+            value={addRole}
+            onChange={(e) => setAddRole(e.target.value as 'operator' | 'community')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-none text-sm"
+          >
+            <option value="community">ACE 멤버</option>
+            <option value="operator">운영진</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          disabled={adding}
+          className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 disabled:opacity-50 transition-colors flex items-center gap-2"
+        >
+          {adding ? '추가 중...' : '멤버 추가'}
+        </button>
+      </form>
+
+      {/* 운영진 */}
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+        <h3 className="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-900 border-b border-gray-200">
+          운영진 (AI디자인랩 운영진)
+        </h3>
+        <ul className="divide-y divide-gray-200">
+          {operators.length === 0 ? (
+            <li className="px-6 py-4 text-sm text-gray-500">등록된 운영진이 없습니다.</li>
+          ) : (
+            operators.map((email) => (
+              <li key={email} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50">
+                <span className="text-sm text-gray-900">
+                  {email}
+                  {email === FIXED_OPERATOR_EMAIL && (
+                    <span className="ml-2 text-xs text-gray-500">(고정 운영자)</span>
+                  )}
+                </span>
+                {email === FIXED_OPERATOR_EMAIL ? (
+                  <span className="text-xs text-gray-400">삭제 불가</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(email, 'operator')}
+                    disabled={removing === email}
+                    className="text-red-600 hover:text-red-800 text-sm font-semibold disabled:opacity-50"
+                  >
+                    {removing === email ? '처리 중...' : '삭제'}
+                  </button>
+                )}
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
+
+      {/* ACE 멤버 */}
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+        <h3 className="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-900 border-b border-gray-200">
+          ACE 멤버 (30명)
+        </h3>
+        <ul className="divide-y divide-gray-200">
+          {community.length === 0 ? (
+            <li className="px-6 py-4 text-sm text-gray-500">등록된 ACE 멤버가 없습니다.</li>
+          ) : (
+            community.map((email) => (
+              <li key={email} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50">
+                <span className="text-sm text-gray-900">{email}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(email, 'community')}
+                  disabled={removing === email}
+                  className="text-red-600 hover:text-red-800 text-sm font-semibold disabled:opacity-50"
+                >
+                  {removing === email ? '처리 중...' : '삭제'}
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// 콘텐츠 관리 탭 (REQ6.2)
+function ContentManagementTab() {
+  const [selectedType, setSelectedType] = useState<'featured' | 'banners'>('featured');
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">콘텐츠 관리</h2>
+
+      {/* 타입 선택 */}
+      <div className="flex gap-4">
+        <button
+          onClick={() => setSelectedType('featured')}
+          className={`px-6 py-3 rounded-none font-semibold transition-all ${
+            selectedType === 'featured'
+              ? 'bg-gray-900 text-white'
+              : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-900'
+          }`}
+        >
+          대표 콘텐츠 편성
+        </button>
+        <button
+          onClick={() => setSelectedType('banners')}
+          className={`px-6 py-3 rounded-none font-semibold transition-all ${
+            selectedType === 'banners'
+              ? 'bg-gray-900 text-white'
+              : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-900'
+          }`}
+        >
+          배너 관리
+        </button>
+      </div>
+
+      {selectedType === 'featured' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* PlayDay 대표작 */}
+          <div className="bg-white rounded-none border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">PlayDay 대표작</h3>
+              <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
+                편성 변경
+              </button>
+            </div>
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-none">
+                  <span className="text-gray-600 font-semibold">{i}</span>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">AI 프로필 만들기</div>
+                    <div className="text-sm text-gray-600">김지수 · 2024.03.15</div>
+                  </div>
+                  <button className="text-gray-400 hover:text-gray-600">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Playbook 대표작 */}
+          <div className="bg-white rounded-none border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Playbook 대표작</h3>
+              <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
+                편성 변경
+              </button>
+            </div>
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-none">
+                  <span className="text-gray-600 font-semibold">{i}</span>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">계약서 분석 자동화</div>
+                    <div className="text-sm text-gray-600">ACE팀 · 2024.02.20</div>
+                  </div>
+                  <button className="text-gray-400 hover:text-gray-600">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedType === 'banners' && (
+        <div className="bg-white rounded-none border border-gray-200">
+          <div className="p-6 border-b flex items-center justify-between">
+            <h3 className="text-lg font-bold text-gray-900">배너 목록</h3>
+            <button className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 transition-colors">
+              배너 추가
+            </button>
+          </div>
+          <div className="divide-y">
+            {[
+              { title: 'AI 트렌드 세미나', range: '전사', period: '2024.02.10 ~ 2024.02.29', status: '활성' },
+              { title: 'PlayDay 3월 모집', range: 'ACE', period: '2024.02.15 ~ 2024.03.01', status: '활성' },
+            ].map((banner, idx) => (
+              <div key={idx} className="p-6 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-900 mb-2">{banner.title}</h4>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-none text-xs font-semibold">
+                        {banner.range}
+                      </span>
+                      <span>{banner.period}</span>
+                      <span className={`px-2 py-1 rounded-none text-xs font-semibold ${
+                        banner.status === '활성' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {banner.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1 text-sm text-gray-900 hover:text-gray-800 font-semibold">
+                      수정
+                    </button>
+                    <button className="px-3 py-1 text-sm text-red-600 hover:text-red-800 font-semibold">
+                      삭제
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 회차 운영 탭 (REQ6.4)
+function RoundsManagementTab() {
+  const [rounds, setRounds] = useState([
+    { id: 3, name: '3월 PlayDay', startDate: '2024.03.01', endDate: '2024.03.15', status: '진행중', participants: 45 },
+    { id: 2, name: '2월 PlayDay', startDate: '2024.02.01', endDate: '2024.02.15', status: '종료', participants: 52 },
+    { id: 1, name: '1월 PlayDay', startDate: '2024.01.01', endDate: '2024.01.15', status: '종료', participants: 38 },
+  ]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">PlayDay 회차 운영</h2>
+        <button className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 transition-colors flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          새 회차 생성
+        </button>
+      </div>
+
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">회차</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">기간</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">상태</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">참여자</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작업</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {rounds.map((round) => (
+              <tr key={round.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 text-sm font-semibold text-gray-900">{round.name}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{round.startDate} ~ {round.endDate}</td>
+                <td className="px-6 py-4">
+                  <span className={`px-3 py-1 rounded-none text-xs font-semibold ${
+                    round.status === '진행중' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {round.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-900">{round.participants}명</td>
+                <td className="px-6 py-4">
+                  {round.status === '진행중' ? (
+                    <button className="text-sm text-red-600 hover:text-red-800 font-semibold">
+                      회차 종료
+                    </button>
+                  ) : (
+                    <button className="text-sm text-gray-400 cursor-not-allowed">
+                      종료됨
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// 로그 조회 탭 (REQ6.5)
+function LogsTab() {
+  const [logType, setLogType] = useState<'download' | 'moderation'>('download');
+
+  const downloadLogs = [
+    { user: '김철수', file: '계약서_분석_가이드.pdf', type: '개별', date: '2024.02.09 14:23', ip: '192.168.1.100' },
+    { user: '이영희', file: 'PlayDay_3월_자료.zip', type: 'ZIP', date: '2024.02.09 13:45', ip: '192.168.1.101' },
+  ];
+
+  const moderationLogs = [
+    { action: '게시물 숨김', target: '부적절한 콘텐츠 포함', executor: '운영진', date: '2024.02.08 16:30', reason: '규정 위반' },
+    { action: '댓글 삭제', target: '욕설 포함', executor: '운영진', date: '2024.02.07 10:15', reason: '커뮤니티 가이드 위반' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">감사 로그</h2>
+
+      <div className="flex gap-4">
+        <button
+          onClick={() => setLogType('download')}
+          className={`px-6 py-3 rounded-none font-semibold transition-all ${
+            logType === 'download'
+              ? 'bg-gray-900 text-white'
+              : 'bg-white border border-gray-300 text-gray-700'
+          }`}
+        >
+          다운로드 로그
+        </button>
+        <button
+          onClick={() => setLogType('moderation')}
+          className={`px-6 py-3 rounded-none font-semibold transition-all ${
+            logType === 'moderation'
+              ? 'bg-gray-900 text-white'
+              : 'bg-white border border-gray-300 text-gray-700'
+          }`}
+        >
+          삭제/숨김 로그
+        </button>
+      </div>
+
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+        {logType === 'download' ? (
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사용자</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">파일</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">유형</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">IP</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {downloadLogs.map((log, idx) => (
+                <tr key={idx} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm text-gray-900">{log.user}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{log.file}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-none">{log.type}</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{log.date}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 font-mono">{log.ip}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작업</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">대상</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">실행자</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사유</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {moderationLogs.map((log, idx) => (
+                <tr key={idx} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-none font-semibold">
+                      {log.action}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{log.target}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{log.executor}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{log.date}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{log.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div className="flex justify-end">
+        <button className="px-4 py-2 border border-gray-300 rounded-none hover:bg-gray-50 transition-colors flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          로그 내보내기
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 태그 관리 탭 (REQ6.6)
+function TagsManagementTab() {
+  const [tags, setTags] = useState([
+    { id: 1, name: 'AI', usage: 45, status: '활성' },
+    { id: 2, name: '이미지생성', usage: 32, status: '활성' },
+    { id: 3, name: '프로필', usage: 28, status: '활성' },
+    { id: 4, name: '구버전', usage: 5, status: '비활성' },
+  ]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">태그 표준 관리</h2>
+        <button className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 transition-colors flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          새 태그 추가
+        </button>
+      </div>
+
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">태그명</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사용 횟수</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">상태</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작업</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {tags.map((tag) => (
+              <tr key={tag.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4">
+                  <span className="px-3 py-1 bg-gray-200 text-gray-900 rounded-none text-sm font-medium">
+                    #{tag.name}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-900">{tag.usage}회</td>
+                <td className="px-6 py-4">
+                  <span className={`px-3 py-1 rounded-none text-xs font-semibold ${
+                    tag.status === '활성' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {tag.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex gap-2">
+                    <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
+                      {tag.status === '활성' ? '비활성화' : '활성화'}
+                    </button>
+                    <button className="text-sm text-gray-600 hover:text-gray-800 font-semibold">
+                      병합
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-none">
+        <p className="text-sm text-blue-900">
+          <strong>참고:</strong> 비활성화된 태그는 신규 선택 불가하지만, 기존 콘텐츠에는 계속 표시됩니다.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// 콘텐츠 아카이브 탭
+function ArchiveTab() {
+  const [selectedSection, setSelectedSection] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'author'>('date');
+
+  // 모든 콘텐츠 통합
+  const allContent = useMemo(() => {
+    const contents: Array<GalleryItem & { section: string }> = [
+      ...playdayData.map(item => ({ ...item, section: 'PlayDay' })),
+      ...playbookUsecases.map(item => ({ ...item, section: 'Playbook 활용사례' })),
+      ...playbookTrends.map(item => ({ ...item, section: 'Playbook 트렌드' })),
+      ...playbookPrompts.map(item => ({ ...item, section: 'Playbook 프롬프트' })),
+      ...playbookHAI.map(item => ({ ...item, section: 'Playbook HAI' })),
+      ...activityData.map(item => ({ ...item, section: 'ACE 커뮤니티' })),
+    ];
+    return contents;
+  }, []);
+
+  // 필터링 및 정렬
+  const filteredContent = useMemo(() => {
+    let result = allContent;
+
+    // 섹션 필터
+    if (selectedSection !== 'all') {
+      result = result.filter(item => item.section === selectedSection);
+    }
+
+    // 검색
+    if (searchQuery) {
+      result = result.filter(item =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // 정렬
+    result.sort((a, b) => {
+      if (sortBy === 'date') {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      } else {
+        return a.author.localeCompare(b.author);
+      }
+    });
+
+    return result;
+  }, [allContent, selectedSection, searchQuery, sortBy]);
+
+  const sections = ['all', ...Array.from(new Set(allContent.map(item => item.section)))];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">콘텐츠 아카이브</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            전체 {allContent.length}개 · 필터링 결과 {filteredContent.length}개
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button className="px-4 py-2 border border-gray-300 rounded-none hover:bg-gray-50 transition-colors flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            내보내기
+          </button>
+        </div>
+      </div>
+
+      {/* 필터 및 검색 */}
+      <div className="bg-white rounded-none border border-gray-200 p-6 space-y-4">
+        {/* 섹션 필터 */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">섹션</label>
+          <div className="flex flex-wrap gap-2">
+            {sections.map((section) => (
+              <button
+                key={section}
+                onClick={() => setSelectedSection(section)}
+                className={`px-4 py-2 rounded-none text-sm font-semibold transition-all ${
+                  selectedSection === section
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {section === 'all' ? '전체' : section}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 검색 및 정렬 */}
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">검색</label>
+            <input
+              type="text"
+              placeholder="제목, 작성자, 설명으로 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">정렬</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'date' | 'author')}
+              className="px-4 py-2 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900"
+            >
+              <option value="date">최신순</option>
+              <option value="author">작성자순</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* 콘텐츠 목록 */}
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">섹션</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">제목</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작성자</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">날짜</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">카테고리</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">첨부</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작업</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {filteredContent.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  검색 결과가 없습니다.
+                </td>
+              </tr>
+            ) : (
+              filteredContent.map((item, idx) => (
+                <tr key={idx} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 bg-gray-200 text-gray-900 rounded-none text-xs font-semibold">
+                      {item.section}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-semibold text-gray-900">{item.title}</div>
+                    <div className="text-sm text-gray-600 line-clamp-1">{item.description}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{item.author}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{item.date}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-none text-xs">
+                      {item.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {item.attachments && item.attachments.length > 0 ? (
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                        {item.attachments.length}개
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
+                        보기
+                      </button>
+                      <button className="text-sm text-gray-600 hover:text-gray-800 font-semibold">
+                        숨김
+                      </button>
+                      <button className="text-sm text-red-600 hover:text-red-800 font-semibold">
+                        삭제
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 태그 분석 */}
+      {filteredContent.length > 0 && (
+        <div className="bg-white rounded-none border border-gray-200 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">태그 분석</h3>
+          <div className="flex flex-wrap gap-2">
+            {Array.from(
+              new Set(
+                filteredContent
+                  .flatMap(item => item.tags || [])
+                  .filter(Boolean)
+              )
+            ).map((tag, idx) => (
+              <span
+                key={idx}
+                className="px-3 py-1 bg-gray-200 text-gray-900 rounded-none text-sm font-medium"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

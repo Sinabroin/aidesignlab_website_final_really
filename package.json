@@ -1,31 +1,16 @@
 {
-  "name": "ace-website",
+  "name": "aidesignlab-monorepo",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "next dev -p 3000",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "next-auth": "^4.24.10",
-    "clsx": "^2.1.0",
-    "motion": "^11.11.17",
-    "next": "^15.1.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "tailwind-merge": "^2.2.0"
+    "dev:web": "npm run dev --workspace=@aidesignlab/web",
+    "build:web": "npm run build --workspace=@aidesignlab/web",
+    "lint:web": "npm run lint --workspace=@aidesignlab/web"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "autoprefixer": "^10.4.20",
-    "eslint": "9.39.2",
-    "eslint-config-next": "16.1.6",
-    "postcss": "^8.4.45",
-    "tailwindcss": "^3.4.0",
-    "typescript": "^5"
+    "pre-commit": "^1.2.2"
   }
 }
