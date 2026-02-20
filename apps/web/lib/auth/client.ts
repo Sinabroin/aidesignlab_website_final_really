@@ -1,0 +1,30 @@
+/** Client-side authentication utilities */
+
+import { Session } from "next-auth";
+
+/**
+ * 관리자 이메일 목록 (클라이언트에서 사용)
+ * allowlists.json과 동기화 필요
+ */
+const ADMIN_EMAILS = new Set([
+  "2501034@hdec.co.kr",
+  "jungho.do@hdec.co.kr",
+  "ww.do@hdec.co.kr",
+  "kknoh@hdec.co.kr",
+  "jihoon_kim@hdec.co.kr",
+].map((email) => email.trim().toLowerCase()));
+
+/**
+ * 클라이언트 컴포넌트에서 사용자가 관리자인지 확인
+ * 
+ * @param session - NextAuth 세션 객체
+ * @returns 관리자 여부
+ */
+export function isAdmin(session: Session | null): boolean {
+  if (!session?.user?.email) {
+    return false;
+  }
+
+  const email = session.user.email.trim().toLowerCase();
+  return ADMIN_EMAILS.has(email);
+}

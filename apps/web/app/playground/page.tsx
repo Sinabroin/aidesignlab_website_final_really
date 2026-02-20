@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
 import Link from 'next/link';
+import { isAdmin } from '@/lib/auth/client';
 
 const RAINBOW_GRADIENT =
   'linear-gradient(90deg, #dd7bbb, #d79f1e, #5a922c, #4c7894, #dd7bbb)';
@@ -21,10 +23,13 @@ import { GalleryItem } from '@/data/mockData';
 type Tab = 'home' | 'playbook' | 'playday' | 'notices';
 
 export default function PlaygroundPage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showWriteModal, setShowWriteModal] = useState(false);
   const [writeSection, setWriteSection] = useState<string>('');
+
+  const showAdminButton = isAdmin(session);
 
   // Preview carousel (1단계)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -58,21 +63,23 @@ export default function PlaygroundPage() {
 
   return (
     <div className="min-h-screen bg-white hero-tone-level6">
-      {/* 운영자 페이지 버튼 */}
-      <div className="fixed top-3 md:top-4 left-3 md:left-4 z-50">
-        <button
-          onClick={() => window.location.href = '/admin'}
-          className="relative overflow-visible flex items-center gap-1.5 md:gap-2 bg-white/90 backdrop-blur border border-line rounded-none px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-ink hover:border-muted transition-colors shadow-soft"
-        >
-          <GlowingEffect disabled={false} spread={16} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
-          <svg className="w-3.5 h-3.5 md:w-4 md:h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span className="relative z-10 font-normal hidden sm:inline">운영자 페이지</span>
-          <span className="relative z-10 font-normal sm:hidden">관리</span>
-        </button>
-      </div>
+      {/* 운영자 페이지 버튼 - 관리자만 표시 */}
+      {showAdminButton && (
+        <div className="fixed top-3 md:top-4 left-3 md:left-4 z-50">
+          <button
+            onClick={() => window.location.href = '/admin'}
+            className="relative overflow-visible flex items-center gap-1.5 md:gap-2 bg-white/90 backdrop-blur border border-line rounded-none px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-ink hover:border-muted transition-colors shadow-soft"
+          >
+            <GlowingEffect disabled={false} spread={16} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+            <svg className="w-3.5 h-3.5 md:w-4 md:h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="relative z-10 font-normal hidden sm:inline">운영자 페이지</span>
+            <span className="relative z-10 font-normal sm:hidden">관리</span>
+          </button>
+        </div>
+      )}
 
       {/* 히어로 헤더 — 청량한 블루 그라데이션 */}
       <div
