@@ -10,8 +10,9 @@ import { getToken } from "next-auth/jwt";
  */
 
 function isProtectedPath(pathname: string): boolean {
+  // ACE 커뮤니티, 관리자, 도움 요청만 보호
+  // playground는 공개 (게시글 조회 가능, 파일 다운로드는 API에서 보호)
   return (
-    pathname.startsWith("/playground") ||
     pathname.startsWith("/community") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/help-requests")
@@ -61,7 +62,6 @@ export async function middleware(req: NextRequest) {
 export const config = {
   // 보호 경로에만 미들웨어 실행 (api/auth 등 다른 경로에는 절대 실행 안 함)
   matcher: [
-    "/playground/:path*",
     "/community/:path*",
     "/admin/:path*",
     "/help-requests/:path*",

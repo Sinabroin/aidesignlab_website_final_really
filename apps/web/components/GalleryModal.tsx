@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
 
 interface GalleryItem {
@@ -46,8 +47,34 @@ export default function GalleryModal({
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [showSwipeHint, setShowSwipeHint] = useState(true);
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
 
   const currentItem = items[currentIndex];
+
+  // 파일 다운로드 핸들러
+  const handleFileDownload = async (fileUrl: string, fileName: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!isAuthenticated) {
+      alert('파일 다운로드는 로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      window.location.href = '/login?callbackUrl=' + encodeURIComponent(window.location.pathname);
+      return;
+    }
+
+    try {
+      const downloadUrl = `/api/files/download?url=${encodeURIComponent(fileUrl)}`;
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('File download error:', error);
+      alert('파일 다운로드 중 오류가 발생했습니다.');
+    }
+  };
 
   // 스와이프 힌트 숨기기
   useEffect(() => {
@@ -236,11 +263,16 @@ export default function GalleryModal({
                 </h3>
                 <div className="space-y-3">
                   {currentItem.attachments.map((file, index) => (
-                    <a
+                    <button
                       key={index}
-                      href={file.url}
-                      download
-                      className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-none hover:shadow-md transition-all group"
+                      onClick={(e) => handleFileDownload(file.url, file.name, e)}
+                      disabled={!isAuthenticated}
+                      className={`flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-none transition-all group w-full text-left ${
+                        isAuthenticated 
+                          ? 'hover:shadow-md cursor-pointer' 
+                          : 'opacity-60 cursor-not-allowed'
+                      }`}
+                      title={!isAuthenticated ? '파일 다운로드는 로그인이 필요합니다' : ''}
                     >
                       <div className="flex items-center gap-3">
                         {/* 파일 타입 아이콘 */}
@@ -289,7 +321,12 @@ export default function GalleryModal({
                           </svg>
                         </div>
                       </div>
-                    </a>
+                      {!isAuthenticated && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-none">
+                          <span className="text-sm text-gray-600 font-normal">로그인 필요</span>
+                        </div>
+                      )}
+                    </button>
                   ))}
                 </div>
               </div>
