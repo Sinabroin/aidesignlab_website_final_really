@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.settings import settings
+from app.routers import admin, data
 
 app = FastAPI(
     title="AI Design Lab API",
@@ -20,6 +21,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(admin.router, prefix=settings.API_V1_PREFIX)
+app.include_router(data.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/health")

@@ -17,7 +17,7 @@ const categoryData: Record<PlaybookCategory, GalleryItem[]> = {
   trend: playbookTrends,
   prompt: playbookPrompts,
   hai: playbookHAI,
-  teams: playbookTeams
+  teams: playbookTeams,
 };
 
 const categoryLabels: Record<PlaybookCategory, string> = {
@@ -25,7 +25,7 @@ const categoryLabels: Record<PlaybookCategory, string> = {
   trend: 'AI Trend',
   prompt: 'Prompt 사례',
   hai: 'HAI',
-  teams: 'Teams'
+  teams: 'Teams',
 };
 
 export default function PlayBookSection({ onWriteClick, onCardClick }: PlayBookSectionProps) {
@@ -33,14 +33,14 @@ export default function PlayBookSection({ onWriteClick, onCardClick }: PlayBookS
   const currentData = categoryData[category];
 
   return (
-    <div className="max-w-[1200px] mx-auto">
-      <div className="mb-12">
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-10">
         <SectionHeader
           title="PlayBook"
           action={<WriteButton onClick={() => onWriteClick('playbook')} />}
         />
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 mt-6">
           {(Object.keys(categoryLabels) as PlaybookCategory[]).map((cat) => (
             <FilterButton
               key={cat}
@@ -53,14 +53,25 @@ export default function PlayBookSection({ onWriteClick, onCardClick }: PlayBookS
         </div>
       </div>
 
-      <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {currentData.map((item, index) => (
-          <GalleryCard
-            key={index}
-            {...item}
-            onClick={() => onCardClick(currentData, index)}
-          />
-        ))}
+      {/* 12-column grid: first row 8+4, then 4x3 */}
+      <div className="grid grid-cols-12 gap-6">
+        {currentData.map((item, index) => {
+          // First item gets 8 cols, second gets 4 cols, rest get 4 cols each
+          const colClass =
+            index === 0
+              ? 'col-span-12 md:col-span-8'
+              : index === 1
+              ? 'col-span-12 md:col-span-4'
+              : 'col-span-12 md:col-span-4';
+          return (
+            <div key={index} className={colClass}>
+              <GalleryCard
+                {...item}
+                onClick={() => onCardClick(currentData, index)}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

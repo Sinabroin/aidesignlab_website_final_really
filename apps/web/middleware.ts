@@ -32,6 +32,11 @@ function isPublicPath(pathname: string): boolean {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // 로컬 개발 환경에서는 인증 우회
+  if (process.env.NODE_ENV === "development") {
+    return NextResponse.next();
+  }
+
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }

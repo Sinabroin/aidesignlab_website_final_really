@@ -30,14 +30,14 @@ export default function PlayDaySection({ onWriteClick, onCardClick }: PlayDaySec
   const currentData = view === 'latest' ? latestData : archiveData;
 
   return (
-    <div className="max-w-[1200px] mx-auto">
-      <div className="mb-12">
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-10">
         <SectionHeader
           title="PlayDay"
           action={<WriteButton onClick={() => onWriteClick('playday')} />}
         />
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 mt-6">
           <FilterButton active={view === 'latest'} onClick={() => setView('latest')}>
             최신 내역
           </FilterButton>
@@ -47,14 +47,24 @@ export default function PlayDaySection({ onWriteClick, onCardClick }: PlayDaySec
         </div>
       </div>
 
-      <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {currentData.map((item, index) => (
-          <GalleryCard
-            key={index}
-            {...item}
-            onClick={() => onCardClick(currentData, index)}
-          />
-        ))}
+      {/* 12-column grid */}
+      <div className="grid grid-cols-12 gap-6">
+        {currentData.map((item, index) => {
+          const colClass =
+            index === 0
+              ? 'col-span-12 md:col-span-8'
+              : index === 1
+              ? 'col-span-12 md:col-span-4'
+              : 'col-span-12 md:col-span-4';
+          return (
+            <div key={index} className={colClass}>
+              <GalleryCard
+                {...item}
+                onClick={() => onCardClick(currentData, index)}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

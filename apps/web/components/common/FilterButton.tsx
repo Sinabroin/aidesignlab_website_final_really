@@ -12,10 +12,10 @@ export default function FilterButton({ active, onClick, children }: FilterButton
   return (
     <button
       onClick={onClick}
-      className={`relative overflow-visible px-5 py-2 rounded-none text-sm font-normal tracking-tight transition-colors ${
+      className={`relative overflow-visible px-5 py-2 rounded-none text-sm font-normal transition-all duration-200 ${
         active
-          ? 'bg-gray-900 text-white shadow-md'
-          : 'bg-white text-gray-700 border-[1.5px] border-gray-200 hover:text-gray-900'
+          ? 'bg-[#111] text-white'
+          : 'bg-white text-[#6B6B6B] border border-[#D9D6D3] hover:border-[#6B6B6B] hover:text-[#111]'
       }`}
     >
       <GlowingEffect

@@ -4,6 +4,7 @@ export interface GalleryItem {
   author: string;
   date: string;
   category: string;
+  thumbnail?: string;
   fullDescription?: string;
   tags?: string[];
   attachments?: {
@@ -23,6 +24,7 @@ export const playdayData: GalleryItem[] = [
     author: "김지수",
     date: "2024.03.15",
     category: "Workshop",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
     session: 3,
     fullDescription: "Midjourney를 활용하여 나만의 AI 프로필 이미지를 생성했습니다. 프롬프트 엔지니어링 기법을 적용하여 원하는 스타일의 이미지를 얻을 수 있었습니다.",
     tags: ["AI", "이미지생성", "프로필"],
@@ -36,6 +38,7 @@ export const playdayData: GalleryItem[] = [
     author: "박민준",
     date: "2024.03.10",
     category: "Data",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
     session: 3,
     fullDescription: "Python의 데이터 시각화 라이브러리와 AI를 결합하여 자동으로 인사이트를 도출하고 차트를 생성하는 시스템을 구축했습니다.",
     tags: ["데이터분석", "Python", "시각화"],
@@ -51,6 +54,7 @@ export const playbookUsecases: GalleryItem[] = [
     author: "ACE팀",
     date: "2024.02.20",
     category: "Usecase",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
     fullDescription: "GPT-4 API를 활용하여 PDF 계약서에서 주요 조항을 자동으로 추출하고 요약하는 시스템을 구축했습니다.",
     tags: ["문서분석", "GPT-4", "자동화"],
     attachments: [
@@ -67,6 +71,7 @@ export const playbookTrends: GalleryItem[] = [
     author: "ACE팀",
     date: "2024.02.15",
     category: "Trend",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
     fullDescription: "2024년 주목해야 할 AI 기술 트렌드를 정리했습니다. Multimodal AI, AI Agent, Edge AI 등이 주요 키워드입니다.",
     tags: ["트렌드", "AI", "기술동향"],
     attachments: []
@@ -80,6 +85,7 @@ export const playbookPrompts: GalleryItem[] = [
     author: "ACE팀",
     date: "2024.02.10",
     category: "Prompt",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
     fullDescription: "AI로부터 정확하고 유용한 답변을 얻기 위한 프롬프트 작성 기법을 소개합니다.",
     tags: ["프롬프트", "ChatGPT", "기법"],
     attachments: []
@@ -93,6 +99,7 @@ export const playbookHAI: GalleryItem[] = [
     author: "ACE팀",
     date: "2024.02.05",
     category: "HAI",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
     fullDescription: "Human-AI Interaction의 다양한 사례를 통해 효과적인 협업 방법을 알아봅니다.",
     tags: ["HAI", "협업", "사례연구"],
     attachments: []
@@ -106,6 +113,7 @@ export const playbookTeams: GalleryItem[] = [
     author: "ACE팀",
     date: "2024.02.12",
     category: "Teams",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
     fullDescription: "팀 협업에 활용할 수 있는 다양한 AI 도구를 소개합니다. Notion AI, Slack AI, 그리고 협업 프롬프트 템플릿 등을 다룹니다.",
     tags: ["Teams", "협업도구", "생산성"],
     attachments: [
@@ -118,6 +126,7 @@ export const playbookTeams: GalleryItem[] = [
     author: "ACE팀",
     date: "2024.02.08",
     category: "Teams",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
     fullDescription: "AI를 활용하여 프로젝트 일정, 리소스, 리스크를 자동으로 관리하는 방법을 소개합니다.",
     tags: ["프로젝트관리", "Teams", "효율화"],
     attachments: []
@@ -132,6 +141,7 @@ export const activityData: GalleryItem[] = [
     author: "이서연",
     date: "2024.02.18",
     category: "Safety",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
     fullDescription: "컴퓨터 비전 AI를 활용하여 작업장의 안전 상태를 실시간으로 모니터링하는 시스템을 개발했습니다.",
     tags: ["안전", "컴퓨터비전", "모니터링"],
     attachments: []
@@ -142,6 +152,7 @@ export const activityData: GalleryItem[] = [
     author: "최준호",
     date: "2024.02.15",
     category: "Planning",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
     fullDescription: "과거 프로젝트 데이터를 학습한 AI 모델로 신규 프로젝트의 완료 시점을 예측합니다.",
     tags: ["일정관리", "예측", "최적화"],
     attachments: []

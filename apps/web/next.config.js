@@ -7,6 +7,7 @@ const nextConfig = {
   },
   // ESLint 9 + next/core-web-vitals circular structure 버그 회피 (로컬 lint는 정상 동작)
   eslint: { ignoreDuringBuilds: true },
+  devIndicators: false,
 };
 
 module.exports = nextConfig;

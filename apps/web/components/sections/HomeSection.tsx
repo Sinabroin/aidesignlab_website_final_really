@@ -1,6 +1,7 @@
 'use client';
 
 import NoticeBanner from '@/components/NoticeBanner';
+import MarqueeShowcase from '@/components/MarqueeShowcase';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
 import { notices, schedules, quickLinks } from '@/data/mockData';
 
@@ -11,139 +12,145 @@ interface HomeSectionProps {
 export default function HomeSection({ onNavigate }: HomeSectionProps) {
   const previews = [
     {
-      icon: '📚',
       title: 'PlayBook',
       subtitle: 'AI를 활용한 업무 혁신 사례',
       items: [
-        { icon: '📚', title: '우수 활용 사례', subtitle: 'AI를 활용한 업무 혁신 사례' },
-        { icon: '📈', title: 'AI Trend', subtitle: '최신 AI 기술 트렌드' }
+        { title: '우수 활용 사례', subtitle: 'AI를 활용한 업무 혁신 사례' },
+        { title: 'AI Trend', subtitle: '최신 AI 기술 트렌드' },
       ],
-      tab: 'playbook'
+      tab: 'playbook',
     },
     {
-      icon: '🎨',
       title: 'PlayDay',
       subtitle: 'AI로 프로필만들기',
       items: [
-        { icon: '🎨', title: '이번 회 이벤트', subtitle: '3월 PlayDay 안내' },
-        { icon: '🎯', title: '지난 활동', subtitle: '이전 PlayDay 아카이브' }
+        { title: '이번 회 이벤트', subtitle: '3월 PlayDay 안내' },
+        { title: '지난 활동', subtitle: '이전 PlayDay 아카이브' },
       ],
-      tab: 'playday'
-    }
+      tab: 'playday',
+    },
   ];
 
-  const handleBannerClick = (noticeIndex: number) => {
-    // 공지사항 페이지로 이동하면서 특정 공지사항 하이라이트
+  const handleBannerClick = () => {
     onNavigate('notices');
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
+      {/* 배너 */}
       <NoticeBanner onNoticeClick={handleBannerClick} />
 
-      {/* 공지사항 */}
-      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
-        <div className="bg-gray-900 p-4">
-          <h2 className="text-2xl font-normal tracking-tight text-white">📢 공지사항</h2>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            {notices.map((notice, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-none hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-4 flex-1">
-                  <span className={`${notice.badgeColor} text-white text-xs font-normal tracking-tight px-3 py-1 rounded-none`}>
-                    {notice.badge}
-                  </span>
-                  <h3 className="font-normal tracking-tight text-gray-900">{notice.title}</h3>
-                </div>
-                <span className="text-sm text-gray-500">{notice.date}</span>
-              </div>
-            ))}
-          </div>
-          
-          {/* MORE 버튼 */}
-          <div className="flex justify-end mt-4">
-            <button
-              onClick={() => onNavigate('notices')}
-              className="relative overflow-visible text-sm text-gray-900 hover:text-gray-700 font-normal tracking-tight flex items-center gap-1 transition-colors"
-            >
-              <GlowingEffect disabled={false} spread={14} movementDuration={1.5} inactiveZone={0.4} borderWidth={2} proximity={10} />
-              <span className="relative z-10">MORE</span>
-              <svg className="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* 마키 쇼케이스 */}
+      <MarqueeShowcase />
 
-      {/* Quick Info Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-50 rounded-none border border-gray-200 p-6">
-          <h3 className="text-lg font-normal tracking-tight text-gray-900 mb-3">📅 이번 주 일정</h3>
-          <ul className="space-y-2 text-sm text-gray-700">
+      {/* 공지사항 */}
+      <section className="bg-white border border-[#D9D6D3] rounded-none overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#D9D6D3]">
+          <h2 className="text-lg font-normal text-[#111]">공지사항</h2>
+        </div>
+        <div className="divide-y divide-[#D9D6D3]">
+          {notices.slice(0, 5).map((notice, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between px-6 py-4 cursor-pointer transition-colors hover:bg-[#FAFBFC]"
+            >
+              <div className="flex items-center gap-3 flex-1">
+                <span className="text-[10px] text-white px-2.5 py-0.5 rounded-none bg-[#111] shrink-0">
+                  {notice.badge}
+                </span>
+                <h3 className="text-sm font-normal text-[#111]">{notice.title}</h3>
+              </div>
+              <span className="text-xs text-[#6B6B6B] shrink-0 ml-4">{notice.date}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end px-6 py-3 border-t border-[#D9D6D3]">
+          <button
+            onClick={() => onNavigate('notices')}
+            className="relative overflow-visible text-xs font-normal text-[#6B6B6B] hover:text-[#0057FF] flex items-center gap-1 transition-colors"
+          >
+            <GlowingEffect disabled={false} spread={14} movementDuration={1.5} inactiveZone={0.4} borderWidth={2} proximity={10} />
+            <span className="relative z-10">MORE</span>
+            <svg className="w-3 h-3 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      {/* Quick Info — 12-column grid */}
+      <section className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 md:col-span-6 bg-white border border-[#D9D6D3] rounded-none p-6">
+          <h3 className="text-sm font-normal text-[#111] mb-4 tracking-[0.08em] uppercase">이번 주 일정</h3>
+          <ul className="space-y-3 text-sm text-[#6B6B6B]">
             {schedules.map((schedule, index) => (
               <li key={index} className="flex items-start gap-2">
-                <span className="text-gray-900 mt-1">•</span>
-                <span><strong>{schedule.date}</strong> - {schedule.event}</span>
+                <span className="w-1 h-1 rounded-none bg-[#D9D6D3] mt-2 shrink-0" />
+                <span><strong className="text-[#111]">{schedule.date}</strong> — {schedule.event}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="bg-gray-50 rounded-none border border-gray-200 p-6">
-          <h3 className="text-lg font-normal tracking-tight text-gray-900 mb-3">🎯 Quick Links</h3>
-          <ul className="space-y-2 text-sm">
+        <div className="col-span-12 md:col-span-6 bg-white border border-[#D9D6D3] rounded-none p-6">
+          <h3 className="text-sm font-normal text-[#111] mb-4 tracking-[0.08em] uppercase">Quick Links</h3>
+          <ul className="space-y-3 text-sm">
             {quickLinks.map((link, index) => (
               <li key={index}>
-                <a href={link.href} className="text-gray-900 hover:text-gray-700 hover:underline font-medium">
-                  → {link.text}
+                <a href={link.href} className="text-[#6B6B6B] hover:text-[#0057FF] transition-colors">
+                  {link.text}
                 </a>
               </li>
             ))}
           </ul>
         </div>
-      </div>
+      </section>
 
-      {previews.map((preview, idx) => (
-        <div key={idx} className="bg-white rounded-none border border-gray-200 p-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-normal tracking-tight text-gray-900">{preview.title}</h2>
-            <button
-              onClick={() => onNavigate(preview.tab)}
-              className="relative overflow-visible text-sm text-gray-900 hover:text-gray-700 font-normal tracking-tight flex items-center gap-1 transition-colors"
-            >
-              <GlowingEffect disabled={false} spread={14} movementDuration={1.5} inactiveZone={0.4} borderWidth={2} proximity={10} />
-              <span className="relative z-10">전체보기</span>
-              <svg className="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {preview.items.map((item, i) => (
-              <div
-                key={i}
-                onClick={() => onNavigate(preview.tab)}
-                className="group cursor-pointer"
-              >
-                <div className="aspect-[16/10] bg-gray-100 rounded-none mb-4 flex items-center justify-center overflow-hidden">
-                  <span className="text-6xl group-hover:scale-110 transition-transform duration-300">
-                    {item.icon}
-                  </span>
-                </div>
-                <h3 className="text-xl font-normal tracking-tight text-gray-900 mb-2 group-hover:text-gray-700 transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-gray-600">{item.subtitle}</p>
+      {/* 섹션 프리뷰 카드 — 12-column Bento grid */}
+      <section className="grid grid-cols-12 gap-6">
+        {previews.map((preview, idx) => (
+          <div
+            key={idx}
+            className="col-span-12 md:col-span-6 group bg-white border border-[#D9D6D3] rounded-none overflow-hidden transition-all duration-200 hover:border-[#6B6B6B] hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] cursor-pointer"
+            onClick={() => onNavigate(preview.tab)}
+          >
+            {/* 이미지 영역 — hover 시 내부 확대 효과 유지 */}
+            <div className="aspect-[16/10] bg-gradient-to-br from-white to-[#EEF4FF] flex items-center justify-center overflow-hidden">
+              <div className="text-center group-hover:scale-105 transition-transform duration-300">
+                <h2 className="text-3xl md:text-4xl font-light tracking-[0.08em] text-[#111]">
+                  {preview.title}
+                </h2>
+                <p className="text-sm text-[#6B6B6B] mt-2">{preview.subtitle}</p>
               </div>
-            ))}
+            </div>
+
+            <div className="p-6">
+              <div className="space-y-3">
+                {preview.items.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-normal text-[#111]">{item.title}</h3>
+                      <p className="text-xs text-[#6B6B6B] mt-0.5">{item.subtitle}</p>
+                    </div>
+                    <svg className="w-4 h-4 text-[#D9D6D3] group-hover:text-[#0057FF] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-[#D9D6D3] flex justify-end">
+                <span className="relative overflow-visible text-xs font-normal text-[#6B6B6B] group-hover:text-[#0057FF] flex items-center gap-1 transition-colors">
+                  <GlowingEffect disabled={false} spread={14} movementDuration={1.5} inactiveZone={0.4} borderWidth={2} proximity={10} />
+                  <span className="relative z-10">전체보기</span>
+                  <svg className="w-3 h-3 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </section>
     </div>
   );
 }

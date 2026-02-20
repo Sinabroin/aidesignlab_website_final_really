@@ -9,10 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next-auth": "^4.24.10",
     "clsx": "^2.1.0",
+    "lucide-react": "^0.564.0",
     "motion": "^11.11.17",
     "next": "^15.1.0",
+    "next-auth": "^4.24.10",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "tailwind-merge": "^2.2.0"

@@ -3,6 +3,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { playdayData, playbookUsecases, playbookTrends, playbookPrompts, playbookHAI, activityData, GalleryItem } from '@/data/mockData';
+import {
+  getAllowlists,
+  addToAllowlist,
+  removeFromAllowlist,
+  ApiError,
+} from '@/lib/api/admin';
 
 const FIXED_OPERATOR_EMAIL = '2501034@hdec.co.kr';
 
@@ -150,16 +156,15 @@ function PermissionsTab() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/allowlist');
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || `조회 실패 (${res.status})`);
-      }
-      const data = await res.json();
+      const data = await getAllowlists();
       setOperators(data.operators ?? []);
       setCommunity(data.community ?? []);
     } catch (e) {
-      setError(e instanceof Error ? e.message : '목록을 불러올 수 없습니다.');
+      if (e instanceof ApiError) {
+        setError(e.data.message || '목록을 불러올 수 없습니다.');
+      } else {
+        setError(e instanceof Error ? e.message : '목록을 불러올 수 없습니다.');
+      }
     } finally {
       setLoading(false);
     }
@@ -175,17 +180,15 @@ function PermissionsTab() {
     if (!email) return;
     setAdding(true);
     try {
-      const res = await fetch('/api/admin/allowlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role: addRole }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message || '추가 실패');
+      await addToAllowlist({ email, role: addRole });
       setAddEmail('');
       await fetchAllowlist();
     } catch (e) {
-      setError(e instanceof Error ? e.message : '추가할 수 없습니다.');
+      if (e instanceof ApiError) {
+        setError(e.data.message || '추가할 수 없습니다.');
+      } else {
+        setError(e instanceof Error ? e.message : '추가할 수 없습니다.');
+      }
     } finally {
       setAdding(false);
     }
@@ -195,15 +198,14 @@ function PermissionsTab() {
     if (role === 'operator' && email === FIXED_OPERATOR_EMAIL) return;
     setRemoving(email);
     try {
-      const res = await fetch(
-        `/api/admin/allowlist?email=${encodeURIComponent(email)}&role=${role}`,
-        { method: 'DELETE' }
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message || '제거 실패');
+      await removeFromAllowlist({ email, role });
       await fetchAllowlist();
     } catch (e) {
-      setError(e instanceof Error ? e.message : '제거할 수 없습니다.');
+      if (e instanceof ApiError) {
+        setError(e.data.message || '제거할 수 없습니다.');
+      } else {
+        setError(e instanceof Error ? e.message : '제거할 수 없습니다.');
+      }
     } finally {
       setRemoving(null);
     }

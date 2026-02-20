@@ -9,7 +9,7 @@ interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
 
 /**
  * Aurora Background Component
- * 
+ *
  * 오로라 효과를 가진 배경 컴포넌트
  * Sky Blue 계열로 커스터마이징
  */
@@ -28,11 +28,11 @@ export const AuroraBackground = ({
         )}
         {...props}
       >
-        {/* Aurora 효과 레이어 */}
-        <div className="absolute inset-0 overflow-hidden">
+        {/* Aurora 효과 레이어 - pointer-events-none으로 클릭 통과 */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div
             className={cn(
-              "absolute -inset-[10px] opacity-50",
+              "absolute -inset-[10px] opacity-70",
               "bg-[length:300%_200%] bg-[position:50%_50%]",
               "animate-aurora",
               "blur-[10px]",
@@ -45,10 +45,10 @@ export const AuroraBackground = ({
               `,
             }}
           ></div>
-          
+
           {/* 추가 Aurora 레이어 */}
           <div
-            className="absolute inset-0 opacity-40 mix-blend-overlay"
+            className="absolute inset-0 opacity-60 mix-blend-overlay"
             style={{
               backgroundImage: `
                 repeating-linear-gradient(100deg, var(--white) 0%, var(--white) 7%, var(--transparent) 10%, var(--transparent) 12%, var(--white) 16%),
@@ -60,7 +60,7 @@ export const AuroraBackground = ({
             }}
           ></div>
         </div>
-        
+
         {/* 컨텐츠 */}
         <div className="relative z-10 w-full h-full">
           {children}

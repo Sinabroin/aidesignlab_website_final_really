@@ -19,10 +19,12 @@ export default function WritePost({ onClose, section }: WritePostProps) {
   const [category, setCategory] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [videos, setVideos] = useState<File[]>([]);
   const [files, setFiles] = useState<File[]>([]);
-  
+
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,16 +80,16 @@ export default function WritePost({ onClose, section }: WritePostProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // 실제 제출 로직 구현
-    console.log({ section, title, category, content, hashtags, images, videos, files });
+    console.log({ section, title, category, content, hashtags, thumbnail, images, videos, files });
     alert('게시글이 등록되었습니다!');
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-4xl my-8 bg-white rounded-none shadow-2xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-4xl max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-none shadow-2xl overflow-hidden">
         {/* 헤더 */}
-        <div className="bg-gray-900 p-6 rounded-none">
+        <div className="flex-shrink-0 bg-[#111] p-6 rounded-none">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white/20 rounded-none flex items-center justify-center">
@@ -109,7 +111,8 @@ export default function WritePost({ onClose, section }: WritePostProps) {
         </div>
 
         {/* 폼 */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* 제목 */}
           <div>
             <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
@@ -179,6 +182,51 @@ export default function WritePost({ onClose, section }: WritePostProps) {
             />
           </div>
 
+          {/* 썸네일 이미지 */}
+          <div>
+            <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
+              썸네일 이미지
+            </label>
+            {thumbnail ? (
+              <div className="relative aspect-[16/10] max-w-md bg-gray-100 rounded-none overflow-hidden group">
+                <img
+                  src={URL.createObjectURL(thumbnail)}
+                  alt="썸네일 미리보기"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setThumbnail(null)}
+                  className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => thumbnailInputRef.current?.click()}
+                className="w-full max-w-md aspect-[16/10] border-2 border-dashed border-gray-300 rounded-none flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-gray-500 hover:text-gray-500 transition-colors cursor-pointer"
+              >
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-sm">클릭하여 썸네일 이미지 선택</span>
+              </button>
+            )}
+            <input
+              ref={thumbnailInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files?.[0]) setThumbnail(e.target.files[0]);
+              }}
+              className="hidden"
+            />
+          </div>
+
           {/* 해시태그 + 키워드 */}
           <div>
             <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
@@ -196,7 +244,7 @@ export default function WritePost({ onClose, section }: WritePostProps) {
               <button
                 type="button"
                 onClick={addHashtag}
-                className="relative overflow-visible px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-colors"
+                className="relative overflow-visible px-6 py-3 bg-[#111] hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-colors"
               >
                 <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
                 <span className="relative z-10">추가</span>
@@ -378,9 +426,10 @@ export default function WritePost({ onClose, section }: WritePostProps) {
               </div>
             </div>
           )}
+          </div>
 
           {/* 제출 버튼 */}
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex-shrink-0 flex gap-3 p-6 pt-4 border-t bg-white">
             <button
               type="button"
               onClick={onClose}
@@ -391,7 +440,7 @@ export default function WritePost({ onClose, section }: WritePostProps) {
             </button>
             <button
               type="submit"
-              className="relative overflow-visible flex-1 py-3 bg-gray-900 hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-all shadow-lg"
+              className="relative overflow-visible flex-1 py-3 bg-[#111] hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-all shadow-lg"
             >
               <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
               <span className="relative z-10">등록하기</span>
