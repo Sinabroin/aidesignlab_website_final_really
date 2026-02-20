@@ -59,30 +59,31 @@ export default function PlaygroundPage() {
   return (
     <div className="min-h-screen bg-white hero-tone-level6">
       {/* 운영자 페이지 버튼 */}
-      <div className="fixed top-4 left-4 z-50">
+      <div className="fixed top-3 md:top-4 left-3 md:left-4 z-50">
         <button
           onClick={() => window.location.href = '/admin'}
-          className="relative overflow-visible flex items-center gap-2 bg-white/90 backdrop-blur border border-line rounded-none px-4 py-2 text-sm text-ink hover:border-muted transition-colors shadow-soft"
+          className="relative overflow-visible flex items-center gap-1.5 md:gap-2 bg-white/90 backdrop-blur border border-line rounded-none px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-ink hover:border-muted transition-colors shadow-soft"
         >
           <GlowingEffect disabled={false} spread={16} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
-          <svg className="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 md:w-4 md:h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span className="relative z-10 font-normal">운영자 페이지</span>
+          <span className="relative z-10 font-normal hidden sm:inline">운영자 페이지</span>
+          <span className="relative z-10 font-normal sm:hidden">관리</span>
         </button>
       </div>
 
       {/* 히어로 헤더 — 청량한 블루 그라데이션 */}
       <div
-        className="bg-hero min-h-[28vh] flex items-end cursor-pointer transition-opacity hover:opacity-95"
+        className="bg-hero min-h-[28vh] flex items-end cursor-pointer transition-opacity hover:opacity-95 pt-16 md:pt-0"
         onClick={() => setActiveTab('home')}
       >
-        <div className="max-w-6xl mx-auto px-6 w-full pb-10">
-          <h1 className="text-5xl md:text-6xl font-light tracking-[0.08em] text-ink">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 w-full pb-6 md:pb-10">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.08em] text-ink">
             PLAYGROUND
           </h1>
-          <p className="text-lg mt-2 text-muted">
+          <p className="text-base md:text-lg mt-2 text-muted">
             Connect AI to your work
           </p>
         </div>
@@ -90,8 +91,8 @@ export default function PlaygroundPage() {
 
       {/* 네비게이션 바 */}
       <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-line">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex gap-8 items-center">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <div className="flex gap-2 md:gap-4 lg:gap-8 items-center overflow-x-auto scrollbar-hide">
             <TabButton active={activeTab === 'home'} onClick={() => setActiveTab('home')}>
               Home
             </TabButton>
@@ -105,7 +106,7 @@ export default function PlaygroundPage() {
             {/* ACE 커뮤니티 */}
             <Link
               href="/community"
-              className="group relative overflow-visible px-2 py-4 font-normal text-sm text-muted hover:text-[#0057FF] transition-colors flex items-center gap-2"
+              className="group relative overflow-visible px-2 py-4 font-normal text-xs md:text-sm text-muted hover:text-[#0057FF] transition-colors flex items-center gap-1 md:gap-2 whitespace-nowrap flex-shrink-0"
             >
               <GlowingEffect
                 disabled={false}
@@ -121,7 +122,7 @@ export default function PlaygroundPage() {
                 aria-hidden
               />
               <span className="relative z-10">ACE 커뮤니티</span>
-              <span className="relative z-10 text-[10px] text-white px-2 py-0.5 rounded-none bg-ink">
+              <span className="relative z-10 text-[9px] md:text-[10px] text-white px-1.5 md:px-2 py-0.5 rounded-none bg-ink">
                 권한 필요
               </span>
             </Link>
@@ -142,7 +143,7 @@ export default function PlaygroundPage() {
       )}
 
       {/* 컨텐츠 영역 */}
-      <div className="max-w-6xl mx-auto px-6 py-16">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-16">
         {activeTab === 'home' && <HomeSection onNavigate={(tab) => setActiveTab(tab as Tab)} />}
         {activeTab === 'playbook' && <PlayBookSection onWriteClick={handleWriteClick} onCardClick={openPreview} />}
         {activeTab === 'playday' && <PlayDaySection onWriteClick={handleWriteClick} onCardClick={openPreview} />}

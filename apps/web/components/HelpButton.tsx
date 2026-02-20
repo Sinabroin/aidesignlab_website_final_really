@@ -11,11 +11,11 @@ export default function HelpButton({ onClick }: HelpButtonProps) {
     <>
       <button
         onClick={onClick}
-        className="fixed top-20 right-6 z-50 group"
+        className="fixed top-24 md:top-20 right-4 md:right-6 z-50 group"
         aria-label="도와줘요 ACE!"
       >
         <div className="relative">
-          <div className="relative overflow-visible bg-white border border-[#D9D6D3] hover:border-[#6B6B6B] rounded-none px-5 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-300 animate-float">
+          <div className="relative overflow-visible bg-white border border-[#D9D6D3] hover:border-[#6B6B6B] rounded-none px-3 py-2 md:px-5 md:py-3 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-300 animate-float">
             <GlowingEffect
               disabled={false}
               spread={20}
@@ -24,11 +24,12 @@ export default function HelpButton({ onClick }: HelpButtonProps) {
               borderWidth={2}
               proximity={15}
             />
-            <span className="relative z-10 text-[#111] font-normal text-sm whitespace-nowrap flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="relative z-10 text-[#111] font-normal text-xs md:text-sm whitespace-nowrap flex items-center gap-1.5 md:gap-2">
+              <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              도와줘요 ACE!
+              <span className="hidden sm:inline">도와줘요 ACE!</span>
+              <span className="sm:hidden">도움</span>
             </span>
           </div>
         </div>

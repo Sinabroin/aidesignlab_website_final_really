@@ -92,6 +92,15 @@
   .animate-fade-in-delay-2 {
     animation: fadeIn 1s ease-out 0.6s both;
   }
+
+  /* 스크롤바 숨기기 (모바일 네비게이션용) */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+  }
 }
 
 @keyframes fadeIn {

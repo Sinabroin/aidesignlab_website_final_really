@@ -15,7 +15,7 @@ export default function TabButton({ active, onClick, children }: TabButtonProps)
   return (
     <button
       onClick={onClick}
-      className={`group relative overflow-visible py-4 px-2 font-normal text-sm transition-colors ${
+      className={`group relative overflow-visible py-3 md:py-4 px-1.5 md:px-2 font-normal text-xs md:text-sm transition-colors flex-shrink-0 ${
         active ? 'text-[#111]' : 'text-[#6B6B6B] hover:text-[#0057FF]'
       }`}
     >
