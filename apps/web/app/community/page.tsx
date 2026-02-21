@@ -1,11 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { hasRole } from "@/lib/auth/rbac";
-import ACECommunitySection from "@/components/sections/ACECommunitySection";
 import LogoutButton from "@/components/common/LogoutButton";
-import { useState } from "react";
-import GalleryModal from "@/components/GalleryModal";
-import { GalleryItem } from "@/data/mockData";
 
 // 동적 렌더링 강제 (cookies 사용하기 때문에)
 export const dynamic = 'force-dynamic';
@@ -34,25 +30,26 @@ export default async function CommunityPage() {
     redirect("/unauthorized?reason=community_only");
   }
 
-  // 권한 있음 - 커뮤니티 페이지 렌더링
+  // 권한 있음 - 커뮤니티 페이지 렌더링 (Playground와 동일한 디자인 톤)
   return (
-    <div className="min-h-screen bg-white">
-      {/* 헤더 */}
-      <div className="bg-gray-900 text-white pt-12 pb-12">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-white hero-tone-level6">
+      {/* 히어로 헤더 — Playground와 동일한 청량한 블루 그라데이션 */}
+      <div className="bg-hero min-h-[28vh] flex items-end pt-16 md:pt-0">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 w-full pb-6 md:pb-10">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <h1 className="text-5xl md:text-6xl font-normal tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.08em] text-ink">
                 ACE 커뮤니티
               </h1>
-              <p className="text-lg mt-2">ACE & AI디자인랩 운영진 전용</p>
+              <p className="text-base md:text-lg mt-2 text-muted">
+                ACE & AI디자인랩 운영진 전용
+              </p>
             </div>
-            
             {/* 사용자 정보 & 로그아웃 */}
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-none px-6 py-3">
-              <div className="text-right">
-                <p className="font-normal tracking-tight">{user.name || user.id}</p>
-                <p className="text-sm opacity-90">{user.email}</p>
+            <div className="flex items-center gap-3 bg-white/90 backdrop-blur border border-line rounded-none px-4 py-2.5 shadow-soft">
+              <div className="text-right min-w-0">
+                <p className="font-normal tracking-tight text-ink truncate text-sm">{user.name || user.id}</p>
+                <p className="text-xs text-muted truncate max-w-[180px] sm:max-w-none">{user.email}</p>
               </div>
               <LogoutButton />
             </div>
@@ -60,24 +57,29 @@ export default async function CommunityPage() {
         </div>
       </div>
 
-      {/* 네비게이션 */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="flex gap-8">
+      {/* 네비게이션 — Playground 스타일 통일 */}
+      <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-line">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <div className="flex items-center">
             <a
               href="/playground"
-              className="px-4 py-4 text-gray-600 hover:text-gray-900 transition-colors"
+              className="py-3 md:py-4 px-2 font-normal text-xs md:text-sm text-muted hover:text-[#0057FF] transition-colors"
             >
               ← Playground로 돌아가기
             </a>
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* 컨텐츠 */}
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-12">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-16">
         <CommunitySectionWrapper />
       </div>
+
+      {/* 푸터 — Playground와 동일 */}
+      <footer className="border-t border-line py-12 text-center text-muted text-sm">
+        © 2025 AI Design Lab
+      </footer>
     </div>
   );
 }

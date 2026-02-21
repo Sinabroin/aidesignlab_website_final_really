@@ -36,7 +36,7 @@ export default function ACECommunitySection({ onWriteClick, onCardClick }: ACECo
       });
 
   return (
-    <div className="max-w-[1200px] mx-auto">
+    <div className="max-w-6xl mx-auto w-full">
       <div className="mb-8">
         <SectionHeader
           title="ACE 커뮤니티"
