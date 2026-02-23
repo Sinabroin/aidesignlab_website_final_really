@@ -126,6 +126,15 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
 
   const [isPublishing, setIsPublishing] = useState(false);
 
+  function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -143,6 +152,7 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
     }
     setIsPublishing(true);
     try {
+      const thumbnailBase64 = thumbnail ? await fileToBase64(thumbnail) : undefined;
       const res = await fetch('/api/data/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -152,6 +162,7 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
           title: title.trim(),
           description: content,
           tags: hashtags,
+          thumbnailBase64,
         }),
       });
       if (!res.ok) {

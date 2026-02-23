@@ -30,12 +30,13 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { section, category, title, description, tags } = body as {
+    const { section, category, title, description, tags, thumbnailBase64 } = body as {
       section: string;
       category: string;
       title: string;
       description: string;
       tags?: string[];
+      thumbnailBase64?: string;
     };
 
     if (!section || !category || !title) {
@@ -55,6 +56,7 @@ export async function POST(req: Request) {
       author,
       category,
       tags,
+      thumbnail: thumbnailBase64,
     });
 
     return NextResponse.json(item, { status: 201 });

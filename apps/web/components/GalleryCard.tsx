@@ -16,22 +16,31 @@ interface GalleryCardProps {
 }
 
 const PLACEHOLDER_IMAGES: Record<string, string> = {
-  Workshop:
-    "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
-  Data: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
-  Usecase:
-    "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
-  Trend: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
-  Prompt: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
-  HAI: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
-  Teams: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
-  Safety: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
-  Planning:
-    "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
-  "AI System":
-    "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
-  Design: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
+  workshop: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
+  data: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
+  usecase: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
+  trend: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
+  prompt: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
+  hai: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
+  teams: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
+  safety: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
+  planning: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
+  "ai system": "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
+  design: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
+  seminar: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
+  contest: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h4.jpg",
+  networking: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h2.jpg",
+  interview: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg",
 };
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+}
+
+function getPlaceholderImage(category: string): string {
+  const key = category.toLowerCase();
+  return PLACEHOLDER_IMAGES[key] ?? PLACEHOLDER_IMAGES.workshop;
+}
 
 export default function GalleryCard({
   title,
@@ -44,8 +53,7 @@ export default function GalleryCard({
   readMoreLink = "#",
   onClick,
 }: GalleryCardProps) {
-  const imageSrc =
-    thumbnail || imageUrl || PLACEHOLDER_IMAGES[category] || PLACEHOLDER_IMAGES.Workshop;
+  const imageSrc = thumbnail || imageUrl || getPlaceholderImage(category);
 
   const handleClick = () => {
     if (onClick) onClick();
@@ -89,7 +97,7 @@ export default function GalleryCard({
             {title}
           </h3>
           <p className="text-sm text-[#6B6B6B] mb-4 line-clamp-2 leading-relaxed">
-            {description}
+            {stripHtml(description)}
           </p>
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#6B6B6B]">

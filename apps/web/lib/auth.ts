@@ -37,6 +37,7 @@ function buildProviders(): AuthProvider[] {
         clientSecret: AZURE_AD_CLIENT_SECRET,
         tenantId: AZURE_AD_TENANT_ID,
         authorization: { params: { scope: "openid profile email" } },
+        allowDangerousEmailAccountLinking: true,
       })
     );
   }
