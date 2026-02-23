@@ -1,5 +1,5 @@
 /** Poster Code Embed Tiptap Node - posterId, html, css */
-import { Node } from '@tiptap/core';
+import * as TiptapCore from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import PosterEmbedContent from './PosterEmbedContent';
 
@@ -10,7 +10,7 @@ function generatePosterId(): string {
   return `poster_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export const PosterEmbed = Node.create({
+export const PosterEmbed = TiptapCore.Node.create({
   name: 'posterEmbed',
 
   group: 'block',
