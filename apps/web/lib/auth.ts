@@ -59,17 +59,22 @@ export const authOptions: NextAuthOptions = {
       if (isAllowedEmailDomain(user.email)) return true;
       return "/unauthorized?reason=email_domain_not_allowed";
     },
-    async jwt({ token, profile }) {
+    async jwt({ token, user, profile }) {
+      if (user) {
+        token.name = user.name ?? token.name;
+        token.email = user.email ?? token.email;
+      }
       if (profile) {
-        token.email = (profile as Record<string, string>).email ?? token.email;
-        token.name = (profile as Record<string, string>).name ?? token.name;
+        const p = profile as Record<string, string>;
+        token.name = token.name ?? p.name ?? p.preferred_username;
+        token.email = token.email ?? p.email ?? p.preferred_username;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.email = token.email as string;
-        session.user.name = token.name as string;
+        session.user.name = (token.name as string | null) ?? session.user.name;
+        session.user.email = (token.email as string | null) ?? session.user.email;
       }
       return session;
     },

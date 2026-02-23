@@ -29,12 +29,16 @@ export default function ACECommunitySection({ onWriteClick, onCardClick }: ACECo
     ? activityData
     : activityData.filter(item => {
         const categoryMap: Record<string, ActivityCategory> = {
+          'safety': 'safety',
+          'planning': 'planning',
+          'ai': 'ai',
+          'design': 'design',
           'Safety': 'safety',
           'Planning': 'planning',
           'AI System': 'ai',
-          'Design': 'design'
+          'Design': 'design',
         };
-        return categoryMap[item.category] === category;
+        return categoryMap[item.category.toLowerCase()] === category;
       });
 
   if (error) {

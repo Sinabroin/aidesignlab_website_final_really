@@ -11,6 +11,7 @@ import type { GalleryItem } from '@/types';
  */
 export default function ACECommunitySectionClient() {
   const [showWriteModal, setShowWriteModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalItems, setModalItems] = useState<GalleryItem[]>([]);
   const [currentModalIndex, setCurrentModalIndex] = useState(0);
@@ -29,16 +30,18 @@ export default function ACECommunitySectionClient() {
 
   return (
     <>
-      <ACECommunitySection 
-        onWriteClick={handleWriteClick} 
-        onCardClick={openModal} 
+      <ACECommunitySection
+        key={refreshKey}
+        onWriteClick={handleWriteClick}
+        onCardClick={openModal}
       />
 
       {/* 글쓰기 모달 */}
       {showWriteModal && (
-        <WritePost 
+        <WritePost
           onClose={() => setShowWriteModal(false)}
           section="activity"
+          onPublished={() => setRefreshKey((k) => k + 1)}
         />
       )}
 
