@@ -3,14 +3,16 @@
 /** 포맷팅 툴바 - Bold, Italic, Heading, List 등, + 포스터 */
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import type { Editor } from '@tiptap/core';
+import type { useEditor } from '@tiptap/react';
 import PosterInsertModal from './PosterEmbed/PosterInsertModal';
 import { generatePosterId } from './PosterEmbed';
 import { isAdvancedUser } from '@/lib/auth/rbac';
 import type { User } from '@/lib/auth/rbac';
 
+type EditorInstance = NonNullable<ReturnType<typeof useEditor>>;
+
 interface EditorToolbarProps {
-  editor: Editor | null;
+  editor: EditorInstance | null;
 }
 
 function ToolbarButton({
