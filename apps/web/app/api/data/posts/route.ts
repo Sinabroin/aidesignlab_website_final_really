@@ -59,7 +59,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json(item, { status: 201 });
   } catch (err) {
-    console.error("[POST /api/data/posts]", err);
-    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[POST /api/data/posts]", message);
+    return NextResponse.json(
+      { error: `서버 오류: ${message}` },
+      { status: 500 }
+    );
   }
 }
