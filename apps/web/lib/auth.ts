@@ -1,8 +1,9 @@
 import type { NextAuthOptions } from "next-auth";
-import type { Provider } from "next-auth/providers";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getPrismaClient } from "@/lib/db";
+
+type AuthProvider = NextAuthOptions["providers"][number];
 
 function isAllowedEmailDomain(email: string | null | undefined): boolean {
   if (!email) return false;
@@ -21,8 +22,8 @@ function getAdapter() {
   return PrismaAdapter(getPrismaClient());
 }
 
-function buildProviders(): Provider[] {
-  const providers: Provider[] = [];
+function buildProviders(): AuthProvider[] {
+  const providers: AuthProvider[] = [];
 
   const { AZURE_AD_CLIENT_ID, AZURE_AD_CLIENT_SECRET, AZURE_AD_TENANT_ID } =
     process.env;
