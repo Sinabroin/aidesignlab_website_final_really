@@ -14,6 +14,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const callbackUrl = params.callbackUrl ?? "/playground";
   const error = params.error;
+  if (error) {
+    // #region agent log
+    fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-debug-3",hypothesisId:"D1-D3",location:"app/login/page.tsx",message:"login page rendered with error",data:{error,hasCallbackUrl:!!callbackUrl},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">

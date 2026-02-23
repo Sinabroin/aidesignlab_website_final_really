@@ -4,6 +4,49 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 type AuthProvider = NextAuthOptions["providers"][number];
 
+function logAuthDebug(
+  runId: string,
+  hypothesisId: string,
+  location: string,
+  message: string,
+  data: Record<string, unknown>
+) {
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId,hypothesisId,location,message,data,timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+}
+
+function getAadCode(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const match = value.match(/AADSTS\d+/);
+  return match?.[0] ?? null;
+}
+
+function buildLoggerMetadata(metadata: unknown): Record<string, unknown> {
+  const obj = metadata && typeof metadata === "object" ? (metadata as Record<string, unknown>) : {};
+  const errorObj = obj.error && typeof obj.error === "object" ? (obj.error as Record<string, unknown>) : {};
+  const bodyObj = obj.body && typeof obj.body === "object" ? (obj.body as Record<string, unknown>) : {};
+  const topLevelError = typeof obj.error === "string" ? obj.error : null;
+  const topLevelDescription =
+    typeof obj.error_description === "string" ? obj.error_description : null;
+  const bodyError = typeof bodyObj.error === "string" ? bodyObj.error : null;
+  const bodyDescription = typeof bodyObj.error_description === "string" ? bodyObj.error_description : null;
+  return {
+    metadataKeys: Object.keys(obj),
+    topLevelError,
+    topLevelDescriptionHead: topLevelDescription?.slice(0, 220) ?? null,
+    errorName: typeof errorObj.name === "string" ? errorObj.name : null,
+    errorMessageHead:
+      typeof errorObj.message === "string" ? errorObj.message.slice(0, 180) : null,
+    aadCode:
+      getAadCode(topLevelError) ??
+      getAadCode(topLevelDescription) ??
+      getAadCode(bodyError) ??
+      getAadCode(bodyDescription) ??
+      getAadCode(errorObj.message),
+  };
+}
+
 function isAllowedEmailDomain(email: string | null | undefined): boolean {
   if (!email) return false;
   const domains = (process.env.ALLOWED_EMAIL_DOMAINS ?? "hdec.co.kr")
@@ -59,10 +102,32 @@ function buildProviders(): AuthProvider[] {
 
 export const authOptions: NextAuthOptions = {
   providers: buildProviders(),
+  logger: {
+    error(code, metadata) {
+      logAuthDebug("auth-debug-4", "E1-E3", "lib/auth.ts:logger:error", "nextauth logger error", {
+        code,
+        hasMetadata: !!metadata,
+        ...buildLoggerMetadata(metadata),
+      });
+    },
+    warn(code) {
+      logAuthDebug("auth-debug-4", "E1-E3", "lib/auth.ts:logger:warn", "nextauth logger warn", {
+        code,
+      });
+    },
+    debug(code, metadata) {
+      logAuthDebug("auth-debug-4", "E1-E3", "lib/auth.ts:logger:debug", "nextauth logger debug", {
+        code,
+        hasMetadata: !!metadata,
+        ...buildLoggerMetadata(metadata),
+      });
+    },
+  },
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account, profile }) {
+      const profileData = (profile ?? {}) as Record<string, string | undefined>;
       // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-debug-1",hypothesisId:"H1-H3",location:"lib/auth.ts:signIn:entry",message:"signIn callback entry",data:{hasAzureClientId:!!process.env.AZURE_AD_CLIENT_ID,hasUser:!!user,hasEmail:!!user?.email,emailDomain:user?.email?.split("@")[1]??null},timestamp:Date.now()})}).catch(()=>{});
+      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-debug-2",hypothesisId:"C1-C2",location:"lib/auth.ts:signIn:entry",message:"signIn callback entry",data:{provider:account?.provider??null,hasAzureClientId:!!process.env.AZURE_AD_CLIENT_ID,hasUser:!!user,hasEmail:!!user?.email,emailDomain:user?.email?.split("@")[1]??null,hasProfile:!!profile,hasProfileEmail:!!profileData.email,hasPreferredUsername:!!profileData.preferred_username,preferredUsernameDomain:profileData.preferred_username?.split("@")[1]??null,preferredUsernameHasExt:profileData.preferred_username?.includes("#EXT#")??false},timestamp:Date.now()})}).catch(()=>{});
       // #endregion
       if (!process.env.AZURE_AD_CLIENT_ID) return true;
       if (!user?.email) {
