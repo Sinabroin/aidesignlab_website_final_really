@@ -53,21 +53,10 @@ function buildProviders(): AuthProvider[] {
 export const authOptions: NextAuthOptions = {
   providers: buildProviders(),
   callbacks: {
-    async signIn({ user, account }) {
-      // #region agent log
-      console.log("[AUTH_DEBUG] signIn callback", {
-        hasEmail: !!user?.email,
-        emailDomain: user?.email?.split("@")[1],
-        provider: account?.provider,
-        hasAzureConfig: !!process.env.AZURE_AD_CLIENT_ID,
-      });
-      // #endregion
+    async signIn({ user }) {
       if (!process.env.AZURE_AD_CLIENT_ID) return true;
       if (!user?.email) return false;
       if (isAllowedEmailDomain(user.email)) return true;
-      // #region agent log
-      console.log("[AUTH_DEBUG] domain not allowed:", user.email);
-      // #endregion
       return "/unauthorized?reason=email_domain_not_allowed";
     },
     async jwt({ token, profile }) {
