@@ -1,5 +1,6 @@
 /** Poster Code Embed Tiptap Node - posterId, html, css */
-import * as TiptapCore from '@tiptap/core';
+// @ts-ignore - Vercel 빌드 시 @tiptap/core Node export 타입 해석 실패 (런타임에는 정상 동작)
+import { Node } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import PosterEmbedContent from './PosterEmbedContent';
 
@@ -10,7 +11,7 @@ function generatePosterId(): string {
   return `poster_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export const PosterEmbed = TiptapCore.Node.create({
+export const PosterEmbed = Node.create({
   name: 'posterEmbed',
 
   group: 'block',
