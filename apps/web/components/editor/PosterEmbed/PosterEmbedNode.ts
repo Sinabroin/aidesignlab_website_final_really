@@ -1,5 +1,4 @@
 /** Poster Code Embed Tiptap Node - posterId, html, css */
-// @ts-ignore - Vercel 빌드 시 @tiptap/core Node export 타입 해석 실패 (런타임에는 정상 동작)
 import { Node } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import PosterEmbedContent from './PosterEmbedContent';
@@ -22,21 +21,19 @@ export const PosterEmbed = Node.create({
     return {
       posterId: {
         default: null,
-        parseHTML: (el: HTMLElement) => el.getAttribute('data-poster-id'),
-        renderHTML: (attrs: Record<string, string>) =>
+        parseHTML: (el) => el.getAttribute('data-poster-id'),
+        renderHTML: (attrs) =>
           attrs.posterId ? { 'data-poster-id': attrs.posterId } : {},
       },
       html: {
         default: '',
-        parseHTML: (el: HTMLElement) => el.getAttribute('data-html') ?? '',
-        renderHTML: (attrs: Record<string, string>) =>
-          attrs.html ? { 'data-html': attrs.html } : {},
+        parseHTML: (el) => el.getAttribute('data-html') ?? '',
+        renderHTML: (attrs) => (attrs.html ? { 'data-html': attrs.html } : {}),
       },
       css: {
         default: '',
-        parseHTML: (el: HTMLElement) => el.getAttribute('data-css') ?? '',
-        renderHTML: (attrs: Record<string, string>) =>
-          attrs.css ? { 'data-css': attrs.css } : {},
+        parseHTML: (el) => el.getAttribute('data-css') ?? '',
+        renderHTML: (attrs) => (attrs.css ? { 'data-css': attrs.css } : {}),
       },
     };
   },
@@ -45,16 +42,15 @@ export const PosterEmbed = Node.create({
     return [
       {
         tag: 'div',
-        getAttrs: (node: string | HTMLElement) =>
-          typeof node !== 'string' &&
-          node.getAttribute('data-type') === 'poster-embed'
+        getAttrs: (node) =>
+          (node as HTMLElement).getAttribute('data-type') === 'poster-embed'
             ? {}
             : false,
       },
     ];
   },
 
-  renderHTML({ HTMLAttributes }: { HTMLAttributes: Record<string, string> }) {
+  renderHTML({ HTMLAttributes }) {
     return ['div', { 'data-type': 'poster-embed', ...HTMLAttributes }];
   },
 
@@ -66,7 +62,7 @@ export const PosterEmbed = Node.create({
     return {
       insertPosterEmbed:
         (attrs: { posterId: string; html: string; css: string }) =>
-        ({ commands }: { commands: { insertContent: (arg: unknown) => boolean } }) =>
+        ({ commands }) =>
           commands.insertContent({
             type: this.name,
             attrs: {
