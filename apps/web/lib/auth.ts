@@ -1,7 +1,6 @@
+/** NextAuth 인증 설정 — JWT 세션 방식, PrismaAdapter 미사용 */
 import type { NextAuthOptions } from "next-auth";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getPrismaClient } from "@/lib/db";
 
 type AuthProvider = NextAuthOptions["providers"][number];
 
@@ -15,11 +14,6 @@ function isAllowedEmailDomain(email: string | null | undefined): boolean {
   const userDomain = email.split("@")[1]?.toLowerCase();
   if (!userDomain) return false;
   return domains.some((d) => userDomain === d);
-}
-
-function getAdapter() {
-  if (!process.env.DATABASE_URL) return undefined;
-  return PrismaAdapter(getPrismaClient());
 }
 
 function buildProviders(): AuthProvider[] {
@@ -37,7 +31,6 @@ function buildProviders(): AuthProvider[] {
         clientSecret: AZURE_AD_CLIENT_SECRET,
         tenantId: AZURE_AD_TENANT_ID,
         authorization: { params: { scope: "openid profile email" } },
-        allowDangerousEmailAccountLinking: true,
       })
     );
   }
@@ -58,25 +51,47 @@ function buildProviders(): AuthProvider[] {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: getAdapter(),
   providers: buildProviders(),
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
+      // #region agent log
+      console.log("[AUTH_DEBUG] signIn callback", {
+        hasEmail: !!user?.email,
+        emailDomain: user?.email?.split("@")[1],
+        provider: account?.provider,
+        hasAzureConfig: !!process.env.AZURE_AD_CLIENT_ID,
+      });
+      // #endregion
       if (!process.env.AZURE_AD_CLIENT_ID) return true;
       if (!user?.email) return false;
       if (isAllowedEmailDomain(user.email)) return true;
+      // #region agent log
+      console.log("[AUTH_DEBUG] domain not allowed:", user.email);
+      // #endregion
       return "/unauthorized?reason=email_domain_not_allowed";
+    },
+    async jwt({ token, profile }) {
+      if (profile) {
+        token.email = (profile as Record<string, string>).email ?? token.email;
+        token.name = (profile as Record<string, string>).name ?? token.name;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+      }
+      return session;
     },
   },
   pages: {
     signIn: "/login",
-    error: "/unauthorized",
+    error: "/login",
   },
   session: {
     strategy: "jwt",
     maxAge: 60 * 60 * 8,
   },
   secret: process.env.NEXTAUTH_SECRET ?? "dev-secret-do-not-use-in-production",
-  debug: process.env.NODE_ENV === "development",
-  useSecureCookies: process.env.NEXTAUTH_URL?.startsWith("https://") ?? false,
 };
