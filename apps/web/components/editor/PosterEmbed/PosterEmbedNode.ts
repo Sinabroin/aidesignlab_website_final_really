@@ -1,6 +1,5 @@
 /** Poster Code Embed Tiptap Node - posterId, html, css */
-import { Node } from '@tiptap/core';
-import { ReactNodeViewRenderer } from '@tiptap/react';
+import { Node, ReactNodeViewRenderer } from '@tiptap/react';
 import PosterEmbedContent from './PosterEmbedContent';
 
 function generatePosterId(): string {
