@@ -15,6 +15,9 @@ export class ApiError extends Error {
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
+    // #region agent log
+    fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"admin-debug-1",hypothesisId:"A2",location:"lib/api/client.ts:handleResponse:error",message:"api response not ok",data:{status:response.status,statusText:response.statusText,url:response.url},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const errorData = await response.json().catch(() => ({
       error: 'Unknown',
       message: `HTTP ${response.status}: ${response.statusText}`,
@@ -29,6 +32,9 @@ export async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_URL}${API_V1_PREFIX}${endpoint}`;
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"admin-debug-1",hypothesisId:"A1",location:"lib/api/client.ts:apiRequest:start",message:"api request start",data:{endpoint,url,method:options.method??"GET"},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   const response = await fetch(url, {
     ...options,
     credentials: 'include',
@@ -37,6 +43,9 @@ export async function apiRequest<T>(
       ...options.headers,
     },
   });
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"admin-debug-1",hypothesisId:"A1-A2",location:"lib/api/client.ts:apiRequest:response",message:"api request response",data:{url,status:response.status,ok:response.ok},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   return handleResponse<T>(response);
 }
 
