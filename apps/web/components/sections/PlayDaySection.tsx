@@ -62,22 +62,14 @@ export default function PlayDaySection({ onWriteClick, onCardClick }: PlayDaySec
         {isLoading ? (
           <div className="col-span-12 py-12 text-center text-[#6B6B6B]">로딩 중...</div>
         ) : (
-        currentData.map((item, index) => {
-          const colClass =
-            index === 0
-              ? 'col-span-12 md:col-span-8'
-              : index === 1
-              ? 'col-span-12 md:col-span-4'
-              : 'col-span-12 md:col-span-4';
-          return (
-            <div key={index} className={colClass}>
-              <GalleryCard
-                {...item}
-                onClick={() => onCardClick(currentData, index)}
-              />
-            </div>
-          );
-        })
+        currentData.map((item, index) => (
+          <div key={index} className="col-span-12 md:col-span-6">
+            <GalleryCard
+              {...item}
+              onClick={() => onCardClick(currentData, index)}
+            />
+          </div>
+        ))
         )}
       </div>
     </div>

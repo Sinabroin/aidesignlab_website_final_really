@@ -28,6 +28,7 @@ export default function PlaygroundPage() {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showWriteModal, setShowWriteModal] = useState(false);
   const [writeSection, setWriteSection] = useState<string>('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const showAdminButton = status === 'authenticated' && isAdmin(session);
 
@@ -146,14 +147,15 @@ export default function PlaygroundPage() {
         <WritePost
           onClose={() => setShowWriteModal(false)}
           section={writeSection}
+          onPublished={() => setRefreshKey((k) => k + 1)}
         />
       )}
 
       {/* 컨텐츠 영역 */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-16">
         {activeTab === 'home' && <HomeSection onNavigate={(tab) => setActiveTab(tab as Tab)} />}
-        {activeTab === 'playbook' && <PlayBookSection onWriteClick={handleWriteClick} onCardClick={openPreview} />}
-        {activeTab === 'playday' && <PlayDaySection onWriteClick={handleWriteClick} onCardClick={openPreview} />}
+        {activeTab === 'playbook' && <PlayBookSection key={`playbook-${refreshKey}`} onWriteClick={handleWriteClick} onCardClick={openPreview} />}
+        {activeTab === 'playday' && <PlayDaySection key={`playday-${refreshKey}`} onWriteClick={handleWriteClick} onCardClick={openPreview} />}
         {activeTab === 'notices' && <NoticesSection />}
       </div>
 

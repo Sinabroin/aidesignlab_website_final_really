@@ -202,6 +202,30 @@ export async function getAdminContent(): Promise<
   ];
 }
 
+export async function createGalleryItem(data: {
+  section: string;
+  title: string;
+  description: string;
+  author: string;
+  category: string;
+  tags?: string[];
+}): Promise<GalleryItem> {
+  const db = getPrismaClient();
+  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '.');
+  const row = await db.galleryItem.create({
+    data: {
+      section: data.section,
+      title: data.title,
+      description: data.description,
+      author: data.author,
+      date: today,
+      category: data.category,
+      tags: data.tags && data.tags.length > 0 ? JSON.stringify(data.tags) : null,
+    },
+  });
+  return mapDbToGalleryItem(row);
+}
+
 /** 마키 쇼케이스용 통합 데이터 */
 export async function getMarqueeData(): Promise<{
   topRow: GalleryItem[];

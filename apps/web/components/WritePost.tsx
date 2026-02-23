@@ -6,9 +6,11 @@ import RichTextEditor from '@/components/editor/RichTextEditor';
 function WritePostFooter({
   onClose,
   onPublish,
+  isPublishing,
 }: {
   onClose: () => void;
   onPublish: (e: React.FormEvent) => void;
+  isPublishing: boolean;
 }) {
   return (
     <div className="flex-shrink-0 flex gap-3 p-6 pt-4 border-t bg-white">
@@ -30,10 +32,11 @@ function WritePostFooter({
       <button
         type="button"
         onClick={onPublish}
-        className="relative overflow-visible flex-1 py-3 bg-[#111] hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-all shadow-lg"
+        disabled={isPublishing}
+        className="relative overflow-visible flex-1 py-3 bg-[#111] hover:bg-gray-800 disabled:opacity-60 text-white font-normal tracking-tight rounded-none transition-all shadow-lg"
       >
         <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
-        <span className="relative z-10">게시</span>
+        <span className="relative z-10">{isPublishing ? '게시 중...' : '게시'}</span>
       </button>
     </div>
   );
@@ -42,6 +45,7 @@ function WritePostFooter({
 interface WritePostProps {
   onClose: () => void;
   section: string;
+  onPublished?: () => void;
 }
 
 /**
@@ -49,7 +53,7 @@ interface WritePostProps {
  *
  * 텍스트, 이미지, 영상, 첨부파일 업로드 지원
  */
-export default function WritePost({ onClose, section }: WritePostProps) {
+export default function WritePost({ onClose, section, onPublished }: WritePostProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contentMode, setContentMode] = useState<'edit' | 'preview'>('edit');
@@ -120,16 +124,49 @@ export default function WritePost({ onClose, section }: WritePostProps) {
     alert('임시저장되었습니다.');
   };
 
-  const handlePublish = (e: React.FormEvent) => {
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!title.trim()) {
+      alert('제목을 입력해주세요.');
+      return;
+    }
+    if (!category) {
+      alert('카테고리를 선택해주세요.');
+      return;
+    }
     const trimmed = content.replace(/<[^>]*>/g, '').trim();
     if (!trimmed) {
       alert('내용을 입력해주세요.');
       return;
     }
-    console.log({ section, title, category, content, hashtags, thumbnail, images, videos, files });
-    alert('게시글이 등록되었습니다!');
-    onClose();
+    setIsPublishing(true);
+    try {
+      const res = await fetch('/api/data/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          section,
+          category,
+          title: title.trim(),
+          description: content,
+          tags: hashtags,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error ?? '게시글 저장에 실패했습니다. 다시 시도해주세요.');
+        return;
+      }
+      alert('게시글이 등록되었습니다!');
+      onPublished?.();
+      onClose();
+    } catch {
+      alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   return (
@@ -518,6 +555,7 @@ export default function WritePost({ onClose, section }: WritePostProps) {
           <WritePostFooter
             onClose={onClose}
             onPublish={handlePublish}
+            isPublishing={isPublishing}
           />
         </form>
       </div>
