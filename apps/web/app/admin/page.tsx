@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { playdayData, playbookUsecases, playbookTrends, playbookPrompts, playbookHAI, activityData, GalleryItem } from '@/data/mockData';
+import { useAdminContent } from '@/hooks/useData';
+import type { GalleryItem } from '@/types';
 import {
   getAllowlists,
   addToAllowlist,
@@ -711,19 +712,7 @@ function ArchiveTab() {
   const [selectedSection, setSelectedSection] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'author'>('date');
-
-  // 모든 콘텐츠 통합
-  const allContent = useMemo(() => {
-    const contents: Array<GalleryItem & { section: string }> = [
-      ...playdayData.map(item => ({ ...item, section: 'PlayDay' })),
-      ...playbookUsecases.map(item => ({ ...item, section: 'Playbook 활용사례' })),
-      ...playbookTrends.map(item => ({ ...item, section: 'Playbook 트렌드' })),
-      ...playbookPrompts.map(item => ({ ...item, section: 'Playbook 프롬프트' })),
-      ...playbookHAI.map(item => ({ ...item, section: 'Playbook HAI' })),
-      ...activityData.map(item => ({ ...item, section: 'ACE 커뮤니티' })),
-    ];
-    return contents;
-  }, []);
+  const { data: allContent = [], isLoading } = useAdminContent();
 
   // 필터링 및 정렬
   const filteredContent = useMemo(() => {
@@ -756,6 +745,15 @@ function ArchiveTab() {
   }, [allContent, selectedSection, searchQuery, sortBy]);
 
   const sections = ['all', ...Array.from(new Set(allContent.map(item => item.section)))];
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900">콘텐츠 아카이브</h2>
+        <p className="text-gray-600">목록을 불러오는 중...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

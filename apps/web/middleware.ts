@@ -10,13 +10,15 @@ import { getToken } from "next-auth/jwt";
  */
 
 function isProtectedPath(pathname: string): boolean {
-  // ACE 커뮤니티, 관리자, 도움 요청만 보호
-  // playground는 공개 (게시글 조회 가능, 파일 다운로드는 API에서 보호)
   return (
     pathname.startsWith("/community") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/help-requests")
   );
+}
+
+function shouldBypassMiddleware(): boolean {
+  return process.env.AUTH_BYPASS_MIDDLEWARE === "true";
 }
 
 function isPublicPath(pathname: string): boolean {
@@ -33,8 +35,8 @@ function isPublicPath(pathname: string): boolean {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // 로컬 개발 환경에서는 인증 우회
-  if (process.env.NODE_ENV === "development") {
+  // AUTH_BYPASS_MIDDLEWARE=true 시 미들웨어 인증 검사 우회 (개발 시 선택적 사용)
+  if (shouldBypassMiddleware()) {
     return NextResponse.next();
   }
 
@@ -60,7 +62,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // 보호 경로에만 미들웨어 실행 (api/auth 등 다른 경로에는 절대 실행 안 함)
   matcher: [
     "/community/:path*",
     "/admin/:path*",

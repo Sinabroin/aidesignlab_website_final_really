@@ -4,7 +4,7 @@ import { useState } from 'react';
 import ACECommunitySection from '@/components/sections/ACECommunitySection';
 import GalleryModal from '@/components/GalleryModal';
 import WritePost from '@/components/WritePost';
-import { GalleryItem } from '@/data/mockData';
+import type { GalleryItem } from '@/types';
 
 /**
  * ACE 커뮤니티 Client Component

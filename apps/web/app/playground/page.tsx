@@ -18,18 +18,18 @@ import HomeSection from '@/components/sections/HomeSection';
 import PlayBookSection from '@/components/sections/PlayBookSection';
 import PlayDaySection from '@/components/sections/PlayDaySection';
 import NoticesSection from '@/components/sections/NoticesSection';
-import { GalleryItem } from '@/data/mockData';
+import type { GalleryItem } from '@/types';
 
 type Tab = 'home' | 'playbook' | 'playday' | 'notices';
 
 export default function PlaygroundPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showWriteModal, setShowWriteModal] = useState(false);
   const [writeSection, setWriteSection] = useState<string>('');
 
-  const showAdminButton = isAdmin(session);
+  const showAdminButton = status === 'authenticated' && isAdmin(session);
 
   // Preview carousel (1단계)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -87,7 +87,7 @@ export default function PlaygroundPage() {
         onClick={() => setActiveTab('home')}
       >
         <div className="max-w-6xl mx-auto px-4 md:px-6 w-full pb-6 md:pb-10">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.08em] text-ink">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-[0.08em] text-ink">
             PLAYGROUND
           </h1>
           <p className="text-base md:text-lg mt-2 text-muted">

@@ -2,9 +2,10 @@
   "name": "aidesignlab-monorepo",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "apps/*"
-  ],
+  "workspaces": ["apps/*"],
+  "overrides": {
+    "minimatch": "10.2.2"
+  },
   "scripts": {
     "dev:web": "npm run dev --workspace=@aidesignlab/web",
     "build:web": "npm run build --workspace=@aidesignlab/web",

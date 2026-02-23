@@ -1,0 +1,120 @@
+// Prisma schema for AI Design Lab
+// Azure SQL Database (provider: sqlserver)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// User profile (NextAuth + Azure AD 연동)
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+// NextAuth Account (OAuth provider 연결)
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// NextAuth Session (DB 세션 - adapter 사용 시)
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// NextAuth VerificationToken (이메일 인증 등)
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
+// PlayBook / PlayDay 갤러리 아이템
+model GalleryItem {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  author          String
+  date            String
+  category        String
+  thumbnail       String?
+  fullDescription String?
+  tags            String?  // JSON array as string
+  attachments     String?  // JSON array as string
+  session         Int?
+  section         String   // playbook_usecase, playbook_trend, playday, activity 등
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([section, category])
+  @@map("gallery_items")
+}
+
+// 공지사항
+model Notice {
+  id         String   @id @default(cuid())
+  title      String
+  date       String
+  badge      String
+  badgeColor String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("notices")
+}
+
+// 일정
+model Schedule {
+  id        String   @id @default(cuid())
+  date      String
+  event     String
+  createdAt DateTime @default(now())
+
+  @@map("schedules")
+}
+
+// 퀵 링크
+model QuickLink {
+  id        String   @id @default(cuid())
+  text      String
+  href      String
+  createdAt DateTime @default(now())
+
+  @@map("quick_links")
+}

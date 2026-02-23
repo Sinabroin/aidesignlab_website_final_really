@@ -5,6 +5,7 @@ export interface GalleryItem {
   author: string;
   date: string;
   category: string;
+  thumbnail?: string;
   fullDescription?: string;
   tags?: string[];
   attachments?: {

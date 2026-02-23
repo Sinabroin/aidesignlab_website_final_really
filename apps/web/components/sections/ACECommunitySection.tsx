@@ -3,7 +3,8 @@ import GalleryCard from '@/components/GalleryCard';
 import SectionHeader from '@/components/common/SectionHeader';
 import WriteButton from '@/components/common/WriteButton';
 import FilterButton from '@/components/common/FilterButton';
-import { GalleryItem, activityData } from '@/data/mockData';
+import { useActivity } from '@/hooks/useData';
+import type { GalleryItem } from '@/types';
 
 type ActivityCategory = 'safety' | 'planning' | 'ai' | 'design' | 'all';
 
@@ -22,6 +23,7 @@ const categoryLabels: Record<ActivityCategory, string> = {
 
 export default function ACECommunitySection({ onWriteClick, onCardClick }: ACECommunitySectionProps) {
   const [category, setCategory] = useState<ActivityCategory>('all');
+  const { data: activityData, isLoading, error } = useActivity();
 
   const filteredData = category === 'all'
     ? activityData
@@ -34,6 +36,14 @@ export default function ACECommunitySection({ onWriteClick, onCardClick }: ACECo
         };
         return categoryMap[item.category] === category;
       });
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto py-8 text-center text-red-600">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto w-full">
@@ -61,13 +71,17 @@ export default function ACECommunitySection({ onWriteClick, onCardClick }: ACECo
 
       {/* 갤러리 */}
       <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {filteredData.map((item, index) => (
+        {isLoading ? (
+          <div className="col-span-full py-12 text-center text-[#6B6B6B]">로딩 중...</div>
+        ) : (
+        filteredData.map((item, index) => (
           <GalleryCard
             key={index}
             {...item}
             onClick={() => onCardClick(filteredData, index)}
           />
-        ))}
+        ))
+        )}
       </div>
     </div>
   );

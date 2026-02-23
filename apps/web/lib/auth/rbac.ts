@@ -84,3 +84,13 @@ export function hasAllRoles(user: User, roles: Role[]): boolean {
   const userRoles = getRolesForUser(user);
   return roles.every((r) => userRoles.includes(r));
 }
+
+/**
+ * 고급 사용자 여부 (ROLE_ADVANCED)
+ * community 또는 operator 역할이면 true
+ * 고급 JSON 편집, 고급 설정 토글 등에 사용
+ */
+export function isAdvancedUser(user: User | null): boolean {
+  if (!user) return false;
+  return hasAnyRole(user, ["community", "operator"]);
+}

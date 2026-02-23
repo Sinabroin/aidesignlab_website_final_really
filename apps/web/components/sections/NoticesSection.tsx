@@ -1,6 +1,18 @@
-import { notices } from '@/data/mockData';
+'use client';
+
+import { useNotices } from '@/hooks/useData';
 
 export default function NoticesSection() {
+  const { data: notices, isLoading, error } = useNotices();
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 text-center text-red-600">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-10">
@@ -11,7 +23,10 @@ export default function NoticesSection() {
       </div>
 
       <div className="space-y-3">
-        {notices.map((notice, index) => (
+        {isLoading ? (
+          <div className="py-12 text-center text-[#6B6B6B]">로딩 중...</div>
+        ) : (
+        notices.map((notice, index) => (
           <div
             key={index}
             className="bg-white border border-[#D9D6D3] rounded-none p-5 cursor-pointer transition-all duration-200 hover:border-[#6B6B6B] hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
@@ -34,7 +49,8 @@ export default function NoticesSection() {
               <span className="text-xs text-[#6B6B6B] shrink-0 ml-4">{notice.date}</span>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
     </div>
   );

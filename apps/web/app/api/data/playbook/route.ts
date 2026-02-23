@@ -10,12 +10,12 @@ const VALID_CATEGORIES: PlaybookCategory[] = [
   "prompt",
   "hai",
   "teams",
+  "interview",
 ];
 
 /**
- * PlayBook 데이터 API
- * GET /api/data/playbook?category=usecase|trend|prompt|hai|teams
- * category 없으면 usecase 기본
+ * PlayBook 데이터 API (공개 조회)
+ * GET /api/data/playbook?category=usecase|trend|prompt|hai|teams|interview
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);

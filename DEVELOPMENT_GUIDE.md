@@ -379,5 +379,16 @@ function handle(data: GalleryItem) { }
 
 ---
 
+## npm audit (minimatch 취약점)
+
+`npm audit` 시 **minimatch** 관련 14~16개 high severity 취약점이 보고될 수 있습니다.
+
+- **원인**: eslint-config-next, eslint-plugin-* 등이 minimatch ^3.1.2 사용 (ReDoS 취약)
+- **영향**: `npm run lint` 실행 시에만 사용. **프로덕션 빌드에는 ESLint 미사용** (`ignoreDuringBuilds: true`)
+- **대응**: `package.json`에 `overrides: { "minimatch": "10.2.2" }` 설정됨. npm workspaces 환경에서는 적용이 제한적일 수 있음.
+- **선택**: `npm audit fix --force` 시도 (breaking change 가능). 또는 ESLint v9 backport/업스트림 패치까지 리스크 수용.
+
+---
+
 **마지막 업데이트**: 2024-02-09  
 **버전**: 3.5

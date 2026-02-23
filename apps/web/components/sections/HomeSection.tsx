@@ -3,13 +3,17 @@
 import NoticeBanner from '@/components/NoticeBanner';
 import MarqueeShowcase from '@/components/MarqueeShowcase';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
-import { notices, schedules, quickLinks } from '@/data/mockData';
+import { useNotices, useSchedules, useQuickLinks } from '@/hooks/useData';
 
 interface HomeSectionProps {
   onNavigate: (tab: string) => void;
 }
 
 export default function HomeSection({ onNavigate }: HomeSectionProps) {
+  const { data: notices } = useNotices();
+  const { data: schedules } = useSchedules();
+  const { data: quickLinks } = useQuickLinks();
+
   const previews = [
     {
       title: 'PlayBook',

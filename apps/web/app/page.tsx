@@ -50,7 +50,7 @@ export default function Home() {
     >
       <AuroraBackground>
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-6">
-            <div className="max-w-5xl mx-auto text-center space-y-12">
+            <div className="max-w-5xl mx-auto text-center">
               <div className="space-y-6 min-h-[200px] flex flex-col items-center justify-center">
                 {currentPhase === 0 && (
                   <h1 className="text-4xl md:text-6xl font-normal tracking-tight text-gray-900">
@@ -80,12 +80,15 @@ export default function Home() {
                     <p className="text-xl md:text-2xl text-gray-700 font-normal tracking-tight">
                       현대건설 워크이노베이션센터
                     </p>
+                    <p className="text-base md:text-lg text-gray-600 font-normal tracking-tight max-w-2xl mx-auto">
+                      현대건설 AI디자인랩은 자유롭게 AI를 사용하고 공유하는 실험적 공간입니다.
+                    </p>
                   </div>
                 )}
               </div>
 
               {showButton && (
-                <div className="pt-8 animate-fade-in">
+                <div className="mt-5 animate-fade-in">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -133,7 +136,7 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="pt-12">
+              <div className="mt-6">
                 <div className="flex flex-col items-center gap-3">
                   <div className="flex gap-2">
                     <div

@@ -7,7 +7,7 @@ import {
   addToAllowlist,
   removeFromAllowlist,
   type AllowlistRole,
-} from "@/lib/data/allowlists";
+} from "@/lib/data/allowlists.server";
 
 function requireOperator() {
   return async () => {

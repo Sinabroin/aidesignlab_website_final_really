@@ -106,6 +106,20 @@ export const playbookHAI: GalleryItem[] = [
   }
 ];
 
+export const playbookInterview: GalleryItem[] = [
+  {
+    title: "AI 활용 인터뷰",
+    description: "현대건설 임직원의 AI 활용 경험과 인사이트",
+    author: "ACE팀",
+    date: "2024.02.22",
+    category: "Interview",
+    thumbnail: "https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h3.jpg",
+    fullDescription: "현대건설 임직원들이 실제 업무에서 AI를 어떻게 활용하고 있는지 인터뷰를 통해 공유합니다.",
+    tags: ["인터뷰", "AI활용", "사례공유"],
+    attachments: []
+  }
+];
+
 export const playbookTeams: GalleryItem[] = [
   {
     title: "팀 협업 AI 도구",

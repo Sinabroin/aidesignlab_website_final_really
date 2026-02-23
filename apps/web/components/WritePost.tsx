@@ -2,6 +2,42 @@
 
 import { useState, useRef } from 'react';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
+import RichTextEditor from '@/components/editor/RichTextEditor';
+function WritePostFooter({
+  onClose,
+  onPublish,
+}: {
+  onClose: () => void;
+  onPublish: (e: React.FormEvent) => void;
+}) {
+  return (
+    <div className="flex-shrink-0 flex gap-3 p-6 pt-4 border-t bg-white">
+      <button
+        type="button"
+        onClick={onClose}
+        className="relative overflow-visible flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-normal tracking-tight rounded-none transition-colors"
+      >
+        <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+        <span className="relative z-10">취소</span>
+      </button>
+      <button
+        type="submit"
+        className="relative overflow-visible flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-normal tracking-tight rounded-none transition-colors"
+      >
+        <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+        <span className="relative z-10">임시저장</span>
+      </button>
+      <button
+        type="button"
+        onClick={onPublish}
+        className="relative overflow-visible flex-1 py-3 bg-[#111] hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-all shadow-lg"
+      >
+        <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+        <span className="relative z-10">게시</span>
+      </button>
+    </div>
+  );
+}
 
 interface WritePostProps {
   onClose: () => void;
@@ -10,12 +46,13 @@ interface WritePostProps {
 
 /**
  * 게시글 작성 컴포넌트
- * 
+ *
  * 텍스트, 이미지, 영상, 첨부파일 업로드 지원
  */
 export default function WritePost({ onClose, section }: WritePostProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [contentMode, setContentMode] = useState<'edit' | 'preview'>('edit');
   const [category, setCategory] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
@@ -77,9 +114,19 @@ export default function WritePost({ onClose, section }: WritePostProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleDraftSave = (e: React.FormEvent) => {
     e.preventDefault();
-    // 실제 제출 로직 구현
+    console.log({ section, title, category, content, hashtags, thumbnail, images, videos, files });
+    alert('임시저장되었습니다.');
+  };
+
+  const handlePublish = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = content.replace(/<[^>]*>/g, '').trim();
+    if (!trimmed) {
+      alert('내용을 입력해주세요.');
+      return;
+    }
     console.log({ section, title, category, content, hashtags, thumbnail, images, videos, files });
     alert('게시글이 등록되었습니다!');
     onClose();
@@ -111,7 +158,7 @@ export default function WritePost({ onClose, section }: WritePostProps) {
         </div>
 
         {/* 폼 */}
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <form onSubmit={handleDraftSave} className="flex flex-col flex-1 min-h-0 overflow-hidden">
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* 제목 */}
           <div>
@@ -146,6 +193,8 @@ export default function WritePost({ onClose, section }: WritePostProps) {
                   <option value="trend">AI Trend</option>
                   <option value="prompt">프롬프트</option>
                   <option value="hai">HAI</option>
+                  <option value="teams">Teams</option>
+                  <option value="interview">AI 활용 인터뷰</option>
                 </>
               )}
               {section === 'playday' && (
@@ -169,17 +218,55 @@ export default function WritePost({ onClose, section }: WritePostProps) {
 
           {/* 내용 */}
           <div>
-            <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">
-              내용 <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="게시글 내용을 입력하세요"
-              rows={8}
-              className="w-full px-4 py-3 border border-gray-300 rounded-none focus:outline-none focus:border-gray-900 transition-colors resize-none"
-              required
-            />
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-normal tracking-tight text-gray-700">
+                내용 <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-1 border border-gray-300 rounded-none overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setContentMode('edit')}
+                  className={`px-4 py-2 text-sm font-normal transition-colors ${
+                    contentMode === 'edit' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  편집
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setContentMode('preview')}
+                  className={`px-4 py-2 text-sm font-normal transition-colors ${
+                    contentMode === 'preview' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  미리 보기
+                </button>
+              </div>
+            </div>
+            {contentMode === 'edit' ? (
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
+                placeholder="게시글 내용을 입력하세요"
+                editable={true}
+                minHeight="240px"
+              />
+            ) : (
+              <div className="border border-gray-300 rounded-none overflow-hidden bg-white">
+                {!content || content.replace(/<[^>]*>/g, '').trim() === '' ? (
+                  <div className="p-8 text-center text-gray-400 min-h-[240px] flex items-center justify-center">
+                    내용이 없습니다.
+                  </div>
+                ) : (
+                  <RichTextEditor
+                    content={content}
+                    placeholder=""
+                    editable={false}
+                    minHeight="240px"
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           {/* 썸네일 이미지 */}
@@ -428,24 +515,10 @@ export default function WritePost({ onClose, section }: WritePostProps) {
           )}
           </div>
 
-          {/* 제출 버튼 */}
-          <div className="flex-shrink-0 flex gap-3 p-6 pt-4 border-t bg-white">
-            <button
-              type="button"
-              onClick={onClose}
-              className="relative overflow-visible flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-normal tracking-tight rounded-none transition-colors"
-            >
-              <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
-              <span className="relative z-10">취소</span>
-            </button>
-            <button
-              type="submit"
-              className="relative overflow-visible flex-1 py-3 bg-[#111] hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-all shadow-lg"
-            >
-              <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
-              <span className="relative z-10">등록하기</span>
-            </button>
-          </div>
+          <WritePostFooter
+            onClose={onClose}
+            onPublish={handlePublish}
+          />
         </form>
       </div>
     </div>

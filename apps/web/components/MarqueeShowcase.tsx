@@ -2,20 +2,17 @@
 
 import Marquee from '@/components/Marquee';
 import MarqueeCard from '@/components/MarqueeCard';
-import {
-  playdayData,
-  playbookUsecases,
-  playbookTrends,
-  playbookPrompts,
-  playbookHAI,
-  playbookTeams,
-  activityData,
-} from '@/data/mockData';
-
-const topRow = [...playdayData, ...playbookUsecases, ...playbookHAI, ...playbookTeams];
-const bottomRow = [...playbookTrends, ...playbookPrompts, ...activityData];
+import { useMarquee } from '@/hooks/useData';
 
 export default function MarqueeShowcase() {
+  const { topRow, bottomRow, isLoading } = useMarquee();
+
+  if (isLoading) {
+    return (
+      <div className="py-8 text-center text-[#6B6B6B] text-sm">로딩 중...</div>
+    );
+  }
+
   return (
     <div className="relative space-y-4 py-2">
       {/* Left fade overlay */}
@@ -25,7 +22,7 @@ export default function MarqueeShowcase() {
 
       {/* Top row → scrolls left */}
       <Marquee direction="left" speed={40}>
-        {topRow.map((item, i) => (
+        {(topRow.length > 0 ? topRow : []).map((item, i) => (
           <MarqueeCard
             key={`top-${i}`}
             title={item.title}
@@ -37,7 +34,7 @@ export default function MarqueeShowcase() {
 
       {/* Bottom row → scrolls right */}
       <Marquee direction="right" speed={45}>
-        {bottomRow.map((item, i) => (
+        {(bottomRow.length > 0 ? bottomRow : []).map((item, i) => (
           <MarqueeCard
             key={`bottom-${i}`}
             title={item.title}

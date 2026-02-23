@@ -3,7 +3,8 @@ import GalleryCard from '@/components/GalleryCard';
 import SectionHeader from '@/components/common/SectionHeader';
 import WriteButton from '@/components/common/WriteButton';
 import FilterButton from '@/components/common/FilterButton';
-import { GalleryItem, playdayData } from '@/data/mockData';
+import { usePlayday } from '@/hooks/useData';
+import type { GalleryItem } from '@/types';
 
 type PlaydayView = 'latest' | 'archive';
 
@@ -14,6 +15,7 @@ interface PlayDaySectionProps {
 
 export default function PlayDaySection({ onWriteClick, onCardClick }: PlayDaySectionProps) {
   const [view, setView] = useState<PlaydayView>('latest');
+  const { data: playdayData, isLoading, error } = usePlayday();
 
   const { latestData, archiveData } = useMemo(() => {
     const latest = playdayData.filter(item => {
@@ -25,9 +27,17 @@ export default function PlayDaySection({ onWriteClick, onCardClick }: PlayDaySec
       return itemDate < new Date('2024-03-01');
     });
     return { latestData: latest, archiveData: archive };
-  }, []);
+  }, [playdayData]);
 
   const currentData = view === 'latest' ? latestData : archiveData;
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto py-8 text-center text-red-600">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -49,7 +59,10 @@ export default function PlayDaySection({ onWriteClick, onCardClick }: PlayDaySec
 
       {/* 12-column grid */}
       <div className="grid grid-cols-12 gap-6">
-        {currentData.map((item, index) => {
+        {isLoading ? (
+          <div className="col-span-12 py-12 text-center text-[#6B6B6B]">로딩 중...</div>
+        ) : (
+        currentData.map((item, index) => {
           const colClass =
             index === 0
               ? 'col-span-12 md:col-span-8'
@@ -64,7 +77,8 @@ export default function PlayDaySection({ onWriteClick, onCardClick }: PlayDaySec
               />
             </div>
           );
-        })}
+        })
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import AzureADProvider from "next-auth/providers/azure-ad";
+import { getPrismaClient } from "@/lib/db";
 
 /**
  * 허용된 이메일 도메인 확인
@@ -21,7 +23,13 @@ function isAllowedEmailDomain(email: string | null | undefined): boolean {
   return domains.some((d) => userDomain === d);
 }
 
+function getAdapter() {
+  if (!process.env.DATABASE_URL) return undefined;
+  return PrismaAdapter(getPrismaClient());
+}
+
 export const authOptions: NextAuthOptions = {
+  adapter: getAdapter(),
   providers: [
     AzureADProvider({
       clientId: process.env.AZURE_AD_CLIENT_ID!,

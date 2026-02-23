@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { GalleryItem } from '@/data/mockData';
+import type { GalleryItem } from '@/types';
 
 const PLACEHOLDER_IMAGES: Record<string, string> = {
   Workshop: 'https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg',
