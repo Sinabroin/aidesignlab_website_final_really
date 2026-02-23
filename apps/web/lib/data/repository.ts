@@ -54,18 +54,29 @@ function mapDbToGalleryItem(row: {
   };
 }
 
-export async function getNotices(): Promise<Notice[]> {
-  if (!isDatabaseConfigured()) {
-    return mockNotices as Notice[];
+async function safeDb<T>(dbFn: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await dbFn();
+  } catch {
+    return fallback;
   }
-  const db = getPrismaClient();
-  const rows = await db.notice.findMany({ orderBy: { date: "desc" } });
-  return rows.map((r) => ({
-    title: r.title,
-    date: r.date,
-    badge: r.badge,
-    badgeColor: r.badgeColor,
-  }));
+}
+
+export async function getNotices(): Promise<Notice[]> {
+  if (!isDatabaseConfigured()) return mockNotices as Notice[];
+  return safeDb(
+    async () => {
+      const db = getPrismaClient();
+      const rows = await db.notice.findMany({ orderBy: { date: "desc" } });
+      return rows.map((r) => ({
+        title: r.title,
+        date: r.date,
+        badge: r.badge,
+        badgeColor: r.badgeColor,
+      }));
+    },
+    mockNotices as Notice[]
+  );
 }
 
 async function getGalleryBySection(section: string): Promise<GalleryItem[]> {
@@ -79,56 +90,66 @@ async function getGalleryBySection(section: string): Promise<GalleryItem[]> {
 
 export async function getPlaydayData(): Promise<GalleryItem[]> {
   if (!isDatabaseConfigured()) return playdayData;
-  return getGalleryBySection("playday");
+  return safeDb(() => getGalleryBySection("playday"), playdayData);
 }
 
 export async function getPlaybookUsecases(): Promise<GalleryItem[]> {
   if (!isDatabaseConfigured()) return playbookUsecases;
-  return getGalleryBySection("playbook_usecase");
+  return safeDb(() => getGalleryBySection("playbook_usecase"), playbookUsecases);
 }
 
 export async function getPlaybookTrends(): Promise<GalleryItem[]> {
   if (!isDatabaseConfigured()) return playbookTrends;
-  return getGalleryBySection("playbook_trend");
+  return safeDb(() => getGalleryBySection("playbook_trend"), playbookTrends);
 }
 
 export async function getPlaybookPrompts(): Promise<GalleryItem[]> {
   if (!isDatabaseConfigured()) return playbookPrompts;
-  return getGalleryBySection("playbook_prompt");
+  return safeDb(() => getGalleryBySection("playbook_prompt"), playbookPrompts);
 }
 
 export async function getPlaybookHAI(): Promise<GalleryItem[]> {
   if (!isDatabaseConfigured()) return playbookHAI;
-  return getGalleryBySection("playbook_hai");
+  return safeDb(() => getGalleryBySection("playbook_hai"), playbookHAI);
 }
 
 export async function getPlaybookTeams(): Promise<GalleryItem[]> {
   if (!isDatabaseConfigured()) return playbookTeams;
-  return getGalleryBySection("playbook_teams");
+  return safeDb(() => getGalleryBySection("playbook_teams"), playbookTeams);
 }
 
 export async function getPlaybookInterview(): Promise<GalleryItem[]> {
   if (!isDatabaseConfigured()) return playbookInterview;
-  return getGalleryBySection("playbook_interview");
+  return safeDb(() => getGalleryBySection("playbook_interview"), playbookInterview);
 }
 
 export async function getActivityData(): Promise<GalleryItem[]> {
   if (!isDatabaseConfigured()) return activityData;
-  return getGalleryBySection("activity");
+  return safeDb(() => getGalleryBySection("activity"), activityData);
 }
 
 export async function getSchedules(): Promise<{ date: string; event: string }[]> {
   if (!isDatabaseConfigured()) return mockSchedules;
-  const db = getPrismaClient();
-  const rows = await db.schedule.findMany({ orderBy: { date: "asc" } });
-  return rows.map((r) => ({ date: r.date, event: r.event }));
+  return safeDb(
+    async () => {
+      const db = getPrismaClient();
+      const rows = await db.schedule.findMany({ orderBy: { date: "asc" } });
+      return rows.map((r) => ({ date: r.date, event: r.event }));
+    },
+    mockSchedules
+  );
 }
 
 export async function getQuickLinks(): Promise<{ text: string; href: string }[]> {
   if (!isDatabaseConfigured()) return mockQuickLinks;
-  const db = getPrismaClient();
-  const rows = await db.quickLink.findMany();
-  return rows.map((r) => ({ text: r.text, href: r.href }));
+  return safeDb(
+    async () => {
+      const db = getPrismaClient();
+      const rows = await db.quickLink.findMany();
+      return rows.map((r) => ({ text: r.text, href: r.href }));
+    },
+    mockQuickLinks
+  );
 }
 
 export type PlaybookCategory = "usecase" | "trend" | "prompt" | "hai" | "teams" | "interview";
