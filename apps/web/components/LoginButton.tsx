@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { signIn } from 'next-auth/react';
 
 interface LoginButtonProps {
@@ -19,6 +19,7 @@ function isHdecEmail(email: string): boolean {
 
 function resolveCallbackUrl(callbackUrl: string): string {
   if (callbackUrl.startsWith('http')) return callbackUrl;
+  if (typeof window === 'undefined') return callbackUrl;
   const suffix = callbackUrl.startsWith('/') ? callbackUrl : `/${callbackUrl}`;
   return `${window.location.origin}${suffix}`;
 }
@@ -27,7 +28,6 @@ export default function LoginButton({ callbackUrl }: LoginButtonProps) {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const nextUrl = useMemo(() => resolveCallbackUrl(callbackUrl), [callbackUrl]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -38,6 +38,7 @@ export default function LoginButton({ callbackUrl }: LoginButtonProps) {
     }
     setIsSubmitting(true);
     setMessage(null);
+    const nextUrl = resolveCallbackUrl(callbackUrl);
     await signIn('email', { email: normalized, callbackUrl: nextUrl, redirect: true });
     setIsSubmitting(false);
   };
