@@ -4,7 +4,6 @@ import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { getPrismaClient } from "@/lib/db";
 
-const EMAIL_SUBJECT = "[AI 디자인랩] 현대건설 사내 서비스 이용을 위한 본인 인증 안내";
 const EMAIL_FROM = "선윤성 (AI 디자인랩) <sinabroysun@gmail.com>";
 
 function getAllowedDomains(): string[] {
@@ -51,6 +50,12 @@ function buildVerificationText(url: string): string {
   ].join("\n");
 }
 
+function buildVerificationSubject(identifier: string): string {
+  const localPart = identifier.split("@")[0]?.trim();
+  const displayName = localPart && localPart.length > 0 ? localPart : "고객";
+  return `${displayName}님, 요청하신 인증 정보를 확인해 주세요`;
+}
+
 async function sendVerificationRequest(params: {
   identifier: string;
   url: string;
@@ -60,6 +65,14 @@ async function sendVerificationRequest(params: {
   const serverHost = typeof params.provider.server?.host === "string" ? params.provider.server.host : null;
   const serverPort = typeof params.provider.server?.port === "number" ? params.provider.server.port : null;
   const serverSecure = typeof params.provider.server?.secure === "boolean" ? params.provider.server.secure : null;
+  // #region agent log
+  console.info("[auth-email-debug] send-start", {
+    targetDomain,
+    serverHost,
+    serverPort,
+    serverSecure,
+  });
+  // #endregion
   // #region agent log
   fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-2",hypothesisId:"N1-N6",location:"lib/auth.ts:sendVerificationRequest:start",message:"send verification email start",data:{targetDomain,serverHost,serverPort,serverSecure},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
@@ -79,10 +92,16 @@ async function sendVerificationRequest(params: {
     await transport.sendMail({
       to: params.identifier,
       from: EMAIL_FROM,
-      subject: EMAIL_SUBJECT,
+      subject: buildVerificationSubject(params.identifier),
       text: buildVerificationText(params.url),
       html: buildVerificationHtml(params.url),
     });
+    // #region agent log
+    console.info("[auth-email-debug] send-success", {
+      targetDomain,
+      serverPort,
+    });
+    // #endregion
     // #region agent log
     fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-2",hypothesisId:"N1",location:"lib/auth.ts:sendVerificationRequest:success",message:"send verification email success",data:{targetDomain,serverPort},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
@@ -99,6 +118,20 @@ async function sendVerificationRequest(params: {
       serverHost === "smtp.gmail.com" &&
       serverPort === 465 &&
       e.code === "ESOCKET";
+    // #region agent log
+    console.error("[auth-email-debug] send-failure", {
+      targetDomain,
+      serverHost,
+      serverPort,
+      serverSecure,
+      errorName: e.name ?? "unknown",
+      errorMessage: e.message ?? "unknown",
+      errorCode: e.code ?? null,
+      errorCommand: e.command ?? null,
+      responseCode: e.responseCode ?? null,
+      canRetryWithStartTls,
+    });
+    // #endregion
     // #region agent log
     fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-2",hypothesisId:"N1-N6",location:"lib/auth.ts:sendVerificationRequest:failure",message:"send verification email failure",data:{targetDomain,serverHost,serverPort,serverSecure,errorName:e.name??"unknown",errorMessage:e.message??"unknown",errorCode:e.code??null,errorCommand:e.command??null,responseCode:e.responseCode??null,responseHead:typeof e.response==="string"?e.response.slice(0,120):null,canRetryWithStartTls},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
