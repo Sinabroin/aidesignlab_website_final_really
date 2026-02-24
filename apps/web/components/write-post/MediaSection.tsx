@@ -37,14 +37,13 @@ export default function MediaSection({
   thumbnail, images, videos, files,
   onThumbnailChange, onImagesChange, onVideosChange, onFilesChange,
 }: MediaSectionProps) {
-  const thumbnailRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   return (
     <>
-      <ThumbnailField thumbnail={thumbnail} inputRef={thumbnailRef} onChange={onThumbnailChange} />
+      <ThumbnailField thumbnail={thumbnail} onChange={onThumbnailChange} />
 
       <div className="flex flex-wrap gap-3">
         <UploadButton label="사진 추가" onClick={() => imageRef.current?.click()} icon="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -64,7 +63,8 @@ export default function MediaSection({
   );
 }
 
-function ThumbnailField({ thumbnail, inputRef, onChange }: { thumbnail: File | null; inputRef: React.RefObject<HTMLInputElement | null>; onChange: (f: File | null) => void }) {
+function ThumbnailField({ thumbnail, onChange }: { thumbnail: File | null; onChange: (f: File | null) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div>
       <label className="block text-sm font-normal tracking-tight text-gray-700 mb-2">썸네일 이미지</label>
