@@ -85,12 +85,19 @@ async function handleCreateByType(
 }
 
 export async function POST(req: Request) {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-1',hypothesisId:'H3',location:'route.ts:POST:entry',message:'POST handler entered',data:{url:req.url},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   const dbError = ensureDatabase();
   if (dbError) return dbError;
   const authError = requireOperator(await getCurrentUser());
   if (authError) return authError;
   try {
     const body = (await req.json()) as Record<string, unknown>;
+    // #region agent log
+    const ct = body.contentType; const t = body.title;
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-1',hypothesisId:'H1',location:'route.ts:POST:parsed',message:'body parsed',data:{contentType:ct,title:t,hasContent:!!body.content,contentLen:typeof body.content==='string'?body.content.length:0,hasDescription:!!body.description},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const contentType = body.contentType as ContentType;
     if (!contentType) return badRequest("contentType은 필수입니다.");
     if (!["banner", "notice", "playday-guide"].includes(contentType)) {
@@ -98,6 +105,9 @@ export async function POST(req: Request) {
     }
     return handleCreateByType(contentType, body);
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-1',hypothesisId:'H2',location:'route.ts:POST:catch',message:'POST error caught',data:{error:String(error),name:(error as Error)?.name,msg:(error as Error)?.message,stack:(error as Error)?.stack?.slice(0,500)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: "CreateFailed", message }, { status: 500 });
   }

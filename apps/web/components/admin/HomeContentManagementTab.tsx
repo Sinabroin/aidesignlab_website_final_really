@@ -70,6 +70,9 @@ export default function HomeContentManagementTab() {
     try {
       setData(await getAdminHomeContent());
     } catch (e) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-1',hypothesisId:'H4',location:'HomeContentManagementTab.tsx:load:catch',message:'GET load failed',data:{error:String(e),name:(e as Error)?.name,msg:(e as Error)?.message,status:(e as ApiError)?.status},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       setError(toErrorMessage(e, '홈 콘텐츠를 불러오지 못했습니다.'));
     } finally {
       setLoading(false);
@@ -89,6 +92,10 @@ export default function HomeContentManagementTab() {
     setError(null);
     try {
       if (contentType === 'banner') {
+        // #region agent log
+        const payload = {title:form.bannerTitle,description:form.bannerDescription,content:form.bannerContent,href:form.bannerHref};
+        fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-1',hypothesisId:'H1-H5',location:'HomeContentManagementTab.tsx:handleCreate:before',message:'banner create payload',data:{contentType,titleLen:payload.title.length,descLen:payload.description.length,contentLen:payload.content.length,hrefLen:payload.href.length,contentPreview:payload.content.slice(0,200)},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         await createAdminHomeContent('banner', {
           title: form.bannerTitle,
           description: form.bannerDescription,
@@ -117,6 +124,9 @@ export default function HomeContentManagementTab() {
       }
       await load();
     } catch (e) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-1',hypothesisId:'H1-H2-H3',location:'HomeContentManagementTab.tsx:handleCreate:catch',message:'create failed',data:{error:String(e),name:(e as Error)?.name,msg:(e as Error)?.message,status:(e as ApiError)?.status,data:(e as ApiError)?.data},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       setError(toErrorMessage(e, '콘텐츠를 저장하지 못했습니다.'));
     } finally {
       setSubmitting(null);
