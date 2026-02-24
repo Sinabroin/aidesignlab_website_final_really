@@ -3,16 +3,17 @@
 import NoticeBanner from '@/components/NoticeBanner';
 import MarqueeShowcase from '@/components/MarqueeShowcase';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
-import { useNotices, useSchedules, useQuickLinks } from '@/hooks/useData';
+import { useHomeContent, useSchedules, useQuickLinks } from '@/hooks/useData';
 
 interface HomeSectionProps {
   onNavigate: (tab: string) => void;
 }
 
 export default function HomeSection({ onNavigate }: HomeSectionProps) {
-  const { data: notices } = useNotices();
+  const { banners, notices, playdayGuides } = useHomeContent();
   const { data: schedules } = useSchedules();
   const { data: quickLinks } = useQuickLinks();
+  const guideSubtitle = playdayGuides[0]?.description ?? '최근 PlayDay 안내를 확인해보세요';
 
   const previews = [
     {
@@ -28,7 +29,7 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
       title: 'PlayDay',
       subtitle: 'AI로 프로필만들기',
       items: [
-        { title: '이번 회 이벤트', subtitle: '3월 PlayDay 안내' },
+        { title: '이번 회 이벤트', subtitle: guideSubtitle },
         { title: '지난 활동', subtitle: '이전 PlayDay 아카이브' },
       ],
       tab: 'playday',
@@ -42,7 +43,7 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
   return (
     <div className="space-y-12">
       {/* 배너 */}
-      <NoticeBanner onNoticeClick={handleBannerClick} />
+      <NoticeBanner onNoticeClick={handleBannerClick} banners={banners} />
 
       {/* 마키 쇼케이스 */}
       <MarqueeShowcase />
@@ -56,7 +57,7 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
           {notices.slice(0, 5).map((notice, index) => (
             <div
               key={index}
-              className="flex items-center justify-between px-6 py-4 cursor-pointer transition-colors hover:bg-[#FAFBFC]"
+              className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-[#FAFBFC]"
             >
               <div className="flex items-center gap-3 flex-1">
                 <span className="text-[10px] text-white px-2.5 py-0.5 rounded-none bg-[#111] shrink-0">
@@ -79,6 +80,26 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
+        </div>
+      </section>
+
+      {/* PlayDay 안내 */}
+      <section className="bg-white border border-[#D9D6D3] rounded-none overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#D9D6D3]">
+          <h2 className="text-lg font-normal text-[#111]">PlayDay 안내</h2>
+        </div>
+        <div className="divide-y divide-[#D9D6D3]">
+          {playdayGuides.slice(0, 3).map((guide) => (
+            <div key={guide.id} className="px-6 py-4 hover:bg-[#FAFBFC] transition-colors">
+              <h3 className="text-sm font-normal text-[#111]">{guide.title}</h3>
+              <p className="text-xs text-[#6B6B6B] mt-1">{guide.description}</p>
+            </div>
+          ))}
+          {playdayGuides.length === 0 && (
+            <div className="px-6 py-6 text-sm text-[#6B6B6B]">
+              등록된 PlayDay 안내가 없습니다.
+            </div>
+          )}
         </div>
       </section>
 
@@ -113,9 +134,10 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
       {/* 섹션 프리뷰 카드 — 12-column Bento grid */}
       <section className="grid grid-cols-12 gap-6">
         {previews.map((preview, idx) => (
-          <div
+          <button
+            type="button"
             key={idx}
-            className="col-span-12 md:col-span-6 group bg-white border border-[#D9D6D3] rounded-none overflow-hidden transition-all duration-200 hover:border-[#6B6B6B] hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] cursor-pointer"
+            className="col-span-12 md:col-span-6 group bg-white border border-[#D9D6D3] rounded-none overflow-hidden transition-[border-color,box-shadow] duration-200 hover:border-[#6B6B6B] hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] cursor-pointer text-left w-full"
             onClick={() => onNavigate(preview.tab)}
           >
             {/* 이미지 영역 — hover 시 내부 확대 효과 유지 */}
@@ -152,7 +174,7 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
                 </span>
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </section>
     </div>

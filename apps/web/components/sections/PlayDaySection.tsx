@@ -11,9 +11,14 @@ type PlaydayView = 'latest' | 'archive';
 interface PlayDaySectionProps {
   onWriteClick: (section: string) => void;
   onCardClick: (items: GalleryItem[], index: number) => void;
+  showWriteButton?: boolean;
 }
 
-export default function PlayDaySection({ onWriteClick, onCardClick }: PlayDaySectionProps) {
+export default function PlayDaySection({
+  onWriteClick,
+  onCardClick,
+  showWriteButton = true,
+}: PlayDaySectionProps) {
   const [view, setView] = useState<PlaydayView>('latest');
   const { data: playdayData, isLoading, error } = usePlayday();
 
@@ -44,7 +49,7 @@ export default function PlayDaySection({ onWriteClick, onCardClick }: PlayDaySec
       <div className="mb-10">
         <SectionHeader
           title="PlayDay"
-          action={<WriteButton onClick={() => onWriteClick('playday')} />}
+          action={showWriteButton ? <WriteButton onClick={() => onWriteClick('playday')} /> : null}
         />
 
         <div className="flex flex-wrap gap-2 mt-6">

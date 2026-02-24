@@ -24,6 +24,23 @@ export interface Notice {
   badgeColor: string;
 }
 
+export interface HomeBanner {
+  id: string;
+  title: string;
+  description: string;
+  href?: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface HomePlaydayGuide {
+  id: string;
+  title: string;
+  description: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
 export interface HelpRequest {
   id: string;
   title: string;

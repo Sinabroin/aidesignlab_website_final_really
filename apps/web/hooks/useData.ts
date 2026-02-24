@@ -1,184 +1,75 @@
-/**
- * API 데이터 페칭 훅
- */
+/** API 데이터 페칭 훅 — generic useApi로 보일러플레이트 제거 */
 import { useState, useEffect } from "react";
 import * as api from "@/lib/data/fetch";
 
 type Status = "idle" | "loading" | "success" | "error";
 
-export function usePlaybook(category: string) {
-  const [data, setData] = useState<Awaited<ReturnType<typeof api.fetchPlaybook>>>([]);
+function useApi<T>(fetcher: () => Promise<T>, initial: T, deps: unknown[] = []) {
+  const [data, setData] = useState<T>(initial);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setStatus("loading");
     setError(null);
-    api
-      .fetchPlaybook(category)
-      .then(setData)
-      .then(() => setStatus("success"))
+    fetcher()
+      .then((result) => {
+        setData(result);
+        setStatus("success");
+      })
       .catch((e) => {
         setError(e instanceof Error ? e.message : "Failed to load");
         setStatus("error");
       });
-  }, [category]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
 
   return { data, status, error, isLoading: status === "loading" };
+}
+
+export function usePlaybook(category: string) {
+  return useApi(() => api.fetchPlaybook(category), [], [category]);
 }
 
 export function usePlayday() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof api.fetchPlayday>>>([]);
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStatus("loading");
-    setError(null);
-    api
-      .fetchPlayday()
-      .then(setData)
-      .then(() => setStatus("success"))
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Failed to load");
-        setStatus("error");
-      });
-  }, []);
-
-  return { data, status, error, isLoading: status === "loading" };
+  return useApi(() => api.fetchPlayday(), []);
 }
 
 export function useNotices() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof api.fetchNotices>>>([]);
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStatus("loading");
-    setError(null);
-    api
-      .fetchNotices()
-      .then(setData)
-      .then(() => setStatus("success"))
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Failed to load");
-        setStatus("error");
-      });
-  }, []);
-
-  return { data, status, error, isLoading: status === "loading" };
+  return useApi(() => api.fetchNotices(), []);
 }
 
 export function useSchedules() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof api.fetchSchedules>>>([]);
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStatus("loading");
-    setError(null);
-    api
-      .fetchSchedules()
-      .then(setData)
-      .then(() => setStatus("success"))
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Failed to load");
-        setStatus("error");
-      });
-  }, []);
-
-  return { data, status, error, isLoading: status === "loading" };
+  return useApi(() => api.fetchSchedules(), []);
 }
 
 export function useQuickLinks() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof api.fetchQuickLinks>>>([]);
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStatus("loading");
-    setError(null);
-    api
-      .fetchQuickLinks()
-      .then(setData)
-      .then(() => setStatus("success"))
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Failed to load");
-        setStatus("error");
-      });
-  }, []);
-
-  return { data, status, error, isLoading: status === "loading" };
+  return useApi(() => api.fetchQuickLinks(), []);
 }
 
 export function useActivity() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof api.fetchActivity>>>([]);
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStatus("loading");
-    setError(null);
-    api
-      .fetchActivity()
-      .then(setData)
-      .then(() => setStatus("success"))
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Failed to load");
-        setStatus("error");
-      });
-  }, []);
-
-  return { data, status, error, isLoading: status === "loading" };
+  return useApi(() => api.fetchActivity(), []);
 }
 
 export function useMarquee() {
-  const [data, setData] = useState<Awaited<ReturnType<typeof api.fetchMarquee>> | null>(null);
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStatus("loading");
-    setError(null);
-    api
-      .fetchMarquee()
-      .then(setData)
-      .then(() => setStatus("success"))
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Failed to load");
-        setStatus("error");
-      });
-  }, []);
-
+  const result = useApi(() => api.fetchMarquee(), null);
   return {
-    data,
-    status,
-    error,
-    isLoading: status === "loading",
-    topRow: data?.topRow ?? [],
-    bottomRow: data?.bottomRow ?? [],
+    ...result,
+    topRow: result.data?.topRow ?? [],
+    bottomRow: result.data?.bottomRow ?? [],
   };
 }
 
 export function useAdminContent() {
-  const [data, setData] = useState<
-    Awaited<ReturnType<typeof api.fetchAdminContent>>
-  >([]);
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
+  return useApi(() => api.fetchAdminContent(), []);
+}
 
-  useEffect(() => {
-    setStatus("loading");
-    setError(null);
-    api
-      .fetchAdminContent()
-      .then(setData)
-      .then(() => setStatus("success"))
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Failed to load");
-        setStatus("error");
-      });
-  }, []);
-
-  return { data, status, error, isLoading: status === "loading" };
+export function useHomeContent() {
+  const result = useApi(() => api.fetchHomeContent(), null);
+  return {
+    ...result,
+    banners: result.data?.banners ?? [],
+    notices: result.data?.notices ?? [],
+    playdayGuides: result.data?.playdayGuides ?? [],
+  };
 }

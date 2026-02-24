@@ -26,6 +26,10 @@ const isDatabaseConfigured = (): boolean => {
   return !!getSecret("DATABASE_URL");
 };
 
+function formatTodayDot(): string {
+  return new Date().toISOString().slice(0, 10).replace(/-/g, ".");
+}
+
 function mapDbToGalleryItem(row: {
   title: string;
   description: string;
@@ -76,6 +80,26 @@ export async function getNotices(): Promise<Notice[]> {
       }));
     },
     mockNotices as Notice[]
+  );
+}
+
+export type AdminNoticeItem = Notice & { id: string };
+
+export async function getAdminNotices(): Promise<AdminNoticeItem[]> {
+  if (!isDatabaseConfigured()) return [];
+  return safeDb(
+    async () => {
+      const db = getPrismaClient();
+      const rows = await db.notice.findMany({ orderBy: { date: "desc" } });
+      return rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        date: r.date,
+        badge: r.badge,
+        badgeColor: r.badgeColor,
+      }));
+    },
+    []
   );
 }
 
@@ -152,6 +176,150 @@ export async function getQuickLinks(): Promise<{ text: string; href: string }[]>
   );
 }
 
+export type HomeBannerItem = {
+  id: string;
+  title: string;
+  description: string;
+  href?: string;
+  isActive: boolean;
+  sortOrder: number;
+};
+
+export type HomePlaydayGuideItem = {
+  id: string;
+  title: string;
+  description: string;
+  isActive: boolean;
+  sortOrder: number;
+};
+
+function mapHomeBanner(row: {
+  id: string;
+  title: string;
+  description: string;
+  href: string | null;
+  isActive: boolean;
+  sortOrder: number;
+}): HomeBannerItem {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    href: row.href ?? undefined,
+    isActive: row.isActive,
+    sortOrder: row.sortOrder,
+  };
+}
+
+function mapPlaydayGuide(row: {
+  id: string;
+  title: string;
+  description: string;
+  isActive: boolean;
+  sortOrder: number;
+}): HomePlaydayGuideItem {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    isActive: row.isActive,
+    sortOrder: row.sortOrder,
+  };
+}
+
+async function queryHomeBanners(activeOnly: boolean): Promise<HomeBannerItem[]> {
+  if (!isDatabaseConfigured()) return [];
+  return safeDb(async () => {
+    const db = getPrismaClient();
+    const rows = await db.homeBanner.findMany({
+      where: activeOnly ? { isActive: true } : undefined,
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    });
+    return rows.map(mapHomeBanner);
+  }, []);
+}
+
+async function queryPlaydayGuides(activeOnly: boolean): Promise<HomePlaydayGuideItem[]> {
+  if (!isDatabaseConfigured()) return [];
+  return safeDb(async () => {
+    const db = getPrismaClient();
+    const rows = await db.homePlaydayGuide.findMany({
+      where: activeOnly ? { isActive: true } : undefined,
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    });
+    return rows.map(mapPlaydayGuide);
+  }, []);
+}
+
+export const getHomeBanners = () => queryHomeBanners(true);
+export const getAdminHomeBanners = () => queryHomeBanners(false);
+export const getHomePlaydayGuides = () => queryPlaydayGuides(true);
+export const getAdminHomePlaydayGuides = () => queryPlaydayGuides(false);
+
+export async function createHomeBanner(data: {
+  title: string;
+  description: string;
+  href?: string;
+}): Promise<HomeBannerItem> {
+  const db = getPrismaClient();
+  const row = await db.homeBanner.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      href: data.href?.trim() || null,
+    },
+  });
+  return mapHomeBanner(row);
+}
+
+export async function createHomePlaydayGuide(data: {
+  title: string;
+  description: string;
+}): Promise<HomePlaydayGuideItem> {
+  const db = getPrismaClient();
+  const row = await db.homePlaydayGuide.create({
+    data: { title: data.title, description: data.description },
+  });
+  return mapPlaydayGuide(row);
+}
+
+export async function createNotice(data: {
+  title: string;
+  badge: string;
+  badgeColor?: string;
+}): Promise<Notice> {
+  const db = getPrismaClient();
+  const row = await db.notice.create({
+    data: {
+      title: data.title,
+      date: formatTodayDot(),
+      badge: data.badge,
+      badgeColor: data.badgeColor ?? "bg-gray-700",
+    },
+  });
+  return {
+    title: row.title,
+    date: row.date,
+    badge: row.badge,
+    badgeColor: row.badgeColor,
+  };
+}
+
+export async function deleteHomeBanner(id: string): Promise<void> {
+  const db = getPrismaClient();
+  await db.homeBanner.delete({ where: { id } });
+}
+
+export async function deleteHomePlaydayGuide(id: string): Promise<void> {
+  const db = getPrismaClient();
+  await db.homePlaydayGuide.delete({ where: { id } });
+}
+
+export async function deleteNoticeById(id: string): Promise<void> {
+  const db = getPrismaClient();
+  await db.notice.delete({ where: { id } });
+}
+
 export type PlaybookCategory = "usecase" | "trend" | "prompt" | "hai" | "teams" | "interview";
 
 export async function getPlaybookByCategory(
@@ -212,7 +380,7 @@ export async function createGalleryItem(data: {
   thumbnail?: string;
 }): Promise<GalleryItem> {
   const db = getPrismaClient();
-  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '.');
+  const today = formatTodayDot();
   const row = await db.galleryItem.create({
     data: {
       section: data.section,

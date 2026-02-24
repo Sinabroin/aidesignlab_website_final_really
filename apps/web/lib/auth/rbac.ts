@@ -86,6 +86,33 @@ export function hasAllRoles(user: User, roles: Role[]): boolean {
 }
 
 /**
+ * PlayDay 작성 가능 여부
+ * - 정책: 로그인한 현대건설 임직원(employee)이면 작성 가능
+ */
+export function canWritePlayday(user: User | null): boolean {
+  if (!user) return false;
+  return hasRole(user, "employee");
+}
+
+/**
+ * Playbook 작성 가능 여부
+ * - 정책: 운영진(operator)만 작성 가능
+ */
+export function canWritePlaybook(user: User | null): boolean {
+  if (!user) return false;
+  return hasRole(user, "operator");
+}
+
+/**
+ * ACE 커뮤니티 작성 가능 여부
+ * - 정책: community 또는 operator 작성 가능
+ */
+export function canWriteCommunity(user: User | null): boolean {
+  if (!user) return false;
+  return hasAnyRole(user, ["community", "operator"]);
+}
+
+/**
  * 고급 사용자 여부 (ROLE_ADVANCED)
  * community 또는 operator 역할이면 true
  * 고급 JSON 편집, 고급 설정 토글 등에 사용

@@ -9,7 +9,7 @@ export default function MarqueeShowcase() {
 
   if (isLoading) {
     return (
-      <div className="py-8 text-center text-[#6B6B6B] text-sm">로딩 중...</div>
+      <div className="py-8 text-center text-[#6B6B6B] text-sm">로딩 중\u2026</div>
     );
   }
 

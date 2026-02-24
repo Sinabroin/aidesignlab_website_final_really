@@ -1,8 +1,12 @@
 /** 게시글 저장 API — GalleryItem 테이블에 신규 항목 생성 */
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { createGalleryItem } from "@/lib/data/repository";
+import { getCurrentUser } from "@/lib/auth/session";
+import {
+  canWriteCommunity,
+  canWritePlaybook,
+  canWritePlayday,
+} from "@/lib/auth/rbac";
 
 const PLAYBOOK_CATEGORIES = new Set([
   "usecase",
@@ -20,17 +24,38 @@ function resolveSection(section: string, category: string): string {
   return section;
 }
 
-export async function POST(req: Request) {
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.json(
-      { error: "DB not configured" },
-      { status: 400 }
-    );
-  }
+function validatePayload(payload: {
+  section?: string;
+  category?: string;
+  title?: string;
+}) {
+  return Boolean(payload.section && payload.category && payload.title);
+}
 
+function canWriteSection(
+  section: string,
+  user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>
+) {
+  if (section === "playday") return canWritePlayday(user);
+  if (section === "activity") return canWriteCommunity(user);
+  if (section.startsWith("playbook_")) return canWritePlaybook(user);
+  return false;
+}
+
+function getDeniedMessage(section: string) {
+  if (section === "playday") return "PlayDay 작성 권한이 없습니다.";
+  if (section === "activity") return "ACE 커뮤니티 작성 권한이 없습니다.";
+  if (section.startsWith("playbook_")) return "Playbook 작성은 운영진만 가능합니다.";
+  return "허용되지 않은 작성 섹션입니다.";
+}
+
+export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { section, category, title, description, tags, thumbnailBase64 } = body as {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({ error: "DB not configured" }, { status: 400 });
+    }
+
+    const body = (await req.json()) as {
       section: string;
       category: string;
       title: string;
@@ -38,34 +63,39 @@ export async function POST(req: Request) {
       tags?: string[];
       thumbnailBase64?: string;
     };
-
-    if (!section || !category || !title) {
+    if (!validatePayload(body)) {
       return NextResponse.json(
         { error: "section, category, title은 필수입니다." },
         { status: 422 }
       );
     }
 
-    const session = await getServerSession(authOptions);
-    const author = session?.user?.name ?? session?.user?.email ?? "익명";
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+    }
+
+    const resolvedSection = resolveSection(body.section, body.category);
+    if (!canWriteSection(resolvedSection, user)) {
+      return NextResponse.json(
+        { error: getDeniedMessage(resolvedSection) },
+        { status: 403 }
+      );
+    }
 
     const item = await createGalleryItem({
-      section: resolveSection(section, category),
-      title,
-      description: description ?? "",
-      author,
-      category,
-      tags,
-      thumbnail: thumbnailBase64,
+      section: resolvedSection,
+      title: body.title,
+      description: body.description ?? "",
+      author: user.name ?? user.email ?? user.id,
+      category: body.category,
+      tags: body.tags,
+      thumbnail: body.thumbnailBase64,
     });
-
     return NextResponse.json(item, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[POST /api/data/posts]", message);
-    return NextResponse.json(
-      { error: `서버 오류: ${message}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: `서버 오류: ${message}` }, { status: 500 });
   }
 }

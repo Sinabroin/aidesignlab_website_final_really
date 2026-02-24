@@ -128,6 +128,13 @@
   .animate-marquee-right {
     animation-play-state: paused;
   }
+  .animate-fade-in,
+  .animate-fade-in-delay,
+  .animate-fade-in-delay-2 {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Tiptap / ProseMirror 에디터 */

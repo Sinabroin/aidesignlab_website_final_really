@@ -72,3 +72,36 @@ export interface ErrorResponse {
   error: string;
   message: string;
 }
+
+export interface AdminHomeBanner {
+  id: string;
+  title: string;
+  description: string;
+  href?: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface AdminHomeNotice {
+  id: string;
+  title: string;
+  date: string;
+  badge: string;
+  badgeColor: string;
+}
+
+export interface AdminPlaydayGuide {
+  id: string;
+  title: string;
+  description: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface AdminHomeContentResponse {
+  banners: AdminHomeBanner[];
+  notices: AdminHomeNotice[];
+  playdayGuides: AdminPlaydayGuide[];
+}
+
+export type HomeContentType = 'banner' | 'notice' | 'playday-guide';

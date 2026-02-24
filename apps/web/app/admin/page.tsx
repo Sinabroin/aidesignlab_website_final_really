@@ -10,6 +10,7 @@ import {
   removeFromAllowlist,
   ApiError,
 } from '@/lib/api/admin';
+import HomeContentManagementTab from '@/components/admin/HomeContentManagementTab';
 
 const FIXED_OPERATOR_EMAIL = '2501034@hdec.co.kr';
 
@@ -329,137 +330,7 @@ function PermissionsTab() {
 
 // 콘텐츠 관리 탭 (REQ6.2)
 function ContentManagementTab() {
-  const [selectedType, setSelectedType] = useState<'featured' | 'banners'>('featured');
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">콘텐츠 관리</h2>
-
-      {/* 타입 선택 */}
-      <div className="flex gap-4">
-        <button
-          onClick={() => setSelectedType('featured')}
-          className={`px-6 py-3 rounded-none font-semibold transition-all ${
-            selectedType === 'featured'
-              ? 'bg-gray-900 text-white'
-              : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-900'
-          }`}
-        >
-          대표 콘텐츠 편성
-        </button>
-        <button
-          onClick={() => setSelectedType('banners')}
-          className={`px-6 py-3 rounded-none font-semibold transition-all ${
-            selectedType === 'banners'
-              ? 'bg-gray-900 text-white'
-              : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-900'
-          }`}
-        >
-          배너 관리
-        </button>
-      </div>
-
-      {selectedType === 'featured' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* PlayDay 대표작 */}
-          <div className="bg-white rounded-none border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">PlayDay 대표작</h3>
-              <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
-                편성 변경
-              </button>
-            </div>
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-none">
-                  <span className="text-gray-600 font-semibold">{i}</span>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">AI 프로필 만들기</div>
-                    <div className="text-sm text-gray-600">김지수 · 2024.03.15</div>
-                  </div>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Playbook 대표작 */}
-          <div className="bg-white rounded-none border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Playbook 대표작</h3>
-              <button className="text-sm text-gray-900 hover:text-gray-800 font-semibold">
-                편성 변경
-              </button>
-            </div>
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-none">
-                  <span className="text-gray-600 font-semibold">{i}</span>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">계약서 분석 자동화</div>
-                    <div className="text-sm text-gray-600">ACE팀 · 2024.02.20</div>
-                  </div>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {selectedType === 'banners' && (
-        <div className="bg-white rounded-none border border-gray-200">
-          <div className="p-6 border-b flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900">배너 목록</h3>
-            <button className="px-4 py-2 bg-gray-900 text-white rounded-none hover:bg-gray-800 transition-colors">
-              배너 추가
-            </button>
-          </div>
-          <div className="divide-y">
-            {[
-              { title: 'AI 트렌드 세미나', range: '전사', period: '2024.02.10 ~ 2024.02.29', status: '활성' },
-              { title: 'PlayDay 3월 모집', range: 'ACE', period: '2024.02.15 ~ 2024.03.01', status: '활성' },
-            ].map((banner, idx) => (
-              <div key={idx} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-900 mb-2">{banner.title}</h4>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-none text-xs font-semibold">
-                        {banner.range}
-                      </span>
-                      <span>{banner.period}</span>
-                      <span className={`px-2 py-1 rounded-none text-xs font-semibold ${
-                        banner.status === '활성' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {banner.status}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-3 py-1 text-sm text-gray-900 hover:text-gray-800 font-semibold">
-                      수정
-                    </button>
-                    <button className="px-3 py-1 text-sm text-red-600 hover:text-red-800 font-semibold">
-                      삭제
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return <HomeContentManagementTab />;
 }
 
 // 회차 운영 탭 (REQ6.4)

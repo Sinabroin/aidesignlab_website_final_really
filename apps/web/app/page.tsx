@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
 import { AuroraBackground } from '@/components/AuroraBackground';
 import { TypewriterSimple } from '@/components/TypewriterSimple';
@@ -28,10 +29,12 @@ export default function Home() {
     }, 500);
   };
 
+  const router = useRouter();
+
   const handleEnterClick = () => {
     if (buttonPressed) return;
     setButtonPressed(true);
-    window.location.href = '/playground';
+    router.push('/playground');
   };
 
   useEffect(() => {
@@ -75,13 +78,15 @@ export default function Home() {
                 {currentPhase === 2 && (
                   <div className="space-y-4 animate-fade-in">
                     <h1 className="text-5xl md:text-7xl font-normal tracking-tight text-gray-900">
-                      AI Design Lab
+                      PlayGround
                     </h1>
                     <p className="text-xl md:text-2xl text-gray-700 font-normal tracking-tight">
-                      현대건설 워크이노베이션센터
+                      현대건설 워크이노베이션센터 AI Design Lab
                     </p>
                     <p className="text-base md:text-lg text-gray-600 font-normal tracking-tight max-w-2xl mx-auto">
-                      현대건설 AI디자인랩은 자유롭게 AI를 사용하고 공유하는 실험적 공간입니다.
+                      PlayGround는 누구나 AI를 편하게 사용해보고,
+                      <br />
+                      경험과 아이디어를 함께 공유하는 열린 실험 공간입니다.
                     </p>
                   </div>
                 )}
@@ -100,7 +105,7 @@ export default function Home() {
                       text-lg md:text-xl font-normal tracking-tight text-white
                       bg-gray-900 hover:bg-gray-800
                       rounded-none shadow-2xl
-                      transition-all duration-300 transform
+                      transition-[transform,box-shadow,opacity] duration-300
                       ${
                         buttonPressed
                           ? 'scale-95 shadow-lg opacity-80'
@@ -162,10 +167,10 @@ export default function Home() {
                     />
                   </div>
                   <p className="text-sm text-gray-500 font-normal tracking-tight">
-                    {currentPhase === 0 && 'Initializing...'}
-                    {currentPhase === 1 && 'Loading...'}
+                    {currentPhase === 0 && 'Initializing\u2026'}
+                    {currentPhase === 1 && 'Loading\u2026'}
                     {currentPhase === 2 && !buttonPressed && 'Ready'}
-                    {buttonPressed && 'Entering...'}
+                    {buttonPressed && 'Entering\u2026'}
                   </p>
                 </div>
               </div>

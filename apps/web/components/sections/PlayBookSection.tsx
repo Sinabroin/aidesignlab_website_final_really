@@ -11,6 +11,7 @@ type PlaybookCategory = 'usecase' | 'trend' | 'prompt' | 'hai' | 'teams' | 'inte
 interface PlayBookSectionProps {
   onWriteClick: (section: string) => void;
   onCardClick: (items: GalleryItem[], index: number) => void;
+  showWriteButton?: boolean;
 }
 
 const categoryLabels: Record<PlaybookCategory, string> = {
@@ -22,7 +23,11 @@ const categoryLabels: Record<PlaybookCategory, string> = {
   interview: 'AI 활용 인터뷰',
 };
 
-export default function PlayBookSection({ onWriteClick, onCardClick }: PlayBookSectionProps) {
+export default function PlayBookSection({
+  onWriteClick,
+  onCardClick,
+  showWriteButton = true,
+}: PlayBookSectionProps) {
   const [category, setCategory] = useState<PlaybookCategory>('usecase');
   const { data: currentData, isLoading, error } = usePlaybook(category);
 
@@ -39,7 +44,7 @@ export default function PlayBookSection({ onWriteClick, onCardClick }: PlayBookS
       <div className="mb-10">
         <SectionHeader
           title="PlayBook"
-          action={<WriteButton onClick={() => onWriteClick('playbook')} />}
+          action={showWriteButton ? <WriteButton onClick={() => onWriteClick('playbook')} /> : null}
         />
 
         <div className="flex flex-wrap gap-2 mt-6">

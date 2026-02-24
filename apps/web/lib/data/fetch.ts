@@ -3,7 +3,7 @@
  * /api/data/* 엔드포인트 호출 (동일 오리진, credentials 포함)
  */
 
-import type { GalleryItem, Notice } from "@/types";
+import type { GalleryItem, HomeBanner, HomePlaydayGuide, Notice } from "@/types";
 
 const API_BASE = "/api/data";
 
@@ -55,4 +55,16 @@ export async function fetchAdminContent(): Promise<
   return fetchApi<Array<GalleryItem & { section: string }>>(
     "/api/admin/content"
   );
+}
+
+export async function fetchHomeContent(): Promise<{
+  banners: HomeBanner[];
+  notices: Notice[];
+  playdayGuides: HomePlaydayGuide[];
+}> {
+  return fetchApi<{
+    banners: HomeBanner[];
+    notices: Notice[];
+    playdayGuides: HomePlaydayGuide[];
+  }>(`${API_BASE}/home-content`);
 }

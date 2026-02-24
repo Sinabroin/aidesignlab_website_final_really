@@ -118,3 +118,32 @@ model QuickLink {
 
   @@map("quick_links")
 }
+
+// 홈 메인 배너
+model HomeBanner {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  href        String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@map("home_banners")
+}
+
+// 홈 PlayDay 안내
+model HomePlaydayGuide {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@map("home_playday_guides")
+}
