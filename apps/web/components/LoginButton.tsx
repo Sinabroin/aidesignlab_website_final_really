@@ -39,7 +39,20 @@ export default function LoginButton({ callbackUrl }: LoginButtonProps) {
     setIsSubmitting(true);
     setMessage(null);
     const nextUrl = resolveCallbackUrl(callbackUrl);
-    await signIn('email', { email: normalized, callbackUrl: nextUrl, redirect: true });
+    // #region agent log
+    fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"login-debug-1",hypothesisId:"L1-L4",location:"components/LoginButton.tsx:handleSubmit:start",message:"email signIn start",data:{emailDomain:normalized.split("@")[1]??null,hasCallbackUrl:!!nextUrl},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    try {
+      const result = await signIn('email', { email: normalized, callbackUrl: nextUrl, redirect: true });
+      // #region agent log
+      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"login-debug-1",hypothesisId:"L1-L4",location:"components/LoginButton.tsx:handleSubmit:result",message:"email signIn result",data:{resultType:typeof result,isNull:result===null},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    } catch (error) {
+      // #region agent log
+      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"login-debug-1",hypothesisId:"L1-L4",location:"components/LoginButton.tsx:handleSubmit:catch",message:"email signIn threw error",data:{errorName:error instanceof Error?error.name:"unknown",errorMessage:error instanceof Error?error.message:"unknown"},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      setMessage('로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
     setIsSubmitting(false);
   };
 
