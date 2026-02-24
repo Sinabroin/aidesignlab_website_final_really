@@ -71,6 +71,8 @@ export async function middleware(req: NextRequest) {
       if (!hasSessionCookie) {
         const loginUrl = new URL("/login", req.url);
         loginUrl.searchParams.set("callbackUrl", pathname);
+        loginUrl.searchParams.set("mw", "missing_db_cookie");
+        loginUrl.searchParams.set("mws", sessionStrategy);
         // #region agent log
         fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"mw-debug-1",hypothesisId:"M1-M3",location:"middleware.ts:redirect-login-db",message:"redirecting to login due to missing db session cookie",data:{pathname,redirectPath:loginUrl.pathname,hasSessionCookie},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
@@ -101,6 +103,8 @@ export async function middleware(req: NextRequest) {
       // /login으로 리다이렉트 (실제 렌더링되는 페이지 - 302 루프 방지)
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("callbackUrl", pathname);
+      loginUrl.searchParams.set("mw", "missing_jwt_token");
+      loginUrl.searchParams.set("mws", sessionStrategy);
       // #region agent log
       fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"mw-debug-1",hypothesisId:"M1-M4",location:"middleware.ts:redirect-login",message:"redirecting to login due to missing token",data:{pathname,redirectPath:loginUrl.pathname,hasSessionCookie},timestamp:Date.now()})}).catch(()=>{});
       // #endregion
