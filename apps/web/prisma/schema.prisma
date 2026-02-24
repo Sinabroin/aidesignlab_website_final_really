@@ -55,7 +55,7 @@ model Session {
   @@map("sessions")
 }
 
-// NextAuth VerificationToken (이메일 인증 등)
+// NextAuth VerificationToken (EmailProvider 매직 링크 필수)
 model VerificationToken {
   identifier String
   token      String   @unique
