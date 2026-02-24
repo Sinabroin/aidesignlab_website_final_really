@@ -31,12 +31,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String?  @db.NVarChar(Max)
+  access_token      String?  @db.NVarChar(Max)
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String?  @db.NVarChar(Max)
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -69,16 +69,16 @@ model VerificationToken {
 model GalleryItem {
   id              String   @id @default(cuid())
   title           String
-  description     String
+  description     String   @db.NVarChar(Max)
   author          String
   date            String
   category        String
-  thumbnail       String?
-  fullDescription String?
-  tags            String?  // JSON array as string
-  attachments     String?  // JSON array as string
+  thumbnail       String?  @db.NVarChar(Max)
+  fullDescription String?  @db.NVarChar(Max)
+  tags            String?  @db.NVarChar(Max)
+  attachments     String?  @db.NVarChar(Max)
   session         Int?
-  section         String   // playbook_usecase, playbook_trend, playday, activity 등
+  section         String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -123,8 +123,8 @@ model QuickLink {
 model HomeBanner {
   id          String   @id @default(cuid())
   title       String
-  description String
-  content     String?  // 리치 HTML 콘텐츠 (에디터 출력)
+  description String   @db.NVarChar(Max)
+  content     String?  @db.NVarChar(Max)
   href        String?
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)

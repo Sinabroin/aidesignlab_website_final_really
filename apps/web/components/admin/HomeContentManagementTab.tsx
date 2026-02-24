@@ -234,6 +234,8 @@ export default function HomeContentManagementTab() {
   );
 }
 
+type BannerMode = 'simple' | 'rich' | 'html';
+
 function BannerForm({
   form,
   updateField,
@@ -247,109 +249,143 @@ function BannerForm({
   onSubmit: () => void;
   submitting: boolean;
 }) {
-  const [mode, setMode] = useState<'simple' | 'rich'>('simple');
+  const [mode, setMode] = useState<BannerMode>('simple');
+  const [showPreview, setShowPreview] = useState(false);
+
+  const previewHtml = mode === 'html' ? form.bannerContent : mode === 'rich' ? form.bannerContent : '';
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-2 border border-gray-300 w-fit">
-        <ModeTab label="간편 입력" active={mode === 'simple'} onClick={() => setMode('simple')} />
-        <ModeTab label="리치 에디터" active={mode === 'rich'} onClick={() => setMode('rich')} />
-      </div>
+      <BannerModeTabs mode={mode} onModeChange={setMode} />
+      <BannerMetaInputs form={form} updateField={updateField} />
+      <BannerContentInput mode={mode} form={form} updateField={updateField} onContentChange={onContentChange} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <input
-          value={form.bannerTitle}
-          onChange={(e) => updateField('bannerTitle', e.target.value)}
-          placeholder="배너 제목…"
-          name="bannerTitle"
-          autoComplete="off"
-          aria-label="배너 제목"
-          className="px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
-        />
-        <input
-          value={form.bannerHref}
-          onChange={(e) => updateField('bannerHref', e.target.value)}
-          placeholder="연결 링크(선택)…"
-          name="bannerHref"
-          type="url"
-          autoComplete="off"
-          aria-label="배너 연결 링크"
-          className="px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
-        />
-      </div>
-
-      {mode === 'simple' ? (
-        <input
-          value={form.bannerDescription}
-          onChange={(e) => updateField('bannerDescription', e.target.value)}
-          placeholder="배너 설명 (텍스트)…"
-          name="bannerDescription"
-          autoComplete="off"
-          aria-label="배너 설명"
-          className="w-full px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
-        />
-      ) : (
-        <div>
-          <label className="block text-sm text-gray-600 mb-1">배너 콘텐츠 (HTML/이미지/텍스트 자유 입력)</label>
-          <RichTextEditor
-            content={form.bannerContent}
-            onChange={onContentChange}
-            placeholder="이미지, HTML, 텍스트를 자유롭게 입력하세요…"
-            editable
-            minHeight="160px"
-          />
-        </div>
+      {(mode === 'html' || mode === 'rich') && previewHtml && (
+        <BannerPreviewToggle html={previewHtml} open={showPreview} onToggle={() => setShowPreview((p) => !p)} />
       )}
 
-      <button
-        onClick={onSubmit}
-        disabled={submitting}
-        className="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
-      >
+      <button onClick={onSubmit} disabled={submitting} className="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50">
         {submitting ? '등록 중\u2026' : '배너 등록'}
       </button>
     </div>
   );
 }
 
-function BannerList({
-  banners,
-  onDelete,
-}: {
-  banners: AdminHomeContentResponse['banners'];
-  onDelete: (id: string) => void;
-}) {
+function BannerModeTabs({ mode, onModeChange }: { mode: BannerMode; onModeChange: (m: BannerMode) => void }) {
+  const tabs: { key: BannerMode; label: string }[] = [
+    { key: 'simple', label: '간편 입력' },
+    { key: 'rich', label: '리치 에디터' },
+    { key: 'html', label: 'HTML 소스' },
+  ];
   return (
-    <ul className="divide-y border border-gray-200">
-      {banners.map((item) => (
-        <li key={item.id} className="px-4 py-3 flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-gray-900">{item.title}</p>
-            {item.content ? (
-              <div className="mt-1 text-sm text-gray-700 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: item.content }} />
-            ) : (
-              <p className="text-sm text-gray-600">{item.description}</p>
-            )}
-          </div>
-          <button onClick={() => onDelete(item.id)} aria-label={`배너 "${item.title}" 삭제`} className="text-red-600 text-sm hover:text-red-800 transition-colors shrink-0">
-            삭제
-          </button>
-        </li>
+    <div className="flex border border-gray-300 w-fit">
+      {tabs.map((t) => (
+        <button
+          key={t.key}
+          type="button"
+          onClick={() => onModeChange(t.key)}
+          className={`px-4 py-2 text-sm transition-colors ${mode === t.key ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+        >
+          {t.label}
+        </button>
       ))}
-    </ul>
+    </div>
   );
 }
 
-function ModeTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function BannerMetaInputs({ form, updateField }: { form: FormState; updateField: (k: keyof FormState, v: string) => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-4 py-2 text-sm transition-colors ${
-        active ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-      }`}
-    >
-      {label}
-    </button>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <input value={form.bannerTitle} onChange={(e) => updateField('bannerTitle', e.target.value)} placeholder="배너 제목\u2026" name="bannerTitle" autoComplete="off" aria-label="배너 제목" className="px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none" />
+      <input value={form.bannerHref} onChange={(e) => updateField('bannerHref', e.target.value)} placeholder="연결 링크(선택)\u2026" name="bannerHref" type="url" autoComplete="off" aria-label="배너 연결 링크" className="px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none" />
+    </div>
+  );
+}
+
+function BannerContentInput({
+  mode, form, updateField, onContentChange,
+}: {
+  mode: BannerMode; form: FormState; updateField: (k: keyof FormState, v: string) => void; onContentChange: (h: string) => void;
+}) {
+  if (mode === 'simple') {
+    return (
+      <input value={form.bannerDescription} onChange={(e) => updateField('bannerDescription', e.target.value)} placeholder="배너 설명 (텍스트)\u2026" name="bannerDescription" autoComplete="off" aria-label="배너 설명" className="w-full px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none" />
+    );
+  }
+  if (mode === 'rich') {
+    return (
+      <div>
+        <label className="block text-sm text-gray-600 mb-1">배너 콘텐츠 (서식/이미지 입력)</label>
+        <RichTextEditor content={form.bannerContent} onChange={onContentChange} placeholder="이미지, 텍스트를 자유롭게 입력하세요\u2026" editable minHeight="160px" />
+      </div>
+    );
+  }
+  return (
+    <div>
+      <label className="block text-sm text-gray-600 mb-1">HTML 소스 코드 직접 입력</label>
+      <textarea
+        value={form.bannerContent}
+        onChange={(e) => onContentChange(e.target.value)}
+        placeholder="<!DOCTYPE html>\n<html>\n<head>...</head>\n<body>...</body>\n</html>"
+        name="bannerHtmlSource"
+        aria-label="HTML 소스 코드"
+        rows={12}
+        className="w-full px-3 py-2 border border-gray-300 font-mono text-sm bg-gray-50 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none resize-y"
+        spellCheck={false}
+      />
+    </div>
+  );
+}
+
+function BannerPreviewToggle({ html, open, onToggle }: { html: string; open: boolean; onToggle: () => void }) {
+  return (
+    <div className="border border-gray-200">
+      <button type="button" onClick={onToggle} className="w-full flex items-center justify-between px-4 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700">
+        <span>{open ? '\u25BC' : '\u25B6'} 미리보기</span>
+      </button>
+      {open && <HtmlPreviewFrame html={html} />}
+    </div>
+  );
+}
+
+function HtmlPreviewFrame({ html }: { html: string }) {
+  const isFullPage = html.trim().toLowerCase().startsWith('<!doctype') || html.trim().toLowerCase().startsWith('<html');
+  const srcDoc = isFullPage ? html : `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>body{margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style></head><body>${html}</body></html>`;
+
+  return (
+    <iframe
+      srcDoc={srcDoc}
+      title="배너 미리보기"
+      sandbox="allow-same-origin"
+      className="w-full border-t border-gray-200 bg-white"
+      style={{ minHeight: 200, height: 360 }}
+    />
+  );
+}
+
+function BannerList({ banners, onDelete }: { banners: AdminHomeContentResponse['banners']; onDelete: (id: string) => void }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  return (
+    <ul className="divide-y border border-gray-200">
+      {banners.map((item) => (
+        <li key={item.id} className="px-4 py-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-gray-900">{item.title}</p>
+              {item.content ? (
+                <button type="button" onClick={() => setExpandedId(expandedId === item.id ? null : item.id)} className="text-sm text-blue-600 hover:text-blue-800 mt-1">
+                  {expandedId === item.id ? '\u25BC 미리보기 닫기' : '\u25B6 미리보기 열기'}
+                </button>
+              ) : (
+                <p className="text-sm text-gray-600">{item.description}</p>
+              )}
+            </div>
+            <button onClick={() => onDelete(item.id)} aria-label={`배너 "${item.title}" 삭제`} className="text-red-600 text-sm hover:text-red-800 transition-colors shrink-0">삭제</button>
+          </div>
+          {expandedId === item.id && item.content && <div className="mt-2"><HtmlPreviewFrame html={item.content} /></div>}
+        </li>
+      ))}
+    </ul>
   );
 }
