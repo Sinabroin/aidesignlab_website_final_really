@@ -45,7 +45,7 @@ export default function PlaygroundPage() {
   const canWritePlaydayPost = canWritePlayday(currentUser);
   const canWritePlaybookPost = canWritePlaybook(currentUser);
   const showAdminButton =
-    status === 'authenticated' && Boolean(currentUser) && hasRole(currentUser, 'operator');
+    status === 'authenticated' && currentUser != null && hasRole(currentUser, 'operator');
 
   // Preview carousel (1단계)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
