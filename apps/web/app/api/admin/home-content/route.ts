@@ -64,9 +64,10 @@ async function handleCreateByType(
   if (contentType === "banner") {
     const title = String(body.title ?? "").trim();
     const description = String(body.description ?? "").trim();
+    const content = String(body.content ?? "").trim();
     const href = String(body.href ?? "").trim();
-    if (!title || !description) return badRequest("배너 제목/설명은 필수입니다.");
-    const item = await createHomeBanner({ title, description, href });
+    if (!title) return badRequest("배너 제목은 필수입니다.");
+    const item = await createHomeBanner({ title, description, content, href });
     return NextResponse.json({ ok: true, item }, { status: 201 });
   }
   if (contentType === "notice") {

@@ -124,6 +124,7 @@ model HomeBanner {
   id          String   @id @default(cuid())
   title       String
   description String
+  content     String?  // 리치 HTML 콘텐츠 (에디터 출력)
   href        String?
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)

@@ -9,6 +9,7 @@ interface BannerItem {
   id: number | string;
   title: string;
   description: string;
+  content?: string;
   href?: string;
   noticeIndex?: number;
 }
@@ -32,7 +33,7 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
   const resolvedBanners = useMemo<BannerItem[]>(
     () =>
       banners.length > 0
-        ? banners.map((item) => ({ id: item.id, title: item.title, description: item.description, href: item.href }))
+        ? banners.map((item) => ({ id: item.id, title: item.title, description: item.description, content: item.content, href: item.href }))
         : FALLBACK_BANNERS,
     [banners]
   );
@@ -68,27 +69,7 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
                 : 'opacity-0 translate-x-full'
             }`}
           >
-            <button
-              type="button"
-              className="h-full w-full flex flex-col justify-center items-center text-center cursor-pointer transition-colors hover:bg-[#FAFBFC] px-8 border-none"
-              style={{ background: 'linear-gradient(135deg, #FFFFFF, #EEF4FF)' }}
-              onClick={() => {
-                if (banner.href) {
-                  router.push(banner.href);
-                  return;
-                }
-                if (banner.noticeIndex !== undefined) {
-                  onNoticeClick?.(banner.noticeIndex);
-                }
-              }}
-            >
-              <h2 className="text-2xl md:text-3xl font-light tracking-[0.08em] text-[#111] mb-3">
-                {banner.title}
-              </h2>
-              <p className="text-sm md:text-base text-[#6B6B6B]">
-                {banner.description}
-              </p>
-            </button>
+            <BannerSlide banner={banner} onNoticeClick={onNoticeClick} />
           </div>
         ))}
       </div>
@@ -133,5 +114,33 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
         ))}
       </div>
     </div>
+  );
+}
+
+function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeClick?: (i: number) => void }) {
+  const router = useRouter();
+  const hasRichContent = !!banner.content && banner.content !== '<p></p>';
+
+  const handleClick = () => {
+    if (banner.href) { router.push(banner.href); return; }
+    if (banner.noticeIndex !== undefined) onNoticeClick?.(banner.noticeIndex);
+  };
+
+  return (
+    <button
+      type="button"
+      className="h-full w-full flex flex-col justify-center items-center text-center cursor-pointer transition-colors hover:bg-[#FAFBFC] px-8 border-none overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #FFFFFF, #EEF4FF)' }}
+      onClick={handleClick}
+    >
+      <h2 className="text-2xl md:text-3xl font-light tracking-[0.08em] text-[#111] mb-3">
+        {banner.title}
+      </h2>
+      {hasRichContent ? (
+        <div className="text-sm md:text-base text-[#6B6B6B] prose prose-sm max-w-2xl max-h-32 overflow-hidden" dangerouslySetInnerHTML={{ __html: banner.content! }} />
+      ) : (
+        <p className="text-sm md:text-base text-[#6B6B6B]">{banner.description}</p>
+      )}
+    </button>
   );
 }

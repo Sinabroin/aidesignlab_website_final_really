@@ -180,6 +180,7 @@ export type HomeBannerItem = {
   id: string;
   title: string;
   description: string;
+  content?: string;
   href?: string;
   isActive: boolean;
   sortOrder: number;
@@ -197,6 +198,7 @@ function mapHomeBanner(row: {
   id: string;
   title: string;
   description: string;
+  content: string | null;
   href: string | null;
   isActive: boolean;
   sortOrder: number;
@@ -205,6 +207,7 @@ function mapHomeBanner(row: {
     id: row.id,
     title: row.title,
     description: row.description,
+    content: row.content ?? undefined,
     href: row.href ?? undefined,
     isActive: row.isActive,
     sortOrder: row.sortOrder,
@@ -259,6 +262,7 @@ export const getAdminHomePlaydayGuides = () => queryPlaydayGuides(false);
 export async function createHomeBanner(data: {
   title: string;
   description: string;
+  content?: string;
   href?: string;
 }): Promise<HomeBannerItem> {
   const db = getPrismaClient();
@@ -266,6 +270,7 @@ export async function createHomeBanner(data: {
     data: {
       title: data.title,
       description: data.description,
+      content: data.content?.trim() || null,
       href: data.href?.trim() || null,
     },
   });

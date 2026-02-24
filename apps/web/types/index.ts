@@ -28,6 +28,7 @@ export interface HomeBanner {
   id: string;
   title: string;
   description: string;
+  content?: string;
   href?: string;
   isActive: boolean;
   sortOrder: number;
