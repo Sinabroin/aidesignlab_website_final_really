@@ -15,10 +15,9 @@ const CATEGORIES: Record<string, { value: string; label: string }[]> = {
     { value: 'networking', label: '네트워킹' },
   ],
   activity: [
-    { value: 'safety', label: '안전' },
-    { value: 'planning', label: '일정관리' },
-    { value: 'ai', label: 'AI 시스템' },
-    { value: 'design', label: '디자인' },
+    { value: 'usecase', label: '활용사례 (use case)' },
+    { value: 'collaboration', label: '사내 협업툴' },
+    { value: 'weekly_card', label: 'Weekly Card' },
   ],
 };
 

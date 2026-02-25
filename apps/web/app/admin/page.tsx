@@ -442,76 +442,193 @@ function LogTypeSelector({ logType, onChange }: { logType: string; onChange: (v:
   );
 }
 
+interface AuditLogEntry {
+  id: string;
+  email: string;
+  userName: string | null;
+  action: string;
+  path: string | null;
+  ipAddress: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+function useAuditLogs(actions: string) {
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams({ actions, page: String(page), size: '30' });
+    fetch(`/api/admin/access-logs?${params}`)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        setLogs(data.logs);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [actions, page]);
+
+  return { logs, total, page, setPage, totalPages, loading };
+}
+
+function formatLogDate(iso: string): string {
+  const d = new Date(iso);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
 function DownloadLogTable() {
-  const downloadLogs = [
-    { user: '김철수', file: '계약서_분석_가이드.pdf', type: '개별', date: '2024.02.09 14:23', ip: '192.168.1.100' },
-    { user: '이영희', file: 'PlayDay_3월_자료.zip', type: 'ZIP', date: '2024.02.09 13:45', ip: '192.168.1.101' },
-  ];
+  const { logs, total, page, setPage, totalPages, loading } = useAuditLogs('download');
+
+  if (loading) return <LogLoadingState text="다운로드 로그를 불러오는 중..." />;
 
   return (
-    <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사용자</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">파일</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">유형</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">IP</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200">
-          {downloadLogs.map((log, idx) => (
-            <tr key={idx} className="hover:bg-gray-50">
-              <td className="px-6 py-4 text-sm text-gray-900">{log.user}</td>
-              <td className="px-6 py-4 text-sm text-gray-600">{log.file}</td>
-              <td className="px-6 py-4">
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-none">{log.type}</span>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-600">{log.date}</td>
-              <td className="px-6 py-4 text-sm text-gray-500 font-mono">{log.ip}</td>
+    <div className="space-y-4">
+      <p className="text-sm text-gray-600">총 <span className="font-bold text-gray-900">{total.toLocaleString()}</span>건</p>
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사용자</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">파일</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">섹션</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">IP</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {logs.length === 0 ? (
+              <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">다운로드 기록이 없습니다.</td></tr>
+            ) : logs.map((log) => (
+              <DownloadLogRow key={log.id} log={log} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <LogPagination page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }
 
-function ModerationLogTable() {
-  const moderationLogs = [
-    { action: '게시물 숨김', target: '부적절한 콘텐츠 포함', executor: '운영진', date: '2024.02.08 16:30', reason: '규정 위반' },
-    { action: '댓글 삭제', target: '욕설 포함', executor: '운영진', date: '2024.02.07 10:15', reason: '커뮤니티 가이드 위반' },
-  ];
+function DownloadLogRow({ log }: { log: AuditLogEntry }) {
+  const fileName = (log.metadata?.fileName as string) ?? '-';
+  const section = (log.metadata?.section as string) ?? '-';
 
   return (
-    <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작업</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">대상</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">실행자</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사유</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200">
-          {moderationLogs.map((log, idx) => (
-            <tr key={idx} className="hover:bg-gray-50">
-              <td className="px-6 py-4">
-                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-none font-semibold">
-                  {log.action}
-                </span>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-900">{log.target}</td>
-              <td className="px-6 py-4 text-sm text-gray-600">{log.executor}</td>
-              <td className="px-6 py-4 text-sm text-gray-600">{log.date}</td>
-              <td className="px-6 py-4 text-sm text-gray-600">{log.reason}</td>
+    <tr className="hover:bg-gray-50">
+      <td className="px-6 py-4 text-sm">
+        <div className="font-medium text-gray-900">{log.userName ?? log.email.split('@')[0]}</div>
+        <div className="text-xs text-gray-500">{log.email}</div>
+      </td>
+      <td className="px-6 py-4 text-sm text-gray-600 max-w-[250px] truncate">{fileName}</td>
+      <td className="px-6 py-4">
+        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-none">{section}</span>
+      </td>
+      <td className="px-6 py-4 text-sm text-gray-600">{formatLogDate(log.createdAt)}</td>
+      <td className="px-6 py-4 text-sm text-gray-500 font-mono">{log.ipAddress ?? '-'}</td>
+    </tr>
+  );
+}
+
+const MODERATION_ACTIONS = 'post_delete,post_edit,content_delete,content_hide,comment_delete';
+
+const MODERATION_LABELS: Record<string, string> = {
+  post_delete: '게시글 삭제',
+  post_edit: '게시글 수정',
+  content_delete: '콘텐츠 삭제',
+  content_hide: '콘텐츠 숨김',
+  comment_delete: '댓글 삭제',
+};
+
+const MODERATION_COLORS: Record<string, string> = {
+  post_delete: 'bg-red-100 text-red-700',
+  post_edit: 'bg-amber-100 text-amber-700',
+  content_delete: 'bg-red-100 text-red-700',
+  content_hide: 'bg-orange-100 text-orange-700',
+  comment_delete: 'bg-red-100 text-red-700',
+};
+
+function ModerationLogTable() {
+  const { logs, total, page, setPage, totalPages, loading } = useAuditLogs(MODERATION_ACTIONS);
+
+  if (loading) return <LogLoadingState text="삭제/숨김 로그를 불러오는 중..." />;
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-600">총 <span className="font-bold text-gray-900">{total.toLocaleString()}</span>건</p>
+      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작업</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">대상</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">실행자</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">상세</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {logs.length === 0 ? (
+              <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">삭제/숨김 기록이 없습니다.</td></tr>
+            ) : logs.map((log) => (
+              <ModerationLogRow key={log.id} log={log} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <LogPagination page={page} totalPages={totalPages} onChange={setPage} />
+    </div>
+  );
+}
+
+function ModerationLogRow({ log }: { log: AuditLogEntry }) {
+  const title = (log.metadata?.title as string) ?? (log.metadata?.contentType as string) ?? '-';
+  const section = (log.metadata?.section as string) ?? (log.metadata?.contentType as string) ?? '';
+
+  return (
+    <tr className="hover:bg-gray-50">
+      <td className="px-6 py-4">
+        <span className={`px-2 py-1 text-xs rounded-none font-semibold ${MODERATION_COLORS[log.action] ?? 'bg-gray-100 text-gray-700'}`}>
+          {MODERATION_LABELS[log.action] ?? log.action}
+        </span>
+      </td>
+      <td className="px-6 py-4 text-sm text-gray-900 max-w-[250px] truncate">
+        {title}
+        {section && <span className="ml-2 text-xs text-gray-400">[{section}]</span>}
+      </td>
+      <td className="px-6 py-4 text-sm text-gray-600">
+        {log.userName ?? log.email.split('@')[0]}
+      </td>
+      <td className="px-6 py-4 text-sm text-gray-600">{formatLogDate(log.createdAt)}</td>
+      <td className="px-6 py-4 text-sm text-gray-500 font-mono text-xs">{log.ipAddress ?? '-'}</td>
+    </tr>
+  );
+}
+
+function LogPagination({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (p: number) => void }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-center gap-2">
+      <button onClick={() => onChange(Math.max(1, page - 1))} disabled={page <= 1}
+        className="px-3 py-1.5 text-sm border border-gray-300 rounded-none hover:bg-gray-50 disabled:opacity-30">이전</button>
+      <span className="text-sm text-gray-700 px-3">{page} / {totalPages}</span>
+      <button onClick={() => onChange(Math.min(totalPages, page + 1))} disabled={page >= totalPages}
+        className="px-3 py-1.5 text-sm border border-gray-300 rounded-none hover:bg-gray-50 disabled:opacity-30">다음</button>
+    </div>
+  );
+}
+
+function LogLoadingState({ text }: { text: string }) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-none p-8 text-center">
+      <div className="animate-spin w-6 h-6 border-2 border-gray-300 border-t-gray-800 rounded-full mx-auto mb-3" />
+      <p className="text-gray-600 text-sm">{text}</p>
     </div>
   );
 }

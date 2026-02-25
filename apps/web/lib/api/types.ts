@@ -79,6 +79,7 @@ export interface AdminHomeBanner {
   description: string;
   content?: string;
   href?: string;
+  thumbnail?: string;
   isActive: boolean;
   sortOrder: number;
 }

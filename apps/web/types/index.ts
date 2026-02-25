@@ -31,6 +31,7 @@ export interface HomeBanner {
   description: string;
   content?: string;
   href?: string;
+  thumbnail?: string;
   attachments?: { name: string; type: string; size: number; data: string }[];
   isActive: boolean;
   sortOrder: number;
@@ -62,5 +63,5 @@ export interface HelpRequest {
 
 export type Tab = 'home' | 'playbook' | 'playday' | 'activity';
 export type PlaybookCategory = 'usecase' | 'trend' | 'prompt' | 'hai';
-export type ActivityCategory = 'safety' | 'planning' | 'ai' | 'design' | 'all';
+export type ActivityCategory = 'usecase' | 'collaboration' | 'weekly_card' | 'all';
 export type UserRole = 'R1' | 'R2' | 'R3'; // R1=전사, R2=ACE, R3=운영진

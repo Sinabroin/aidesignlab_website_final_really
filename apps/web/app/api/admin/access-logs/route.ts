@@ -71,11 +71,12 @@ async function handleLogsList(params: URLSearchParams) {
   const page = Math.max(1, Number(params.get("page") ?? "1"));
   const size = Math.min(100, Math.max(1, Number(params.get("size") ?? DEFAULT_PAGE_SIZE)));
   const action = params.get("action");
+  const actions = params.get("actions");
   const email = params.get("email");
   const dateFrom = params.get("dateFrom");
   const dateTo = params.get("dateTo");
 
-  const where = buildWhereClause(action, email, dateFrom, dateTo);
+  const where = buildWhereClause(action, actions, email, dateFrom, dateTo);
 
   const [logs, total] = await Promise.all([
     prisma.accessLog.findMany({
@@ -98,12 +99,17 @@ async function handleLogsList(params: URLSearchParams) {
 
 function buildWhereClause(
   action: string | null,
+  actions: string | null,
   email: string | null,
   dateFrom: string | null,
   dateTo: string | null,
 ) {
   const where: Record<string, unknown> = {};
-  if (action) where.action = action;
+  if (actions) {
+    where.action = { in: actions.split(",") };
+  } else if (action) {
+    where.action = action;
+  }
   if (email) where.email = { contains: email };
   if (dateFrom || dateTo) {
     const createdAt: Record<string, Date> = {};

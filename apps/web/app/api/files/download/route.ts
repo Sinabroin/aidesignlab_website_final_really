@@ -1,8 +1,9 @@
-/** 파일 다운로드 API — 로그인 및 섹션별 권한 검사 후 파일 제공 */
+/** 파일 다운로드 API — 로그인 및 섹션별 권한 검사 후 파일 제공 + 감사 로그 */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getRolesForUser } from "@/lib/auth/rbac";
+import { logAuditEvent, extractIpFromHeaders } from "@/lib/audit";
 
 function canDownloadSection(roles: string[], section: string): boolean {
   if (roles.includes("operator") || roles.includes("community")) return true;
@@ -57,6 +58,16 @@ export async function GET(req: NextRequest) {
         { status: 403 }
       );
     }
+
+    logAuditEvent({
+      email: user.email ?? user.id,
+      userName: user.name,
+      action: "download",
+      path: `/api/files/download`,
+      ipAddress: extractIpFromHeaders(req.headers),
+      userAgent: req.headers.get("user-agent"),
+      metadata: { fileName, section, fileUrl },
+    });
 
     return await proxyExternalFile(fileUrl, fileName);
   } catch (error) {

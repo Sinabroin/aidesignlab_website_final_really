@@ -1,4 +1,4 @@
-/** 게시글 수정/삭제 API — 작성자 본인 또는 운영자만 가능 */
+/** 게시글 수정/삭제 API — 작성자 본인 또는 운영자만 가능 + 감사 로그 */
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { hasRole } from "@/lib/auth/rbac";
@@ -7,6 +7,7 @@ import {
   deleteGalleryItemById,
   updateGalleryItem,
 } from "@/lib/data/repository";
+import { logAuditEvent } from "@/lib/audit";
 
 function isAuthorOf(
   item: { author: string },
@@ -62,6 +63,14 @@ export async function PUT(
       attachments: body.attachments,
     });
 
+    logAuditEvent({
+      email: user.email ?? user.id,
+      userName: user.name,
+      action: "post_edit",
+      path: `/api/data/posts/${id}`,
+      metadata: { postId: id, title: item.title, section: item.section },
+    });
+
     return NextResponse.json(updated);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -96,6 +105,15 @@ export async function DELETE(
     }
 
     await deleteGalleryItemById(id);
+
+    logAuditEvent({
+      email: user.email ?? user.id,
+      userName: user.name,
+      action: "post_delete",
+      path: `/api/data/posts/${id}`,
+      metadata: { postId: id, title: item.title, section: item.section, author: item.author },
+    });
+
     return NextResponse.json({ success: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

@@ -16,6 +16,7 @@ interface BannerItem {
   description: string;
   content?: string;
   href?: string;
+  thumbnail?: string;
   attachments?: BannerAttachment[];
 }
 
@@ -75,6 +76,7 @@ export default function NoticeBanner({ onNoticeClick, banners = [], loading }: N
         description: b.description,
         content: b.content,
         href: b.href,
+        thumbnail: b.thumbnail,
         attachments: b.attachments,
       })),
     [banners],
@@ -189,6 +191,9 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
     [banner.attachments],
   );
 
+  if (banner.thumbnail) {
+    return <BannerMedia bannerId={banner.id} src={banner.thumbnail} title={banner.title} />;
+  }
   if (posterData) {
     return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(posterData.html, posterData.css, { fit: true })} title={banner.title} />;
   }

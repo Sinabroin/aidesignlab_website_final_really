@@ -6,7 +6,7 @@ import FilterButton from '@/components/common/FilterButton';
 import { useActivity } from '@/hooks/useData';
 import type { GalleryItem } from '@/types';
 
-type ActivityCategory = 'safety' | 'planning' | 'ai' | 'design' | 'all';
+type ActivityCategory = 'all' | 'usecase' | 'collaboration' | 'weekly_card';
 
 interface ACECommunitySectionProps {
   onWriteClick: (section: string) => void;
@@ -15,10 +15,9 @@ interface ACECommunitySectionProps {
 
 const categoryLabels: Record<ActivityCategory, string> = {
   all: '전체보기',
-  safety: '안전',
-  planning: '일정관리',
-  ai: 'AI 시스템',
-  design: '디자인'
+  usecase: '활용사례 (use case)',
+  collaboration: '사내 협업툴',
+  weekly_card: 'Weekly Card',
 };
 
 export default function ACECommunitySection({ onWriteClick, onCardClick }: ACECommunitySectionProps) {
@@ -28,18 +27,8 @@ export default function ACECommunitySection({ onWriteClick, onCardClick }: ACECo
   const filteredData = category === 'all'
     ? activityData
     : activityData.filter(item => {
-        const categoryMap: Record<string, ActivityCategory> = {
-          'safety': 'safety',
-          'planning': 'planning',
-          'ai': 'ai',
-          'design': 'design',
-          'Safety': 'safety',
-          'Planning': 'planning',
-          'AI System': 'ai',
-          'Design': 'design',
-        };
-        const cats = item.category.split(',');
-        return cats.some(c => categoryMap[c.trim().toLowerCase()] === category || categoryMap[c.trim()] === category);
+        const cats = item.category.split(',').map(c => c.trim());
+        return cats.includes(category);
       });
 
   if (error) {

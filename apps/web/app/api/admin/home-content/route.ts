@@ -1,7 +1,8 @@
-/** 운영자 홈 콘텐츠 관리 API */
+/** 운영자 홈 콘텐츠 관리 API + 감사 로그 */
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { hasRole } from "@/lib/auth/rbac";
+import { logAuditEvent } from "@/lib/audit";
 import {
   createHomeBanner,
   createHomePlaydayGuide,
@@ -72,9 +73,10 @@ async function handleCreateByType(
     const description = String(body.description ?? "").trim();
     const content = String(body.content ?? "").trim();
     const href = String(body.href ?? "").trim();
+    const thumbnail = typeof body.thumbnail === "string" ? body.thumbnail.trim() : undefined;
     const attachments = Array.isArray(body.attachments) ? body.attachments : undefined;
     if (!title) return badRequest("배너 제목은 필수입니다.");
-    const item = await createHomeBanner({ title, description, content, href, attachments });
+    const item = await createHomeBanner({ title, description, content, href, thumbnail, attachments });
     return NextResponse.json({ ok: true, item }, { status: 201 });
   }
   if (contentType === "notice") {
@@ -123,7 +125,8 @@ export async function DELETE(req: Request) {
   try {
     const dbError = ensureDatabase();
     if (dbError) return dbError;
-    const authError = requireOperator(await getCurrentUser());
+    const user = await getCurrentUser();
+    const authError = requireOperator(user);
     if (authError) return authError;
 
     const body = (await req.json()) as { id?: string; contentType?: ContentType };
@@ -133,7 +136,20 @@ export async function DELETE(req: Request) {
     if (!["banner", "notice", "playday-guide"].includes(contentType)) {
       return badRequest("지원하지 않는 contentType입니다.");
     }
-    return await handleDeleteByType(contentType, id);
+
+    const result = await handleDeleteByType(contentType, id);
+
+    if (user) {
+      logAuditEvent({
+        email: user.email ?? user.id,
+        userName: user.name,
+        action: "content_delete",
+        path: "/api/admin/home-content",
+        metadata: { contentType, contentId: id },
+      });
+    }
+
+    return result;
   } catch (error) {
     console.error("[home-content:DELETE] error:", error);
     const message = error instanceof Error ? error.message : String(error);
