@@ -1,3 +1,4 @@
+/** 홈 배너 슬라이더 - 텍스트/리치콘텐츠/포스터 임베드 지원 */
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -26,8 +27,22 @@ const FALLBACK_BANNERS: BannerItem[] = [
   { id: 4, title: 'AI 활용 우수 사례 공모전', description: '최우수상 100만원! 3월 31일까지', noticeIndex: 6 },
 ];
 
+function extractPosterEmbed(content: string | undefined): { html: string; css: string } | null {
+  if (!content?.includes('data-type="poster-embed"')) return null;
+  if (typeof DOMParser === 'undefined') return null;
+  try {
+    const doc = new DOMParser().parseFromString(content, 'text/html');
+    const el = doc.querySelector('[data-type="poster-embed"]');
+    if (!el) return null;
+    const html = el.getAttribute('data-html') ?? '';
+    const css = el.getAttribute('data-css') ?? '';
+    return (html || css) ? { html, css } : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBannerProps) {
-  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const resolvedBanners = useMemo<BannerItem[]>(
@@ -36,6 +51,11 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
         ? banners.map((item) => ({ id: item.id, title: item.title, description: item.description, content: item.content, href: item.href }))
         : FALLBACK_BANNERS,
     [banners]
+  );
+
+  const hasAnyPoster = useMemo(
+    () => resolvedBanners.some((b) => b.content?.includes('data-type="poster-embed"')),
+    [resolvedBanners]
   );
 
   useEffect(() => {
@@ -54,10 +74,11 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
     setCurrentIndex((prev) => (prev + 1) % resolvedBanners.length);
   };
 
+  const containerHeight = hasAnyPoster ? 'h-[480px] md:h-[560px]' : 'h-48 md:h-56';
+
   return (
     <div className="relative w-full rounded-none overflow-hidden border border-[#D9D6D3] bg-white">
-      {/* 배너 슬라이드 */}
-      <div className="relative h-48 md:h-56">
+      <div className={`relative ${containerHeight} transition-all duration-300`}>
         {resolvedBanners.map((banner, index) => (
           <div
             key={banner.id}
@@ -74,32 +95,10 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
         ))}
       </div>
 
-      {/* 좌측 화살표 */}
-      <button
-        onClick={goToPrevious}
-        aria-label="이전 배너"
-        className="absolute left-3 top-1/2 -translate-y-1/2 relative overflow-visible w-9 h-9 bg-white/80 backdrop-blur-sm border border-[#D9D6D3] rounded-none flex items-center justify-center hover:border-[#6B6B6B] transition-colors"
-      >
-        <GlowingEffect disabled={false} spread={12} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={10} />
-        <svg className="w-4 h-4 text-[#111] relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
+      <NavArrow direction="left" onClick={goToPrevious} />
+      <NavArrow direction="right" onClick={goToNext} />
 
-      {/* 우측 화살표 */}
-      <button
-        onClick={goToNext}
-        aria-label="다음 배너"
-        className="absolute right-3 top-1/2 -translate-y-1/2 relative overflow-visible w-9 h-9 bg-white/80 backdrop-blur-sm border border-[#D9D6D3] rounded-none flex items-center justify-center hover:border-[#6B6B6B] transition-colors"
-      >
-        <GlowingEffect disabled={false} spread={12} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={10} />
-        <svg className="w-4 h-4 text-[#111] relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-
-      {/* 인디케이터 */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
         {resolvedBanners.map((_, index) => (
           <button
             key={index}
@@ -117,7 +116,51 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
   );
 }
 
+function NavArrow({ direction, onClick }: { direction: 'left' | 'right'; onClick: () => void }) {
+  const isLeft = direction === 'left';
+  return (
+    <button
+      onClick={onClick}
+      aria-label={isLeft ? '이전 배너' : '다음 배너'}
+      className={`absolute ${isLeft ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 relative overflow-visible w-9 h-9 bg-white/80 backdrop-blur-sm border border-[#D9D6D3] rounded-none flex items-center justify-center hover:border-[#6B6B6B] transition-colors z-10`}
+    >
+      <GlowingEffect disabled={false} spread={12} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={10} />
+      <svg className="w-4 h-4 text-[#111] relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isLeft ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
+      </svg>
+    </button>
+  );
+}
+
 function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeClick?: (i: number) => void }) {
+  const [posterData, setPosterData] = useState<{ html: string; css: string } | null>(null);
+
+  useEffect(() => {
+    setPosterData(extractPosterEmbed(banner.content));
+  }, [banner.content]);
+
+  if (posterData) {
+    return <PosterBannerSlide html={posterData.html} css={posterData.css} title={banner.title} />;
+  }
+
+  return <TextBannerSlide banner={banner} onNoticeClick={onNoticeClick} />;
+}
+
+function PosterBannerSlide({ html, css, title }: { html: string; css: string; title: string }) {
+  const srcDoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>html,body{margin:0;padding:0;overflow:hidden;}${css}</style></head><body>${html}</body></html>`;
+
+  return (
+    <iframe
+      srcDoc={srcDoc}
+      sandbox="allow-same-origin allow-popups allow-top-navigation"
+      title={title}
+      className="w-full h-full border-0 bg-white"
+      scrolling="no"
+    />
+  );
+}
+
+function TextBannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeClick?: (i: number) => void }) {
   const router = useRouter();
   const hasRichContent = !!banner.content && banner.content !== '<p></p>';
 
