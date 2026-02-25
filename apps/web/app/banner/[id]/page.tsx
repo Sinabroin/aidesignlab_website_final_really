@@ -94,7 +94,8 @@ function BannerBody({ content, title }: { content?: string; title: string }) {
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data?.type === 'iframe-resize' && typeof e.data.height === 'number') {
-        setIframeHeight(Math.max(400, e.data.height + 40));
+        const h = Math.min(6000, Math.max(400, e.data.height + 40));
+        setIframeHeight(h);
       }
     };
     window.addEventListener('message', handler);
