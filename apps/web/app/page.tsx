@@ -6,15 +6,6 @@ import { GlowingEffect } from '@/components/common/GlowingEffect';
 import { AuroraBackground } from '@/components/AuroraBackground';
 import { TypewriterSimple } from '@/components/TypewriterSimple';
 
-function PlaygroundIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" className={className} fill="currentColor" aria-hidden="true">
-      <path d="M3,3 L3,45 L29,24 Z" opacity="0.7" />
-      <path d="M19,10 L19,38 L45,24 Z" />
-    </svg>
-  );
-}
-
 /**
  * 메인 랜딩 페이지
  *
@@ -86,19 +77,11 @@ export default function Home() {
 
                 {currentPhase === 2 && (
                   <div className="space-y-8 animate-fade-in">
-                    <div className="flex flex-col items-center gap-5">
-                      <PlaygroundIcon className="w-16 h-16 md:w-24 md:h-24 text-gray-900" />
-                      <div className="text-center space-y-1.5">
-                        <h1 className="text-3xl md:text-5xl font-bold tracking-[0.25em] text-gray-900">
-                          PLAYGROUND
-                        </h1>
-                        <p className="text-xs md:text-sm font-medium tracking-[0.3em] text-gray-500 uppercase">
-                          AI Design Lab
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-lg md:text-xl text-gray-700 font-normal tracking-tight">
-                      현대건설 워크이노베이션센터
+                    <h1 className="text-6xl md:text-[5.625rem] leading-tight font-normal tracking-tight text-gray-900">
+                      PlayGround
+                    </h1>
+                    <p className="text-xl md:text-2xl text-gray-700 font-normal tracking-tight">
+                      현대건설 워크이노베이션센터 AI Design Lab
                     </p>
                     <p className="text-base md:text-lg text-gray-600 font-normal tracking-tight max-w-2xl mx-auto">
                       PlayGround는 누구나 AI를 편하게 사용해보고,
