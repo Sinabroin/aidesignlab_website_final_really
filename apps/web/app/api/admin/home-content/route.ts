@@ -57,10 +57,7 @@ export async function GET() {
     ]);
     return NextResponse.json({ banners, notices, playdayGuides });
   } catch (error) {
-    // #region agent log
     console.error("[home-content:GET] error:", error);
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-2',hypothesisId:'H4',location:'route.ts:GET:catch',message:'GET error',data:{error:String(error),name:(error as Error)?.name,msg:(error as Error)?.message},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: "LoadFailed", message }, { status: 500 });
   }
@@ -76,8 +73,9 @@ async function handleCreateByType(
     const content = String(body.content ?? "").trim();
     const href = String(body.href ?? "").trim();
     const attachments = Array.isArray(body.attachments) ? body.attachments : undefined;
+    const fitMode = String(body.fitMode ?? "").trim() || undefined;
     if (!title) return badRequest("배너 제목은 필수입니다.");
-    const item = await createHomeBanner({ title, description, content, href, attachments });
+    const item = await createHomeBanner({ title, description, content, href, attachments, fitMode });
     return NextResponse.json({ ok: true, item }, { status: 201 });
   }
   if (contentType === "notice") {
@@ -96,18 +94,12 @@ async function handleCreateByType(
 
 export async function POST(req: Request) {
   try {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-2',hypothesisId:'H3',location:'route.ts:POST:entry',message:'POST handler entered',data:{url:req.url},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     const dbError = ensureDatabase();
     if (dbError) return dbError;
     const authError = requireOperator(await getCurrentUser());
     if (authError) return authError;
 
     const body = (await req.json()) as Record<string, unknown>;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-2',hypothesisId:'H1',location:'route.ts:POST:parsed',message:'body parsed',data:{contentType:body.contentType,title:body.title,hasContent:!!body.content,contentLen:typeof body.content==='string'?body.content.length:0},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     const contentType = body.contentType as ContentType;
     if (!contentType) return badRequest("contentType은 필수입니다.");
     if (!["banner", "notice", "playday-guide"].includes(contentType)) {
@@ -115,10 +107,7 @@ export async function POST(req: Request) {
     }
     return await handleCreateByType(contentType, body);
   } catch (error) {
-    // #region agent log
     console.error("[home-content:POST] error:", error);
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'debug-2',hypothesisId:'H2',location:'route.ts:POST:catch',message:'POST error caught',data:{error:String(error),name:(error as Error)?.name,msg:(error as Error)?.message,stack:(error as Error)?.stack?.slice(0,500)},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: "CreateFailed", message }, { status: 500 });
   }
@@ -147,9 +136,7 @@ export async function DELETE(req: Request) {
     }
     return await handleDeleteByType(contentType, id);
   } catch (error) {
-    // #region agent log
     console.error("[home-content:DELETE] error:", error);
-    // #endregion
     const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: "DeleteFailed", message }, { status: 500 });
   }
