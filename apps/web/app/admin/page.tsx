@@ -412,7 +412,7 @@ function LogsTab() {
       {logType === 'moderation' && <ModerationLogTable />}
 
       <div className="flex justify-end">
-        <LogExportButton />
+        <LogExportButton logType={logType} />
       </div>
     </div>
   );
@@ -633,15 +633,149 @@ function LogLoadingState({ text }: { text: string }) {
   );
 }
 
-function LogExportButton() {
+const LOG_TYPE_LABELS: Record<string, string> = {
+  access: '접속 로그',
+  download: '다운로드 로그',
+  moderation: '삭제/숨김 로그',
+};
+
+function getDefaultDateRange() {
+  const to = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - 30);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return { from: fmt(from), to: fmt(to) };
+}
+
+function LogExportButton({ logType }: { logType: 'access' | 'download' | 'moderation' }) {
+  const [open, setOpen] = useState(false);
+  const defaults = useMemo(getDefaultDateRange, []);
+  const [dateFrom, setDateFrom] = useState(defaults.from);
+  const [dateTo, setDateTo] = useState(defaults.to);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams({ logType, dateFrom, dateTo });
+      const res = await fetch(`/api/admin/access-logs/export?${params}`, { credentials: 'include' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      downloadBlob(blob, getFileNameFromResponse(res) ?? `로그_${logType}.xlsx`);
+      setOpen(false);
+    } catch {
+      alert('엑셀 파일 생성에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
-    <button className="px-4 py-2 border border-gray-300 rounded-none hover:bg-gray-50 transition-colors flex items-center gap-2">
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-      </svg>
-      로그 내보내기
-    </button>
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="px-4 py-2 border border-gray-300 rounded-none hover:bg-gray-50 transition-colors flex items-center gap-2"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        로그 내보내기
+      </button>
+
+      {open && (
+        <ExportPanel
+          logType={logType}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          exporting={exporting}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+          onExport={handleExport}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </div>
   );
+}
+
+function ExportPanel({
+  logType, dateFrom, dateTo, exporting,
+  onDateFromChange, onDateToChange, onExport, onClose,
+}: {
+  logType: string;
+  dateFrom: string;
+  dateTo: string;
+  exporting: boolean;
+  onDateFromChange: (v: string) => void;
+  onDateToChange: (v: string) => void;
+  onExport: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="absolute right-0 bottom-full mb-2 w-80 bg-white border border-gray-200 shadow-lg rounded-none p-5 z-50 space-y-4">
+      <div className="flex items-center justify-between">
+        <h4 className="font-bold text-gray-900 text-sm">엑셀 내보내기</h4>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-lg leading-none">&times;</button>
+      </div>
+
+      <div className="text-sm text-gray-600">
+        대상: <span className="font-semibold text-gray-900">{LOG_TYPE_LABELS[logType] ?? logType}</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">시작일</label>
+          <input type="date" value={dateFrom} onChange={(e) => onDateFromChange(e.target.value)}
+            className="w-full px-2 py-1.5 border border-gray-300 rounded-none text-sm" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">종료일</label>
+          <input type="date" value={dateTo} onChange={(e) => onDateToChange(e.target.value)}
+            className="w-full px-2 py-1.5 border border-gray-300 rounded-none text-sm" />
+        </div>
+      </div>
+
+      <p className="text-xs text-gray-400">최대 10,000건까지 내보낼 수 있습니다.</p>
+
+      <button
+        onClick={onExport}
+        disabled={exporting}
+        className="w-full py-2 bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+      >
+        {exporting ? (
+          <>
+            <span className="animate-spin inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
+            다운로드 중…
+          </>
+        ) : (
+          <>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            .xlsx 다운로드
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function getFileNameFromResponse(res: Response): string | null {
+  const header = res.headers.get('Content-Disposition');
+  if (!header) return null;
+  const match = header.match(/filename\*?=(?:UTF-8''|"?)([^";]+)/i);
+  return match ? decodeURIComponent(match[1]) : null;
 }
 
 // 태그 관리 탭 (REQ6.6)
