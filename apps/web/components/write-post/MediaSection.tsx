@@ -82,6 +82,23 @@ function ThumbnailField({ thumbnail, onChange }: { thumbnail: File | null; onCha
         </button>
       )}
       <input ref={inputRef} type="file" accept="image/*" onChange={(e) => { if (e.target.files?.[0]) onChange(e.target.files[0]); }} className="hidden" />
+      <ThumbnailGuide />
+    </div>
+  );
+}
+
+function ThumbnailGuide() {
+  return (
+    <div className="max-w-md mt-2 px-3 py-2 bg-gray-50 border border-gray-200 text-[11px] text-gray-500 leading-relaxed">
+      <span className="font-semibold text-gray-600">썸네일 가이드</span>
+      <span className="mx-1.5 text-gray-300">|</span>
+      권장 <strong className="text-gray-600">800 × 600px</strong>
+      <span className="mx-1 text-gray-300">/</span>
+      표시 비율 <strong className="text-gray-600">4:3</strong>
+      <span className="mx-1 text-gray-300">/</span>
+      형식 JPG · PNG · WebP
+      <span className="mx-1 text-gray-300">/</span>
+      초과 시 자동 축소
     </div>
   );
 }

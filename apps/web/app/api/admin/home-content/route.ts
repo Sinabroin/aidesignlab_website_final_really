@@ -49,7 +49,8 @@ export async function GET() {
   try {
     const dbError = ensureDatabase();
     if (dbError) return dbError;
-    const authError = requireOperator(await getCurrentUser());
+    const user = await getCurrentUser();
+    const authError = requireOperator(user);
     if (authError) return authError;
     const [banners, notices, playdayGuides] = await Promise.all([
       getAdminHomeBanners(),
@@ -60,7 +61,11 @@ export async function GET() {
   } catch (error) {
     console.error("[home-content:GET] error:", error);
     const message = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: "LoadFailed", message }, { status: 500 });
+    const stack = error instanceof Error ? error.stack : undefined;
+    return NextResponse.json(
+      { error: "LoadFailed", message, detail: stack },
+      { status: 500 }
+    );
   }
 }
 
@@ -99,7 +104,8 @@ export async function POST(req: Request) {
   try {
     const dbError = ensureDatabase();
     if (dbError) return dbError;
-    const authError = requireOperator(await getCurrentUser());
+    const user = await getCurrentUser();
+    const authError = requireOperator(user);
     if (authError) return authError;
 
     const body = (await req.json()) as Record<string, unknown>;
@@ -108,11 +114,28 @@ export async function POST(req: Request) {
     if (!["banner", "notice", "playday-guide"].includes(contentType)) {
       return badRequest("지원하지 않는 contentType입니다.");
     }
-    return await handleCreateByType(contentType, body);
+
+    const result = await handleCreateByType(contentType, body);
+
+    if (user) {
+      logAuditEvent({
+        email: user.email ?? user.id,
+        userName: user.name,
+        action: "post_edit",
+        path: "/api/admin/home-content",
+        metadata: { contentType, action: "create" },
+      });
+    }
+
+    return result;
   } catch (error) {
     console.error("[home-content:POST] error:", error);
     const message = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: "CreateFailed", message }, { status: 500 });
+    const stack = error instanceof Error ? error.stack : undefined;
+    return NextResponse.json(
+      { error: "CreateFailed", message, detail: stack },
+      { status: 500 }
+    );
   }
 }
 

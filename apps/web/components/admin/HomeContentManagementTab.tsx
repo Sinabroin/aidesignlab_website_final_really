@@ -48,6 +48,62 @@ const initialFormState: FormState = {
   guideDescription: '',
 };
 
+function validateTitle(contentType: HomeContentType, form: FormState): string | null {
+  if (contentType === 'banner' && !form.bannerTitle.trim()) return '배너 제목을 입력해 주세요.';
+  if (contentType === 'notice' && !form.noticeTitle.trim()) return '공지 제목을 입력해 주세요.';
+  if (contentType === 'playday-guide' && !form.guideTitle.trim()) return '안내 제목을 입력해 주세요.';
+  return null;
+}
+
+async function submitContent(
+  contentType: HomeContentType,
+  form: FormState,
+  bannerFiles: FileAttachment[],
+) {
+  if (contentType === 'banner') {
+    return createAdminHomeContent('banner', {
+      title: form.bannerTitle,
+      description: form.bannerDescription,
+      content: form.bannerContent,
+      href: form.bannerHref,
+      thumbnail: form.bannerThumbnail || undefined,
+      attachments: bannerFiles.length > 0 ? bannerFiles : undefined,
+    });
+  }
+  if (contentType === 'notice') {
+    return createAdminHomeContent('notice', {
+      title: form.noticeTitle,
+      description: form.noticeDescription,
+      content: form.noticeContent,
+      badge: form.noticeBadge,
+    });
+  }
+  return createAdminHomeContent('playday-guide', {
+    title: form.guideTitle,
+    description: form.guideDescription,
+  });
+}
+
+function resetFormFields(
+  contentType: HomeContentType,
+  setForm: React.Dispatch<React.SetStateAction<FormState>>,
+  setBannerFiles: React.Dispatch<React.SetStateAction<FileAttachment[]>>,
+) {
+  if (contentType === 'banner') {
+    setForm((prev) => ({
+      ...prev, bannerTitle: '', bannerDescription: '',
+      bannerContent: '', bannerHref: '', bannerThumbnail: '',
+    }));
+    setBannerFiles([]);
+  } else if (contentType === 'notice') {
+    setForm((prev) => ({
+      ...prev, noticeTitle: '', noticeDescription: '', noticeContent: '',
+    }));
+  } else {
+    setForm((prev) => ({ ...prev, guideTitle: '', guideDescription: '' }));
+  }
+}
+
 const BANNER_SPECS = {
   desktopRatio: '16:9',
   mobileRatio: '4:5',
@@ -58,8 +114,17 @@ const BANNER_SPECS = {
 } as const;
 
 function toErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof ApiError) return error.data.message ?? fallback;
-  if (error instanceof Error) return error.message;
+  if (error instanceof ApiError) {
+    const detail = (error.data as Record<string, unknown>).detail;
+    const msg = error.data.message ?? fallback;
+    console.error('[HomeContentManagement]', msg, detail);
+    return `${msg} (HTTP ${error.status})`;
+  }
+  if (error instanceof Error) {
+    console.error('[HomeContentManagement]', error);
+    return error.message;
+  }
+  console.error('[HomeContentManagement]', error);
   return fallback;
 }
 
@@ -103,47 +168,14 @@ export default function HomeContentManagementTab() {
   };
 
   const handleCreate = useCallback(async (contentType: HomeContentType) => {
+    const titleValidation = validateTitle(contentType, form);
+    if (titleValidation) { setError(titleValidation); return; }
+
     setSubmitting(contentType);
     setError(null);
     try {
-      if (contentType === 'banner') {
-        await createAdminHomeContent('banner', {
-          title: form.bannerTitle,
-          description: form.bannerDescription,
-          content: form.bannerContent,
-          href: form.bannerHref,
-          thumbnail: form.bannerThumbnail || undefined,
-          attachments: bannerFiles.length > 0 ? bannerFiles : undefined,
-        });
-        setForm((prev) => ({
-          ...prev,
-          bannerTitle: '',
-          bannerDescription: '',
-          bannerContent: '',
-          bannerHref: '',
-          bannerThumbnail: '',
-        }));
-        setBannerFiles([]);
-      } else if (contentType === 'notice') {
-        await createAdminHomeContent('notice', {
-          title: form.noticeTitle,
-          description: form.noticeDescription,
-          content: form.noticeContent,
-          badge: form.noticeBadge,
-        });
-        setForm((prev) => ({
-          ...prev,
-          noticeTitle: '',
-          noticeDescription: '',
-          noticeContent: '',
-        }));
-      } else {
-        await createAdminHomeContent('playday-guide', {
-          title: form.guideTitle,
-          description: form.guideDescription,
-        });
-        setForm((prev) => ({ ...prev, guideTitle: '', guideDescription: '' }));
-      }
+      await submitContent(contentType, form, bannerFiles);
+      resetFormFields(contentType, setForm, setBannerFiles);
       await load();
     } catch (e) {
       setError(toErrorMessage(e, '콘텐츠를 저장하지 못했습니다.'));
@@ -169,7 +201,20 @@ export default function HomeContentManagementTab() {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">홈 콘텐츠 관리</h2>
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3">{error}</div>
+        <div className="bg-red-50 border-2 border-red-400 text-red-800 px-4 py-3 rounded flex items-start gap-3">
+          <svg className="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <div>
+            <p className="font-semibold">오류 발생</p>
+            <p className="text-sm mt-1">{error}</p>
+          </div>
+          <button onClick={() => setError(null)} className="ml-auto text-red-600 hover:text-red-800 shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       )}
 
       <SectionCard title="배너 광고">

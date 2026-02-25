@@ -91,22 +91,17 @@ export type AdminNoticeItem = Notice & { id: string };
 
 export async function getAdminNotices(): Promise<AdminNoticeItem[]> {
   if (!isDatabaseConfigured()) return [];
-  return safeDb(
-    async () => {
-      const db = getPrismaClient();
-      const rows = await db.notice.findMany({ orderBy: { date: "desc" } });
-      return rows.map((r) => ({
-        id: r.id,
-        title: r.title,
-        description: r.description,
-        content: r.content,
-        date: r.date,
-        badge: r.badge,
-        badgeColor: r.badgeColor,
-      }));
-    },
-    []
-  );
+  const db = getPrismaClient();
+  const rows = await db.notice.findMany({ orderBy: { date: "desc" } });
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    content: r.content,
+    date: r.date,
+    badge: r.badge,
+    badgeColor: r.badgeColor,
+  }));
 }
 
 async function getGalleryBySection(section: string): Promise<GalleryItem[]> {

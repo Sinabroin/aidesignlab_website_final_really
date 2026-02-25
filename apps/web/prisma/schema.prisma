@@ -90,8 +90,8 @@ model GalleryItem {
 model Notice {
   id          String   @id @default(cuid())
   title       String
-  description String   @default("")
-  content     String   @default("")
+  description String   @default("") @db.NVarChar(Max)
+  content     String   @default("") @db.NVarChar(Max)
   date        String
   badge       String
   badgeColor  String
