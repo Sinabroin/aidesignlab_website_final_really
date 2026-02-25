@@ -1,13 +1,11 @@
 /** 홈 배너 캐러셀 — 반응형 비율, 흰색 배경 contain / cover 모드, 접근성 */
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
 import { extractPosterEmbed, buildPosterSrcDoc } from '@/lib/utils/poster-embed';
 import type { HomeBanner } from '@/types';
-
-type FitMode = 'contain' | 'cover';
 
 interface BannerItem {
   id: number | string;
@@ -15,7 +13,6 @@ interface BannerItem {
   description: string;
   content?: string;
   href?: string;
-  fitMode: FitMode;
 }
 
 interface NoticeBannerProps {
@@ -66,13 +63,6 @@ function useCarousel(length: number) {
 /* ── Main Carousel ── */
 
 export default function NoticeBanner({ onNoticeClick, banners = [], loading }: NoticeBannerProps) {
-  // #region agent log
-  const mountTime = useRef(Date.now());
-  useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'NoticeBanner.tsx:mount',message:'carousel mounted',data:{bannerCount:banners.length,loading,elapsed:Date.now()-mountTime.current},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-  }, [banners.length, loading]);
-  // #endregion
-
   const items = useMemo<BannerItem[]>(
     () =>
       banners.map((b) => ({
@@ -81,7 +71,6 @@ export default function NoticeBanner({ onNoticeClick, banners = [], loading }: N
         description: b.description,
         content: b.content,
         href: b.href,
-        fitMode: (b.fitMode as FitMode) ?? 'contain',
       })),
     [banners],
   );
@@ -173,15 +162,8 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
   const [posterData, setPosterData] = useState<{ html: string; css: string } | null>(null);
 
   useEffect(() => {
-    // #region agent log
-    const t0 = Date.now();
-    // #endregion
-    const result = extractPosterEmbed(banner.content);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'NoticeBanner.tsx:BannerSlide',message:'extractPosterEmbed',data:{bannerId:banner.id,hasPoster:!!result,elapsed:Date.now()-t0,contentLen:banner.content?.length??0},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
-    // #endregion
-    setPosterData(result);
-  }, [banner.content, banner.id]);
+    setPosterData(extractPosterEmbed(banner.content));
+  }, [banner.content]);
 
   const imageSrc = useMemo(
     () => (!posterData ? extractSingleImageSrc(banner.content) : null),
@@ -192,7 +174,7 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
     return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(posterData.html, posterData.css, { fit: true })} title={banner.title} />;
   }
   if (imageSrc) {
-    return <BannerMedia bannerId={banner.id} src={imageSrc} fitMode={banner.fitMode} title={banner.title} />;
+    return <BannerMedia bannerId={banner.id} src={imageSrc} title={banner.title} />;
   }
   if (hasRichMedia(banner.content)) {
     return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(banner.content!, '', { fit: true })} title={banner.title} />;
@@ -200,9 +182,9 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
   return <TextBannerSlide banner={banner} onNoticeClick={onNoticeClick} />;
 }
 
-/* ── Image Banner — 흰색 배경 contain 또는 cover 모드 ── */
+/* ── Image Banner — 흰색 배경, object-contain 중앙 정렬 ── */
 
-function BannerMedia({ bannerId, src, fitMode, title }: { bannerId: number | string; src: string; fitMode: FitMode; title: string }) {
+function BannerMedia({ bannerId, src, title }: { bannerId: number | string; src: string; title: string }) {
   const router = useRouter();
   const [imgError, setImgError] = useState(false);
 
@@ -213,7 +195,7 @@ function BannerMedia({ bannerId, src, fitMode, title }: { bannerId: number | str
       <img
         src={src}
         alt={title}
-        className={`w-full h-full ${fitMode === 'cover' ? 'object-cover' : 'object-contain'}`}
+        className="w-full h-full object-contain"
         loading="lazy"
         decoding="async"
         onError={() => setImgError(true)}

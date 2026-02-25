@@ -12,28 +12,19 @@ function useApi<T>(fetcher: () => Promise<T>, initial: T, deps: unknown[] = []) 
   useEffect(() => {
     setStatus("loading");
     setError(null);
-    // #region agent log
-    const t0 = Date.now();
-    // #endregion
     fetcher()
       .then((result) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useData.ts:useApi',message:'fetch success',data:{elapsed:Date.now()-t0,dataSize:JSON.stringify(result).length},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-        // #endregion
         setData(result);
         setStatus("success");
       })
       .catch((e) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useData.ts:useApi',message:'fetch error',data:{elapsed:Date.now()-t0,error:String(e)},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-        // #endregion
         setError(e instanceof Error ? e.message : "Failed to load");
         setStatus("error");
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return { data, status, error, isLoading: status === "loading" };
+  return { data, status, error, isLoading: status === "idle" || status === "loading" };
 }
 
 export function usePlaybook(category: string) {

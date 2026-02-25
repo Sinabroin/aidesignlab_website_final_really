@@ -25,7 +25,6 @@ type FormState = {
   bannerDescription: string;
   bannerContent: string;
   bannerHref: string;
-  bannerFitMode: string;
   noticeTitle: string;
   noticeBadge: string;
   guideTitle: string;
@@ -37,7 +36,6 @@ const initialFormState: FormState = {
   bannerDescription: '',
   bannerContent: '',
   bannerHref: '',
-  bannerFitMode: 'contain',
   noticeTitle: '',
   noticeBadge: '공지',
   guideTitle: '',
@@ -99,7 +97,6 @@ export default function HomeContentManagementTab() {
           description: form.bannerDescription,
           content: form.bannerContent,
           href: form.bannerHref,
-          fitMode: form.bannerFitMode,
           attachments: bannerFiles.length > 0 ? bannerFiles : undefined,
         });
         setForm((prev) => ({
@@ -108,7 +105,6 @@ export default function HomeContentManagementTab() {
           bannerDescription: '',
           bannerContent: '',
           bannerHref: '',
-          bannerFitMode: 'contain',
         }));
         setBannerFiles([]);
       } else if (contentType === 'notice') {
@@ -308,7 +304,7 @@ function BannerMetaInputs({
   updateField: (k: keyof FormState, v: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       <input
         value={form.bannerTitle}
         onChange={(e) => updateField('bannerTitle', e.target.value)}
@@ -337,15 +333,6 @@ function BannerMetaInputs({
         aria-label="배너 연결 링크"
         className="px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
       />
-      <select
-        value={form.bannerFitMode}
-        onChange={(e) => updateField('bannerFitMode', e.target.value)}
-        aria-label="이미지 표시 모드"
-        className="px-3 py-2 border border-gray-300 bg-white focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
-      >
-        <option value="contain">Contain (블러 배경)</option>
-        <option value="cover">Cover (꽉 채움)</option>
-      </select>
     </div>
   );
 }

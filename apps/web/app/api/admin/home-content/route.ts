@@ -73,9 +73,8 @@ async function handleCreateByType(
     const content = String(body.content ?? "").trim();
     const href = String(body.href ?? "").trim();
     const attachments = Array.isArray(body.attachments) ? body.attachments : undefined;
-    const fitMode = String(body.fitMode ?? "").trim() || undefined;
     if (!title) return badRequest("배너 제목은 필수입니다.");
-    const item = await createHomeBanner({ title, description, content, href, attachments, fitMode });
+    const item = await createHomeBanner({ title, description, content, href, attachments });
     return NextResponse.json({ ok: true, item }, { status: 201 });
   }
   if (contentType === "notice") {

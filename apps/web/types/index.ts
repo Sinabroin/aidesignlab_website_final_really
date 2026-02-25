@@ -31,7 +31,6 @@ export interface HomeBanner {
   content?: string;
   href?: string;
   attachments?: { name: string; type: string; size: number; data: string }[];
-  fitMode?: 'contain' | 'cover';
   isActive: boolean;
   sortOrder: number;
 }

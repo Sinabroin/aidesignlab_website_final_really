@@ -185,7 +185,6 @@ export type HomeBannerItem = {
   content?: string;
   href?: string;
   attachments?: BannerAttachment[];
-  fitMode?: string;
   isActive: boolean;
   sortOrder: number;
   createdAt?: string;
@@ -206,7 +205,6 @@ function mapHomeBanner(row: {
   content: string | null;
   href: string | null;
   attachments: string | null;
-  fitMode: string | null;
   isActive: boolean;
   sortOrder: number;
   createdAt: Date;
@@ -222,7 +220,6 @@ function mapHomeBanner(row: {
     content: row.content ?? undefined,
     href: row.href ?? undefined,
     attachments: parsedAttachments,
-    fitMode: row.fitMode ?? undefined,
     isActive: row.isActive,
     sortOrder: row.sortOrder,
     createdAt: row.createdAt.toISOString(),
@@ -280,7 +277,6 @@ export async function createHomeBanner(data: {
   content?: string;
   href?: string;
   attachments?: BannerAttachment[];
-  fitMode?: string;
 }): Promise<HomeBannerItem> {
   const db = getPrismaClient();
   const row = await db.homeBanner.create({
@@ -290,7 +286,6 @@ export async function createHomeBanner(data: {
       content: data.content?.trim() || null,
       href: data.href?.trim() || null,
       attachments: data.attachments?.length ? JSON.stringify(data.attachments) : null,
-      fitMode: data.fitMode?.trim() || null,
     },
   });
   return mapHomeBanner(row);
