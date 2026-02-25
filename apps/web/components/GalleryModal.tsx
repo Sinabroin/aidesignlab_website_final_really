@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useSession } from 'next-auth/react';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
+
+const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), { ssr: false });
 
 interface GalleryItem {
   title: string;
@@ -219,15 +222,15 @@ export default function GalleryModal({
             </div>
 
             {/* 설명 */}
-            <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-              {currentItem.description}
-            </p>
+            <div className="mb-6">
+              <RichTextEditor content={currentItem.description} editable={false} />
+            </div>
 
             {/* 상세 설명 */}
             {currentItem.fullDescription && (
-              <p className="text-base text-gray-600 leading-relaxed mb-6">
-                {currentItem.fullDescription}
-              </p>
+              <div className="text-base text-gray-600 leading-relaxed mb-6">
+                <RichTextEditor content={currentItem.fullDescription} editable={false} />
+              </div>
             )}
 
             {/* 해시태그 + 키워드 */}

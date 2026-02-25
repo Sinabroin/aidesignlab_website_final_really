@@ -16,7 +16,7 @@ interface ContentFieldProps {
 
 export default function ContentField({ content, onChange }: ContentFieldProps) {
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
-  const isEmpty = !content || content.replace(/<[^>]*>/g, '').trim() === '';
+  const isEmpty = !content || (content.replace(/<[^>]*>/g, '').trim() === '' && !content.includes('data-type='));
 
   return (
     <div>
