@@ -1,7 +1,7 @@
-/** 홈 배너 캐러셀 — 반응형 비율, contain+blur / cover 모드, 접근성 */
+/** 홈 배너 캐러셀 — 반응형 비율, 흰색 배경 contain / cover 모드, 접근성 */
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
 import { extractPosterEmbed, buildPosterSrcDoc } from '@/lib/utils/poster-embed';
@@ -66,6 +66,13 @@ function useCarousel(length: number) {
 /* ── Main Carousel ── */
 
 export default function NoticeBanner({ onNoticeClick, banners = [], loading }: NoticeBannerProps) {
+  // #region agent log
+  const mountTime = useRef(Date.now());
+  useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'NoticeBanner.tsx:mount',message:'carousel mounted',data:{bannerCount:banners.length,loading,elapsed:Date.now()-mountTime.current},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+  }, [banners.length, loading]);
+  // #endregion
+
   const items = useMemo<BannerItem[]>(
     () =>
       banners.map((b) => ({
@@ -94,7 +101,7 @@ export default function NoticeBanner({ onNoticeClick, banners = [], loading }: N
 
   return (
     <div
-      className="relative w-full overflow-hidden border border-[#D9D6D3] bg-neutral-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      className="relative w-full overflow-hidden border border-[#D9D6D3] bg-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -117,32 +124,45 @@ export default function NoticeBanner({ onNoticeClick, banners = [], loading }: N
   );
 }
 
-/* ── Slide Track (aspect-ratio container) ── */
+/* ── Slide Track (aspect-ratio container, lazy rendering) ── */
 
 function SlideTrack({ items, current, onNoticeClick }: { items: BannerItem[]; current: number; onNoticeClick?: (i: number) => void }) {
+  const len = items.length;
+  const visible = useMemo(() => {
+    if (len <= 3) return new Set(items.map((_, i) => i));
+    const s = new Set<number>();
+    s.add((current - 1 + len) % len);
+    s.add(current);
+    s.add((current + 1) % len);
+    return s;
+  }, [current, len, items]);
+
   return (
     <div
       className="relative w-full aspect-[4/5] md:aspect-[16/9] overflow-hidden"
       style={{ maxHeight: 'min(80vh, 700px)' }}
     >
-      {items.map((banner, idx) => (
-        <div
-          key={banner.id}
-          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
-            idx === current
-              ? 'opacity-100 translate-x-0 z-[1]'
-              : idx < current
-                ? 'opacity-0 -translate-x-full z-0'
-                : 'opacity-0 translate-x-full z-0'
-          }`}
-          role="group"
-          aria-roledescription="슬라이드"
-          aria-label={`${idx + 1} / ${items.length}: ${banner.title}`}
-          aria-hidden={idx !== current}
-        >
-          <BannerSlide banner={banner} onNoticeClick={onNoticeClick} />
-        </div>
-      ))}
+      {items.map((banner, idx) => {
+        if (!visible.has(idx)) return null;
+        return (
+          <div
+            key={banner.id}
+            className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+              idx === current
+                ? 'opacity-100 translate-x-0 z-[1]'
+                : idx < current
+                  ? 'opacity-0 -translate-x-full z-0'
+                  : 'opacity-0 translate-x-full z-0'
+            }`}
+            role="group"
+            aria-roledescription="슬라이드"
+            aria-label={`${idx + 1} / ${items.length}: ${banner.title}`}
+            aria-hidden={idx !== current}
+          >
+            <BannerSlide banner={banner} onNoticeClick={onNoticeClick} />
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -153,8 +173,15 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
   const [posterData, setPosterData] = useState<{ html: string; css: string } | null>(null);
 
   useEffect(() => {
-    setPosterData(extractPosterEmbed(banner.content));
-  }, [banner.content]);
+    // #region agent log
+    const t0 = Date.now();
+    // #endregion
+    const result = extractPosterEmbed(banner.content);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'NoticeBanner.tsx:BannerSlide',message:'extractPosterEmbed',data:{bannerId:banner.id,hasPoster:!!result,elapsed:Date.now()-t0,contentLen:banner.content?.length??0},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
+    // #endregion
+    setPosterData(result);
+  }, [banner.content, banner.id]);
 
   const imageSrc = useMemo(
     () => (!posterData ? extractSingleImageSrc(banner.content) : null),
@@ -173,7 +200,7 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
   return <TextBannerSlide banner={banner} onNoticeClick={onNoticeClick} />;
 }
 
-/* ── Image Banner — contain+blur 또는 cover 모드 ── */
+/* ── Image Banner — 흰색 배경 contain 또는 cover 모드 ── */
 
 function BannerMedia({ bannerId, src, fitMode, title }: { bannerId: number | string; src: string; fitMode: FitMode; title: string }) {
   const router = useRouter();
@@ -181,25 +208,16 @@ function BannerMedia({ bannerId, src, fitMode, title }: { bannerId: number | str
 
   if (imgError) return <FallbackSlide title={title} bannerId={bannerId} />;
 
-  const isCover = fitMode === 'cover';
-
   return (
-    <div className="relative w-full h-full cursor-pointer group" onClick={() => router.push(`/banner/${bannerId}`)}>
-      {!isCover && (
-        <>
-          <img src={src} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover scale-[1.15] blur-[40px] opacity-60" />
-          <div className="absolute inset-0 bg-black/20" />
-        </>
-      )}
+    <div className="relative w-full h-full bg-white cursor-pointer group" onClick={() => router.push(`/banner/${bannerId}`)}>
       <img
         src={src}
         alt={title}
-        className={`relative w-full h-full z-[1] ${isCover ? 'object-cover' : 'object-contain drop-shadow-lg'}`}
+        className={`w-full h-full ${fitMode === 'cover' ? 'object-cover' : 'object-contain'}`}
         loading="lazy"
         decoding="async"
         onError={() => setImgError(true)}
       />
-      <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-black/30 to-transparent z-[2]" />
       <HoverOverlay />
     </div>
   );
@@ -288,7 +306,7 @@ function NavArrow({ direction, onClick }: { direction: 'left' | 'right'; onClick
       <button
         onClick={(e) => { e.stopPropagation(); onClick(); }}
         aria-label={isLeft ? '이전 배너' : '다음 배너'}
-        className="relative overflow-visible w-9 h-9 bg-white/80 backdrop-blur-sm border border-white/50 rounded-full flex items-center justify-center hover:bg-white transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+        className="relative overflow-visible w-9 h-9 bg-white/80 backdrop-blur-sm border border-[#D9D6D3] rounded-full flex items-center justify-center hover:bg-white transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
       >
         <GlowingEffect disabled={false} spread={12} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={10} />
         <svg className="w-4 h-4 text-[#111] relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,7 +327,7 @@ function DotIndicators({ total, current, onSelect }: { total: number; current: n
           aria-label={`배너 ${i + 1}번으로 이동`}
           aria-current={i === current ? 'true' : undefined}
           className={`h-1.5 rounded-full transition-all duration-300 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
-            i === current ? 'bg-white w-6 shadow-sm' : 'bg-white/40 w-1.5 hover:bg-white/70'
+            i === current ? 'bg-[#111] w-6' : 'bg-[#D9D6D3] w-1.5 hover:bg-[#6B6B6B]'
           }`}
         />
       ))}
@@ -321,7 +339,7 @@ function DotIndicators({ total, current, onSelect }: { total: number; current: n
 
 function BannerSkeleton({ empty }: { empty?: boolean }) {
   return (
-    <div className="relative w-full overflow-hidden border border-[#D9D6D3] bg-neutral-100">
+    <div className="relative w-full overflow-hidden border border-[#D9D6D3] bg-white">
       <div
         className="aspect-[4/5] md:aspect-[16/9] flex items-center justify-center"
         style={{ maxHeight: 'min(80vh, 700px)' }}
