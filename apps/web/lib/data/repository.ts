@@ -341,59 +341,62 @@ export async function deleteNoticeById(id: string): Promise<void> {
   await db.notice.delete({ where: { id } });
 }
 
-export type PlaybookCategory = "usecase" | "trend" | "prompt" | "hai" | "teams" | "interview";
+export type PlaybookCategory = "usecase" | "collaboration" | "weekly_card";
+
+export async function getPlaybookCollaboration(): Promise<GalleryItem[]> {
+  if (!isDatabaseConfigured()) return [];
+  return safeDb(() => getGalleryBySection("playbook_collaboration"), []);
+}
+
+export async function getPlaybookWeeklyCard(): Promise<GalleryItem[]> {
+  if (!isDatabaseConfigured()) return [];
+  return safeDb(() => getGalleryBySection("playbook_weekly_card"), []);
+}
 
 export async function getAllPlaybook(): Promise<GalleryItem[]> {
-  const results = await Promise.all([
-    getPlaybookUsecases(),
-    getPlaybookTrends(),
-    getPlaybookPrompts(),
-    getPlaybookHAI(),
-    getPlaybookTeams(),
-    getPlaybookInterview(),
-  ]);
-  return results.flat().sort((a, b) =>
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  if (!isDatabaseConfigured()) {
+    return [
+      ...playbookUsecases, ...playbookTrends, ...playbookPrompts,
+      ...playbookHAI, ...playbookTeams, ...playbookInterview,
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+  return safeDb(async () => {
+    const db = getPrismaClient();
+    const rows = await db.galleryItem.findMany({
+      where: { section: { startsWith: "playbook_" } },
+      orderBy: { date: "desc" },
+    });
+    return rows.map(mapDbToGalleryItem);
+  }, []);
 }
 
 export async function getPlaybookByCategory(
   category: PlaybookCategory
 ): Promise<GalleryItem[]> {
-  if (!isDatabaseConfigured()) {
-    const fallbacks: Record<PlaybookCategory, GalleryItem[]> = {
-      usecase: playbookUsecases, trend: playbookTrends, prompt: playbookPrompts,
-      hai: playbookHAI, teams: playbookTeams, interview: playbookInterview,
-    };
-    return fallbacks[category] ?? [];
+  switch (category) {
+    case "usecase":
+      return getPlaybookUsecases();
+    case "collaboration":
+      return getPlaybookCollaboration();
+    case "weekly_card":
+      return getPlaybookWeeklyCard();
+    default:
+      return [];
   }
-  const all = await getAllPlaybook();
-  return all.filter((item) => item.category.split(",").includes(category));
 }
 
 /** 운영자 콘텐츠 관리용 통합 데이터 */
 export async function getAdminContent(): Promise<
   Array<GalleryItem & { section: string }>
 > {
-  const [playday, usecase, trend, prompt, hai, teams, interview, activity] =
-    await Promise.all([
-      getPlaydayData(),
-      getPlaybookUsecases(),
-      getPlaybookTrends(),
-      getPlaybookPrompts(),
-      getPlaybookHAI(),
-      getPlaybookTeams(),
-      getPlaybookInterview(),
-      getActivityData(),
-    ]);
+  const [playday, allPlaybook, activity] = await Promise.all([
+    getPlaydayData(),
+    getAllPlaybook(),
+    getActivityData(),
+  ]);
   return [
     ...playday.map((item) => ({ ...item, section: "PlayDay" })),
-    ...usecase.map((item) => ({ ...item, section: "Playbook 활용사례" })),
-    ...trend.map((item) => ({ ...item, section: "Playbook 트렌드" })),
-    ...prompt.map((item) => ({ ...item, section: "Playbook 프롬프트" })),
-    ...hai.map((item) => ({ ...item, section: "Playbook HAI" })),
-    ...teams.map((item) => ({ ...item, section: "Playbook Teams" })),
-    ...interview.map((item) => ({ ...item, section: "Playbook 인터뷰" })),
+    ...allPlaybook.map((item) => ({ ...item, section: "PlayBook" })),
     ...activity.map((item) => ({ ...item, section: "ACE 커뮤니티" })),
   ];
 }

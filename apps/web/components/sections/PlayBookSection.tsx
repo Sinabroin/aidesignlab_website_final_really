@@ -6,7 +6,7 @@ import FilterButton from '@/components/common/FilterButton';
 import { usePlaybook } from '@/hooks/useData';
 import type { GalleryItem } from '@/types';
 
-type PlaybookCategory = 'all' | 'usecase' | 'trend' | 'prompt' | 'hai' | 'teams' | 'interview';
+type PlaybookCategory = 'all' | 'usecase' | 'collaboration' | 'weekly_card';
 
 interface PlayBookSectionProps {
   onWriteClick: (section: string) => void;
@@ -17,11 +17,8 @@ interface PlayBookSectionProps {
 const categoryLabels: Record<PlaybookCategory, string> = {
   all: '전체보기',
   usecase: '활용사례 (use case)',
-  trend: 'AI Trend',
-  prompt: 'Prompt 사례',
-  hai: 'HAI',
-  teams: 'Teams',
-  interview: 'AI 활용 인터뷰',
+  collaboration: '사내 협업툴',
+  weekly_card: 'Weekly Card',
 };
 
 export default function PlayBookSection({

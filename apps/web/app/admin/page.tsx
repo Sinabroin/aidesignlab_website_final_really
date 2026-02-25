@@ -11,6 +11,7 @@ import {
   ApiError,
 } from '@/lib/api/admin';
 import HomeContentManagementTab from '@/components/admin/HomeContentManagementTab';
+import AccessLogTab from '@/components/admin/AccessLogTab';
 
 const FIXED_OPERATOR_EMAIL = '2501034@hdec.co.kr';
 
@@ -399,110 +400,130 @@ function RoundsManagementTab() {
 
 // 로그 조회 탭 (REQ6.5)
 function LogsTab() {
-  const [logType, setLogType] = useState<'download' | 'moderation'>('download');
+  const [logType, setLogType] = useState<'access' | 'download' | 'moderation'>('access');
 
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">감사 로그</h2>
+      <LogTypeSelector logType={logType} onChange={setLogType} />
+
+      {logType === 'access' && <AccessLogTab />}
+      {logType === 'download' && <DownloadLogTable />}
+      {logType === 'moderation' && <ModerationLogTable />}
+
+      <div className="flex justify-end">
+        <LogExportButton />
+      </div>
+    </div>
+  );
+}
+
+function LogTypeSelector({ logType, onChange }: { logType: string; onChange: (v: 'access' | 'download' | 'moderation') => void }) {
+  const tabs = [
+    { id: 'access' as const, label: '접속 로그', active: 'bg-emerald-600 text-white' },
+    { id: 'download' as const, label: '다운로드 로그', active: 'bg-gray-900 text-white' },
+    { id: 'moderation' as const, label: '삭제/숨김 로그', active: 'bg-gray-900 text-white' },
+  ];
+
+  return (
+    <div className="flex gap-4">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => onChange(tab.id)}
+          className={`px-6 py-3 rounded-none font-semibold transition-all ${
+            logType === tab.id ? tab.active : 'bg-white border border-gray-300 text-gray-700'
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function DownloadLogTable() {
   const downloadLogs = [
     { user: '김철수', file: '계약서_분석_가이드.pdf', type: '개별', date: '2024.02.09 14:23', ip: '192.168.1.100' },
     { user: '이영희', file: 'PlayDay_3월_자료.zip', type: 'ZIP', date: '2024.02.09 13:45', ip: '192.168.1.101' },
   ];
 
+  return (
+    <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+      <table className="w-full">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사용자</th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">파일</th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">유형</th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">IP</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {downloadLogs.map((log, idx) => (
+            <tr key={idx} className="hover:bg-gray-50">
+              <td className="px-6 py-4 text-sm text-gray-900">{log.user}</td>
+              <td className="px-6 py-4 text-sm text-gray-600">{log.file}</td>
+              <td className="px-6 py-4">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-none">{log.type}</span>
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-600">{log.date}</td>
+              <td className="px-6 py-4 text-sm text-gray-500 font-mono">{log.ip}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ModerationLogTable() {
   const moderationLogs = [
     { action: '게시물 숨김', target: '부적절한 콘텐츠 포함', executor: '운영진', date: '2024.02.08 16:30', reason: '규정 위반' },
     { action: '댓글 삭제', target: '욕설 포함', executor: '운영진', date: '2024.02.07 10:15', reason: '커뮤니티 가이드 위반' },
   ];
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">감사 로그</h2>
-
-      <div className="flex gap-4">
-        <button
-          onClick={() => setLogType('download')}
-          className={`px-6 py-3 rounded-none font-semibold transition-all ${
-            logType === 'download'
-              ? 'bg-gray-900 text-white'
-              : 'bg-white border border-gray-300 text-gray-700'
-          }`}
-        >
-          다운로드 로그
-        </button>
-        <button
-          onClick={() => setLogType('moderation')}
-          className={`px-6 py-3 rounded-none font-semibold transition-all ${
-            logType === 'moderation'
-              ? 'bg-gray-900 text-white'
-              : 'bg-white border border-gray-300 text-gray-700'
-          }`}
-        >
-          삭제/숨김 로그
-        </button>
-      </div>
-
-      <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
-        {logType === 'download' ? (
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사용자</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">파일</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">유형</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">IP</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {downloadLogs.map((log, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{log.user}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.file}</td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-none">{log.type}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.date}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500 font-mono">{log.ip}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작업</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">대상</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">실행자</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사유</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {moderationLogs.map((log, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-none font-semibold">
-                      {log.action}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{log.target}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.executor}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.date}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.reason}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      <div className="flex justify-end">
-        <button className="px-4 py-2 border border-gray-300 rounded-none hover:bg-gray-50 transition-colors flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          로그 내보내기
-        </button>
-      </div>
+    <div className="bg-white rounded-none border border-gray-200 overflow-hidden">
+      <table className="w-full">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">작업</th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">대상</th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">실행자</th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">일시</th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">사유</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {moderationLogs.map((log, idx) => (
+            <tr key={idx} className="hover:bg-gray-50">
+              <td className="px-6 py-4">
+                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-none font-semibold">
+                  {log.action}
+                </span>
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-900">{log.target}</td>
+              <td className="px-6 py-4 text-sm text-gray-600">{log.executor}</td>
+              <td className="px-6 py-4 text-sm text-gray-600">{log.date}</td>
+              <td className="px-6 py-4 text-sm text-gray-600">{log.reason}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
+  );
+}
+
+function LogExportButton() {
+  return (
+    <button className="px-4 py-2 border border-gray-300 rounded-none hover:bg-gray-50 transition-colors flex items-center gap-2">
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+      </svg>
+      로그 내보내기
+    </button>
   );
 }
 

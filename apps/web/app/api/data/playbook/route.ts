@@ -7,16 +7,13 @@ import {
 
 const VALID_CATEGORIES: PlaybookCategory[] = [
   "usecase",
-  "trend",
-  "prompt",
-  "hai",
-  "teams",
-  "interview",
+  "collaboration",
+  "weekly_card",
 ];
 
 /**
  * PlayBook 데이터 API (공개 조회)
- * GET /api/data/playbook?category=all|usecase|trend|prompt|hai|teams|interview
+ * GET /api/data/playbook?category=all|usecase|collaboration|weekly_card
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);

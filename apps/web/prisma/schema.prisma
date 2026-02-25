@@ -150,6 +150,24 @@ model BannerComment {
   @@map("banner_comments")
 }
 
+// 사용자 접속·활동 로그
+model AccessLog {
+  id        String   @id @default(cuid())
+  email     String
+  userName  String?
+  action    String   // page_view, login, logout, download, click
+  path      String?
+  userAgent String?  @db.NVarChar(Max)
+  ipAddress String?
+  metadata  String?  @db.NVarChar(Max)
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([action, createdAt])
+  @@index([createdAt])
+  @@map("access_logs")
+}
+
 // 홈 PlayDay 안내
 model HomePlaydayGuide {
   id          String   @id @default(cuid())

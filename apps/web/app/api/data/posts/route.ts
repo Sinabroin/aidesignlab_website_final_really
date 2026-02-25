@@ -14,11 +14,8 @@ import {
 
 const PLAYBOOK_CATEGORIES = new Set([
   "usecase",
-  "trend",
-  "prompt",
-  "hai",
-  "teams",
-  "interview",
+  "collaboration",
+  "weekly_card",
 ]);
 
 function resolveSection(section: string, category: string): string {

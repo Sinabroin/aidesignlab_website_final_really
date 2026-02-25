@@ -4,12 +4,9 @@ import { GlowingEffect } from '@/components/common/GlowingEffect';
 
 const CATEGORIES: Record<string, { value: string; label: string }[]> = {
   playbook: [
-    { value: 'usecase', label: '활용사례' },
-    { value: 'trend', label: 'AI Trend' },
-    { value: 'prompt', label: '프롬프트' },
-    { value: 'hai', label: 'HAI' },
-    { value: 'teams', label: 'Teams' },
-    { value: 'interview', label: 'AI 활용 인터뷰' },
+    { value: 'usecase', label: '활용사례 (use case)' },
+    { value: 'collaboration', label: '사내 협업툴' },
+    { value: 'weekly_card', label: 'Weekly Card' },
   ],
   playday: [
     { value: 'workshop', label: '워크샵' },

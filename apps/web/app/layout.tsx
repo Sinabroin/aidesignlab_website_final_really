@@ -3,6 +3,7 @@ import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import CookieBanner from "@/components/CookieBanner";
 import SessionProvider from "@/components/providers/SessionProvider";
+import ActivityTracker from "@/components/providers/ActivityTracker";
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="ko" className={notoSansKr.variable}>
       <body className={notoSansKr.className}>
         <SessionProvider>
+          <ActivityTracker />
           <main>
             {children}
           </main>
