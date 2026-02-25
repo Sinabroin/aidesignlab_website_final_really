@@ -84,6 +84,9 @@ export async function POST(req: Request) {
       );
     }
 
+    // #region agent log
+    console.log('[DEBUG posts API] attachments received:', JSON.stringify({ count: body.attachments?.length ?? 0, names: body.attachments?.map((a) => a.name) }));
+    // #endregion
     const item = await createGalleryItem({
       section: resolvedSection,
       title: body.title,
@@ -94,6 +97,9 @@ export async function POST(req: Request) {
       thumbnail: body.thumbnailBase64,
       attachments: body.attachments,
     });
+    // #region agent log
+    console.log('[DEBUG posts API] item created with attachments:', JSON.stringify({ attachments: item.attachments }));
+    // #endregion
     return NextResponse.json(item, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

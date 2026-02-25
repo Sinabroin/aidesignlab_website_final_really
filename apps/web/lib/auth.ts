@@ -56,11 +56,30 @@ function buildVerificationSubject(identifier: string): string {
   return `${displayName}님, 요청하신 인증 정보를 확인해 주세요`;
 }
 
+/** /api/auth/callback/email URL → /auth/verify 중간 확인 페이지 URL로 변환 */
+function toVerifyPageUrl(callbackUrl: string): string {
+  try {
+    const src = new URL(callbackUrl);
+    const token = src.searchParams.get("token");
+    const email = src.searchParams.get("email");
+    const cb = src.searchParams.get("callbackUrl") ?? "/";
+    const verifyUrl = new URL("/auth/verify", src.origin);
+    if (token) verifyUrl.searchParams.set("token", token);
+    if (email) verifyUrl.searchParams.set("email", email);
+    verifyUrl.searchParams.set("callbackUrl", cb);
+    return verifyUrl.toString();
+  } catch {
+    return callbackUrl;
+  }
+}
+
 async function sendVerificationRequest(params: {
   identifier: string;
   url: string;
   provider: { server: Record<string, unknown> };
 }): Promise<void> {
+  // 보안 스캐너 토큰 소진 방지: 중간 확인 페이지 URL로 변환
+  const verifyUrl = toVerifyPageUrl(params.url);
   const targetDomain = params.identifier.split("@")[1] ?? null;
   const serverHost = typeof params.provider.server?.host === "string" ? params.provider.server.host : null;
   const serverPort = typeof params.provider.server?.port === "number" ? params.provider.server.port : null;
@@ -93,8 +112,8 @@ async function sendVerificationRequest(params: {
       to: params.identifier,
       from: EMAIL_FROM,
       subject: buildVerificationSubject(params.identifier),
-      text: buildVerificationText(params.url),
-      html: buildVerificationHtml(params.url),
+      text: buildVerificationText(verifyUrl),
+      html: buildVerificationHtml(verifyUrl),
     });
     // #region agent log
     console.info("[auth-email-debug] send-success", {

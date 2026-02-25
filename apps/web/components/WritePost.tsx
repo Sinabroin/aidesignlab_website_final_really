@@ -106,6 +106,9 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
     try {
       const thumbnailBase64 = thumbnail ? await fileToBase64(thumbnail) : undefined;
       const attachments = files.length > 0 ? await convertFilesToAttachments(files) : undefined;
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WritePost.tsx:submitPost',message:'submitting post with attachments',data:{filesCount:files.length,attachmentsCount:attachments?.length??0,fileNames:files.map(f=>f.name),fileSizes:files.map(f=>f.size)},timestamp:Date.now(),hypothesisId:'H-B'})}).catch(()=>{});
+      // #endregion
       const res = await fetch('/api/data/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,9 +116,16 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WritePost.tsx:submitPost-error',message:'post API error',data:{status:res.status,error:err},timestamp:Date.now(),hypothesisId:'H-B'})}).catch(()=>{});
+        // #endregion
         alert(err.error ?? '게시글 저장에 실패했습니다. 다시 시도해주세요.');
         return;
       }
+      const createdItem = await res.clone().json().catch(() => ({}));
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WritePost.tsx:submitPost-success',message:'post created',data:{attachmentsInResponse:createdItem?.attachments?.length??0},timestamp:Date.now(),hypothesisId:'H-C'})}).catch(()=>{});
+      // #endregion
       alert('게시글이 등록되었습니다!');
       onPublished?.();
       onClose();

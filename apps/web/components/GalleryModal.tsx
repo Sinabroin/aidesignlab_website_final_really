@@ -64,6 +64,14 @@ export default function GalleryModal({
   const currentItem = items[currentIndex];
   const downloadPerm = getDownloadPermission(userRoles, section);
 
+  // #region agent log
+  useEffect(() => {
+    if (isOpen && currentItem) {
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'GalleryModal.tsx:currentItem',message:'modal opened - attachment check',data:{title:currentItem.title,attachmentsCount:currentItem.attachments?.length??0,attachments:currentItem.attachments,section,isAuthenticated,userRoles,downloadPermAllowed:downloadPerm.allowed},timestamp:Date.now(),hypothesisId:'H-A-D'})}).catch(()=>{});
+    }
+  }, [isOpen, currentIndex]);
+  // #endregion
+
   const handleFileDownload = async (fileUrl: string, fileName: string, e: React.MouseEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
