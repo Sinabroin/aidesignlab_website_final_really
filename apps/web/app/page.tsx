@@ -76,8 +76,8 @@ export default function Home() {
                 )}
 
                 {currentPhase === 2 && (
-                  <div className="space-y-4 animate-fade-in">
-                    <h1 className="text-5xl md:text-7xl font-normal tracking-tight text-gray-900">
+                  <div className="space-y-8 animate-fade-in">
+                    <h1 className="text-6xl md:text-[5.625rem] leading-tight font-normal tracking-tight text-gray-900">
                       PlayGround
                     </h1>
                     <p className="text-xl md:text-2xl text-gray-700 font-normal tracking-tight">
