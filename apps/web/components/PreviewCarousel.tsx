@@ -153,7 +153,9 @@ export default function PreviewCarousel({
             <h2 className="text-xl md:text-2xl font-normal tracking-tight text-gray-900 mb-2">
               {currentItem.title}
             </h2>
-            <p className="text-sm text-gray-500 mb-3">{currentItem.description}</p>
+            <p className="text-sm text-gray-500 mb-3">
+              {currentItem.description.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() || '내용 없음'}
+            </p>
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-400">
                 {currentItem.author} · {currentItem.date}

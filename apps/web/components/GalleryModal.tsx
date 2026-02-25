@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
+import { extractPosterEmbed, type PosterEmbedData } from '@/lib/utils/poster-embed';
+import PosterPreviewFrame from '@/components/editor/PosterEmbed/PosterPreviewFrame';
 
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), { ssr: false });
 
@@ -13,6 +16,7 @@ interface GalleryItem {
   author: string;
   date: string;
   category: string;
+  thumbnail?: string;
   fullDescription?: string;
   tags?: string[];
   attachments?: {
@@ -168,29 +172,12 @@ export default function GalleryModal({
 
         {/* 카드 컨텐츠 */}
         <div className="bg-white border border-gray-200 rounded-none overflow-hidden shadow-2xl">
-          {/* 이미지/아이콘 영역 */}
-          <div className="aspect-video bg-white flex items-center justify-center relative overflow-hidden border-b-2 border-gray-200">
-            {/* 배경 장식 - 매우 연한 원형 */}
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute top-10 left-10 w-32 h-32 bg-gray-300 rounded-none blur-3xl"></div>
-              <div className="absolute bottom-10 right-10 w-40 h-40 bg-gray-200 rounded-none blur-3xl"></div>
-            </div>
-            
-            {/* 이모티콘 */}
-            <div className="text-8xl md:text-9xl relative z-10 drop-shadow-sm">
-              {currentItem.category === 'Workshop' && '🎨'}
-              {currentItem.category === 'Seminar' && '💡'}
-              {currentItem.category === 'Contest' && '🏆'}
-              {currentItem.category === 'Networking' && '🤝'}
-              {currentItem.category === 'Safety' && '🛡️'}
-              {currentItem.category === 'Planning' && '📊'}
-              {currentItem.category === 'AI System' && '🤖'}
-              {currentItem.category === 'Design' && '✨'}
-              {currentItem.category === 'Data' && '📈'}
-              {currentItem.category === 'Training' && '🎓'}
-              {!['Workshop', 'Seminar', 'Contest', 'Networking', 'Safety', 'Planning', 'AI System', 'Design', 'Data', 'Training'].includes(currentItem.category) && '✨'}
-            </div>
-          </div>
+          <ModalTopArea
+            thumbnail={currentItem.thumbnail}
+            description={currentItem.description}
+            category={currentItem.category}
+            title={currentItem.title}
+          />
 
           {/* 정보 영역 */}
           <div className="p-8 md:p-12">
@@ -424,6 +411,55 @@ export default function GalleryModal({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  Workshop: '🎨', Seminar: '💡', Contest: '🏆', Networking: '🤝',
+  Safety: '🛡️', Planning: '📊', 'AI System': '🤖', Design: '✨',
+  Data: '📈', Training: '🎓',
+};
+
+interface ModalTopAreaProps {
+  thumbnail?: string;
+  description: string;
+  category: string;
+  title: string;
+}
+
+function ModalTopArea({ thumbnail, description, category, title }: ModalTopAreaProps) {
+  const [posterEmbed, setPosterEmbed] = useState<PosterEmbedData | null>(null);
+
+  useEffect(() => {
+    if (!thumbnail) setPosterEmbed(extractPosterEmbed(description));
+    else setPosterEmbed(null);
+  }, [description, thumbnail]);
+
+  if (thumbnail) {
+    return (
+      <div className="aspect-video relative overflow-hidden border-b-2 border-gray-200">
+        <Image alt={title} src={thumbnail} fill className="object-cover" />
+      </div>
+    );
+  }
+
+  if (posterEmbed) {
+    return (
+      <div className="aspect-video border-b-2 border-gray-200 overflow-hidden">
+        <PosterPreviewFrame html={posterEmbed.html} css={posterEmbed.css} />
+      </div>
+    );
+  }
+
+  const emoji = CATEGORY_EMOJI[category] ?? '✨';
+  return (
+    <div className="aspect-video bg-white flex items-center justify-center relative overflow-hidden border-b-2 border-gray-200">
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-32 h-32 bg-gray-300 rounded-none blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-gray-200 rounded-none blur-3xl" />
+      </div>
+      <div className="text-8xl md:text-9xl relative z-10 drop-shadow-sm">{emoji}</div>
     </div>
   );
 }
