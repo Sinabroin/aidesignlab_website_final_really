@@ -329,7 +329,7 @@ function DotIndicators({ total, current, onSelect }: { total: number; current: n
 
 function BannerSkeleton({ empty }: { empty?: boolean }) {
   return (
-    <div className="relative w-full overflow-hidden border border-[#D9D6D3] bg-white">
+    <div className="relative w-full overflow-hidden border border-[#D9D6D3]" style={{ background: 'linear-gradient(180deg, #FFFFFF 0%, #96C2FF 100%)' }}>
       <div
         className="aspect-[4/5] md:aspect-[16/9] flex items-center justify-center"
         style={{ maxHeight: 'min(80vh, 700px)' }}

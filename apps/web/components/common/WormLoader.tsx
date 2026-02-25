@@ -28,7 +28,7 @@ export const WormLoader: React.FC = () => {
           </linearGradient>
         </defs>
         <g strokeWidth={16} strokeLinecap="round" fill="none">
-          <g className="stroke-sky-200">
+          <g stroke="rgba(255,255,255,0.5)">
             <path d="M8,64s0-56,60-56,60,112,120,112,60-56,60-56" />
             <path d="M248,64s0-56-60-56-60,112-120,112S8,64,8,64" />
           </g>
@@ -46,7 +46,7 @@ export const WormLoader: React.FC = () => {
           </g>
         </g>
       </svg>
-      <span className="text-sm text-sky-500 tracking-wide animate-pulse">
+      <span className="text-sm text-white/80 tracking-wide animate-pulse">
         로딩 중...
       </span>
     </div>
