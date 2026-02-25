@@ -13,18 +13,22 @@ interface HashtagFieldProps {
 export default function HashtagField({ hashtags, onAdd, onRemove }: HashtagFieldProps) {
   const [input, setInput] = useState('');
 
-  const addTag = () => {
-    const trimmed = input.trim();
-    if (trimmed && !hashtags.includes(trimmed)) {
-      onAdd(trimmed);
-      setInput('');
-    }
+  const addTags = () => {
+    const raw = input.trim();
+    if (!raw) return;
+    const tags = raw
+      .split(/[,\s]+/)
+      .map(t => t.replace(/^#/, '').trim())
+      .filter(t => t.length > 0 && !hashtags.includes(t));
+    const unique = [...new Set(tags)];
+    unique.forEach(tag => onAdd(tag));
+    if (unique.length > 0 || raw) setInput('');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      addTag();
+      addTags();
     }
   };
 
@@ -39,14 +43,14 @@ export default function HashtagField({ hashtags, onAdd, onRemove }: HashtagField
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="키워드 입력 후 Enter…"
+          placeholder="쉼표 또는 공백으로 여러 태그 입력 후 Enter…"
           name="hashtag"
           autoComplete="off"
           className="flex-1 px-4 py-3 border border-gray-300 rounded-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none transition-colors"
         />
         <button
           type="button"
-          onClick={addTag}
+          onClick={addTags}
           className="relative overflow-visible px-6 py-3 bg-[#111] hover:bg-gray-800 text-white font-normal tracking-tight rounded-none transition-colors"
         >
           <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />

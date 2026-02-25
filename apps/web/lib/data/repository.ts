@@ -343,6 +343,20 @@ export async function deleteNoticeById(id: string): Promise<void> {
 
 export type PlaybookCategory = "usecase" | "trend" | "prompt" | "hai" | "teams" | "interview";
 
+export async function getAllPlaybook(): Promise<GalleryItem[]> {
+  const results = await Promise.all([
+    getPlaybookUsecases(),
+    getPlaybookTrends(),
+    getPlaybookPrompts(),
+    getPlaybookHAI(),
+    getPlaybookTeams(),
+    getPlaybookInterview(),
+  ]);
+  return results.flat().sort((a, b) =>
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+}
+
 export async function getPlaybookByCategory(
   category: PlaybookCategory
 ): Promise<GalleryItem[]> {

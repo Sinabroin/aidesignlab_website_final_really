@@ -6,7 +6,7 @@ import FilterButton from '@/components/common/FilterButton';
 import { usePlayday } from '@/hooks/useData';
 import type { GalleryItem } from '@/types';
 
-type PlaydayView = 'latest' | 'archive';
+type PlaydayView = 'all' | 'latest' | 'archive';
 
 interface PlayDaySectionProps {
   onWriteClick: (section: string) => void;
@@ -14,27 +14,27 @@ interface PlayDaySectionProps {
   showWriteButton?: boolean;
 }
 
+function getPlaydayViewData(view: PlaydayView, data: GalleryItem[]) {
+  if (view === 'all') return data;
+  const cutoff = new Date('2024-03-01');
+  return data.filter(item => {
+    const d = new Date(item.date);
+    return view === 'latest' ? d >= cutoff : d < cutoff;
+  });
+}
+
 export default function PlayDaySection({
   onWriteClick,
   onCardClick,
   showWriteButton = true,
 }: PlayDaySectionProps) {
-  const [view, setView] = useState<PlaydayView>('latest');
+  const [view, setView] = useState<PlaydayView>('all');
   const { data: playdayData, isLoading, error } = usePlayday();
 
-  const { latestData, archiveData } = useMemo(() => {
-    const latest = playdayData.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= new Date('2024-03-01');
-    });
-    const archive = playdayData.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate < new Date('2024-03-01');
-    });
-    return { latestData: latest, archiveData: archive };
-  }, [playdayData]);
-
-  const currentData = view === 'latest' ? latestData : archiveData;
+  const currentData = useMemo(
+    () => getPlaydayViewData(view, playdayData),
+    [view, playdayData]
+  );
 
   if (error) {
     return (
@@ -53,6 +53,9 @@ export default function PlayDaySection({
         />
 
         <div className="flex flex-wrap gap-2 mt-6">
+          <FilterButton active={view === 'all'} onClick={() => setView('all')}>
+            전체보기
+          </FilterButton>
           <FilterButton active={view === 'latest'} onClick={() => setView('latest')}>
             최신 내역
           </FilterButton>
