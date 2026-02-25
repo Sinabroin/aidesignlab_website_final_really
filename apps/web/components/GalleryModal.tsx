@@ -67,7 +67,7 @@ export default function GalleryModal({
   const { roles: userRoles, isLoading: isRolesLoading } = useUserRoles(isAuthenticated);
 
   const currentItem = items[currentIndex];
-  const downloadPerm = getDownloadPermission(userRoles, section);
+  const downloadPerm = getDownloadPermission(userRoles, section, isAuthenticated);
 
   const isAuthor = !!(
     (session?.user?.name && currentItem?.author === session.user.name) ||
@@ -500,11 +500,12 @@ function useUserRoles(isAuthenticated: boolean): { roles: string[]; isLoading: b
 
 type DownloadPerm = { allowed: boolean; message: string };
 
-function getDownloadPermission(roles: string[], section?: string): DownloadPerm {
-  if (!roles.length) return { allowed: false, message: '로그인 필요' };
+function getDownloadPermission(roles: string[], section?: string, isAuthenticated?: boolean): DownloadPerm {
+  if (!roles.length && !isAuthenticated) return { allowed: false, message: '로그인 필요' };
   if (roles.includes('operator') || roles.includes('community')) return { allowed: true, message: '' };
   if (section === 'activity') return { allowed: false, message: 'ACE 멤버 및 운영진만 다운로드 가능' };
-  return { allowed: true, message: '' };
+  if (isAuthenticated) return { allowed: true, message: '' };
+  return { allowed: false, message: '로그인 필요' };
 }
 
 function triggerDownload(fileUrl: string, fileName: string, section?: string) {

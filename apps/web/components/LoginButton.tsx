@@ -33,11 +33,29 @@ export default function LoginButton({ callbackUrl }: LoginButtonProps) {
   const { status } = useSession();
   const router = useRouter();
 
+  const targetPath = callbackUrl.startsWith('http')
+    ? new URL(callbackUrl).pathname
+    : callbackUrl;
+
   useEffect(() => {
     if (status === 'authenticated') {
-      router.push(callbackUrl.startsWith('http') ? new URL(callbackUrl).pathname : callbackUrl);
+      router.push(targetPath);
     }
-  }, [status, callbackUrl, router]);
+  }, [status, targetPath, router]);
+
+  useEffect(() => {
+    if (!linkSent) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/auth/session');
+        const data = (await res.json()) as { user?: unknown };
+        if (data?.user) {
+          router.push(targetPath);
+        }
+      } catch { /* ignore */ }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [linkSent, targetPath, router]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

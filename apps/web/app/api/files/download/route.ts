@@ -1,16 +1,8 @@
 /** 파일 다운로드 API — 로그인 및 섹션별 권한 검사 후 파일 제공 */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthToken } from "@/lib/auth/get-token";
+import { getCurrentUser } from "@/lib/auth/session";
 import { getRolesForUser } from "@/lib/auth/rbac";
-
-function buildUser(token: Awaited<ReturnType<typeof getAuthToken>>) {
-  if (!token || typeof token === "string") return { id: "", email: undefined };
-  return {
-    id: (token.sub ?? (token.email as string | undefined) ?? "") as string,
-    email: token.email as string | undefined,
-  };
-}
 
 function canDownloadSection(roles: string[], section: string): boolean {
   if (roles.includes("operator") || roles.includes("community")) return true;
@@ -40,9 +32,9 @@ async function proxyExternalFile(fileUrl: string, fileName: string): Promise<Nex
 
 export async function GET(req: NextRequest) {
   try {
-    const token = await getAuthToken(req);
+    const user = await getCurrentUser();
 
-    if (!token) {
+    if (!user) {
       return NextResponse.json(
         { error: "Unauthorized", message: "로그인이 필요합니다." },
         { status: 401 }
@@ -58,7 +50,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "파일 URL이 필요합니다." }, { status: 400 });
     }
 
-    const roles = getRolesForUser(buildUser(token));
+    const roles = getRolesForUser(user);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'session-fix',hypothesisId:'D2',location:'api/files/download/route.ts',message:'download auth via getServerSession',data:{userId:user.id,roles,section,allowed:canDownloadSection(roles,section)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     if (!canDownloadSection(roles, section)) {
       return NextResponse.json(
         { error: "Forbidden", message: getDeniedMessage(section) },
