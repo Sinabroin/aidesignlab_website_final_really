@@ -9,10 +9,21 @@ import HashtagField from '@/components/write-post/HashtagField';
 import MediaSection from '@/components/write-post/MediaSection';
 import CategorySelect from '@/components/write-post/CategorySelect';
 
+export interface EditPostData {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  tags?: string[];
+  thumbnail?: string;
+  attachments?: { name: string; url: string; size: string; type: string }[];
+}
+
 interface WritePostProps {
   onClose: () => void;
   section: string;
   onPublished?: () => void;
+  editData?: EditPostData;
 }
 
 const MAX_ATTACHMENT_MB = 3;
@@ -68,11 +79,12 @@ async function convertFilesToAttachments(files: File[]) {
   );
 }
 
-export default function WritePost({ onClose, section, onPublished }: WritePostProps) {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState('');
-  const [hashtags, setHashtags] = useState<string[]>([]);
+export default function WritePost({ onClose, section, onPublished, editData }: WritePostProps) {
+  const isEditMode = !!editData;
+  const [title, setTitle] = useState(editData?.title ?? '');
+  const [content, setContent] = useState(editData?.description ?? '');
+  const [category, setCategory] = useState(editData?.category ?? '');
+  const [hashtags, setHashtags] = useState<string[]>(editData?.tags ?? []);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [videos, setVideos] = useState<File[]>([]);
@@ -96,7 +108,7 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-4xl max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-none shadow-2xl overflow-hidden">
-        <WritePostHeader onClose={onClose} />
+        <WritePostHeader onClose={onClose} isEditMode={isEditMode} />
         <form onSubmit={handleDraftSave} className="flex flex-col flex-1 min-h-0 overflow-hidden">
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <TitleField value={title} onChange={setTitle} />
@@ -108,7 +120,7 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
             />
             <HashtagField hashtags={hashtags} onAdd={addHashtag} onRemove={removeHashtag} />
           </div>
-          <WritePostFooter onClose={onClose} onPublish={handlePublish} isPublishing={isPublishing} />
+          <WritePostFooter onClose={onClose} onPublish={handlePublish} isPublishing={isPublishing} isEditMode={isEditMode} />
         </form>
       </div>
     </div>
@@ -119,7 +131,8 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
     if (!category) { alert('카테고리를 선택해주세요.'); return false; }
     const hasText = content.replace(/<[^>]*>/g, '').trim().length > 0;
     const hasEmbed = content.includes('data-type=');
-    if (!hasText && !hasEmbed) { alert('내용을 입력해주세요.'); return false; }
+    const hasMedia = !!thumbnail || images.length > 0 || videos.length > 0 || files.length > 0;
+    if (!hasText && !hasEmbed && !hasMedia) { alert('내용, 이미지, 또는 첨부파일 중 하나 이상을 추가해주세요.'); return false; }
     const oversized = files.filter((f) => f.size > MAX_ATTACHMENT_MB * 1024 * 1024);
     if (oversized.length > 0) {
       alert(`첨부파일 크기 제한 초과 (최대 ${MAX_ATTACHMENT_MB}MB):\n${oversized.map((f) => f.name).join('\n')}`);
@@ -131,19 +144,32 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
   async function submitPost() {
     setIsPublishing(true);
     try {
-      const thumbnailBase64 = thumbnail ? await resizeImageToBase64(thumbnail) : undefined;
-      const attachments = files.length > 0 ? await convertFilesToAttachments(files) : undefined;
-      const res = await fetch('/api/data/posts', {
-        method: 'POST',
+      const thumbnailBase64 = thumbnail ? await resizeImageToBase64(thumbnail) : (isEditMode ? editData?.thumbnail : undefined);
+      const newAttachments = files.length > 0 ? await convertFilesToAttachments(files) : undefined;
+      const mergedAttachments = newAttachments ?? (isEditMode ? editData?.attachments : undefined);
+
+      const url = isEditMode ? `/api/data/posts/${editData!.id}` : '/api/data/posts';
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section, category, title: title.trim(), description: content, tags: hashtags, thumbnailBase64, attachments }),
+        body: JSON.stringify({
+          section,
+          category,
+          title: title.trim(),
+          description: content,
+          tags: hashtags,
+          thumbnailBase64: thumbnailBase64,
+          attachments: mergedAttachments,
+        }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        alert(err.error ?? '게시글 저장에 실패했습니다. 다시 시도해주세요.');
+        alert(err.error ?? (isEditMode ? '게시글 수정에 실패했습니다.' : '게시글 저장에 실패했습니다. 다시 시도해주세요.'));
         return;
       }
-      alert('게시글이 등록되었습니다!');
+      alert(isEditMode ? '게시글이 수정되었습니다!' : '게시글이 등록되었습니다!');
       onPublished?.();
       onClose();
     } catch {
@@ -164,7 +190,7 @@ function TitleField({ value, onChange }: { value: string; onChange: (v: string) 
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="게시글 제목을 입력하세요\u2026"
+        placeholder="게시글 제목을 입력하세요…"
         name="postTitle"
         autoComplete="off"
         className="w-full px-4 py-3 border border-gray-300 rounded-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none transition-colors"

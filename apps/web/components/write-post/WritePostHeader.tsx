@@ -1,9 +1,10 @@
-/** 게시글 작성 모달 헤더 */
+/** 게시글 작성/수정 모달 헤더 */
 interface WritePostHeaderProps {
   onClose: () => void;
+  isEditMode?: boolean;
 }
 
-export default function WritePostHeader({ onClose }: WritePostHeaderProps) {
+export default function WritePostHeader({ onClose, isEditMode }: WritePostHeaderProps) {
   return (
     <div className="flex-shrink-0 bg-[#111] p-6 rounded-none">
       <div className="flex items-center justify-between">
@@ -13,7 +14,7 @@ export default function WritePostHeader({ onClose }: WritePostHeaderProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-normal tracking-tight text-white">새 게시글 작성</h2>
+          <h2 className="text-2xl font-normal tracking-tight text-white">{isEditMode ? '게시글 수정' : '새 게시글 작성'}</h2>
         </div>
         <button
           onClick={onClose}

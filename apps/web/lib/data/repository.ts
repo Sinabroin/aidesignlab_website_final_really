@@ -410,6 +410,39 @@ export async function deleteGalleryItemById(id: string): Promise<void> {
   await db.galleryItem.delete({ where: { id } });
 }
 
+export async function updateGalleryItem(
+  id: string,
+  data: {
+    title?: string;
+    description?: string;
+    category?: string;
+    tags?: string[];
+    thumbnail?: string | null;
+    attachments?: { name: string; url: string; size: string; type: string }[];
+  }
+): Promise<GalleryItem> {
+  const db = getPrismaClient();
+  const row = await db.galleryItem.update({
+    where: { id },
+    data: {
+      ...(data.title !== undefined && { title: data.title }),
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.category !== undefined && { category: data.category }),
+      ...(data.tags !== undefined && {
+        tags: data.tags.length > 0 ? JSON.stringify(data.tags) : null,
+      }),
+      ...(data.thumbnail !== undefined && { thumbnail: data.thumbnail }),
+      ...(data.attachments !== undefined && {
+        attachments:
+          data.attachments.length > 0
+            ? JSON.stringify(data.attachments)
+            : null,
+      }),
+    },
+  });
+  return mapDbToGalleryItem(row);
+}
+
 export async function createGalleryItem(data: {
   section: string;
   title: string;

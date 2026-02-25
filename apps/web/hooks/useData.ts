@@ -65,20 +65,7 @@ export function useAdminContent() {
 }
 
 export function useHomeContent() {
-  // #region agent log
-  const startRef = { current: Date.now() };
-  // #endregion
-  const result = useApi(() => {
-    // #region agent log
-    const fetchStart = Date.now();
-    // #endregion
-    return api.fetchHomeContent().then((data) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useData.ts:useHomeContent',message:'fetchHomeContent completed',data:{fetchDurationMs:Date.now()-fetchStart,bannerCount:data?.banners?.length,noticeCount:data?.notices?.length},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-      return data;
-    });
-  }, null);
+  const result = useApi(() => api.fetchHomeContent(), null);
   return {
     ...result,
     banners: result.data?.banners ?? [],

@@ -86,13 +86,6 @@ export default function NoticeBanner({ onNoticeClick, banners = [], loading }: N
     [go],
   );
 
-  // #region agent log
-  if (loading) {
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'NoticeBanner.tsx:render',message:'Banner is loading - showing WormLoader',data:{itemsLength:items.length},timestamp:Date.now()})}).catch(()=>{});
-  } else {
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'NoticeBanner.tsx:render',message:'Banner loaded',data:{itemsLength:items.length,loading},timestamp:Date.now()})}).catch(()=>{});
-  }
-  // #endregion
   if (loading) return <BannerSkeleton />;
   if (items.length === 0) return <BannerSkeleton empty />;
 

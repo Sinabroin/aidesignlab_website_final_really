@@ -17,7 +17,7 @@ import GalleryModal from '@/components/GalleryModal';
 import PreviewCarousel from '@/components/PreviewCarousel';
 import HelpButton from '@/components/HelpButton';
 import HelpModal from '@/components/HelpModal';
-import WritePost from '@/components/WritePost';
+import WritePost, { type EditPostData } from '@/components/WritePost';
 import TabButton from '@/components/common/TabButton';
 import HomeSection from '@/components/sections/HomeSection';
 import PlayBookSection from '@/components/sections/PlayBookSection';
@@ -33,6 +33,7 @@ export default function PlaygroundPage() {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showWriteModal, setShowWriteModal] = useState(false);
   const [writeSection, setWriteSection] = useState<string>('');
+  const [editData, setEditData] = useState<EditPostData | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const currentUser: User | null = session?.user?.email
@@ -79,6 +80,21 @@ export default function PlaygroundPage() {
     setRefreshKey((k) => k + 1);
   };
 
+  const handleEditPost = (item: GalleryItem) => {
+    const sectionForEdit = modalSection === 'playbook' ? 'playbook' : modalSection;
+    setWriteSection(sectionForEdit);
+    setEditData({
+      id: item.id!,
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      tags: item.tags,
+      thumbnail: item.thumbnail,
+      attachments: item.attachments,
+    });
+    setShowWriteModal(true);
+  };
+
   const handleWriteClick = (section: string) => {
     if (section === 'playbook' && !canWritePlaybookPost) {
       alert('Playbook 작성은 운영진만 가능합니다.');
@@ -88,6 +104,7 @@ export default function PlaygroundPage() {
       alert('PlayDay 작성 권한이 없습니다.');
       return;
     }
+    setEditData(undefined);
     setWriteSection(section);
     setShowWriteModal(true);
   };
@@ -177,12 +194,13 @@ export default function PlaygroundPage() {
       <HelpButton onClick={() => setShowHelpModal(true)} />
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
 
-      {/* 글쓰기 모달 */}
+      {/* 글쓰기/수정 모달 */}
       {showWriteModal && (
         <WritePost
-          onClose={() => setShowWriteModal(false)}
+          onClose={() => { setShowWriteModal(false); setEditData(undefined); }}
           section={writeSection}
-          onPublished={() => setRefreshKey((k) => k + 1)}
+          onPublished={() => { setRefreshKey((k) => k + 1); setEditData(undefined); }}
+          editData={editData}
         />
       )}
 
@@ -232,6 +250,7 @@ export default function PlaygroundPage() {
         onNavigate={setCurrentModalIndex}
         section={modalSection}
         onDelete={handleDeletePost}
+        onEdit={handleEditPost}
       />
     </div>
   );

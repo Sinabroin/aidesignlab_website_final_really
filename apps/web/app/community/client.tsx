@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import ACECommunitySection from '@/components/sections/ACECommunitySection';
 import GalleryModal from '@/components/GalleryModal';
-import WritePost from '@/components/WritePost';
+import WritePost, { type EditPostData } from '@/components/WritePost';
 import type { GalleryItem } from '@/types';
 
 /**
@@ -11,6 +11,7 @@ import type { GalleryItem } from '@/types';
  */
 export default function ACECommunitySectionClient() {
   const [showWriteModal, setShowWriteModal] = useState(false);
+  const [editData, setEditData] = useState<EditPostData | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalItems, setModalItems] = useState<GalleryItem[]>([]);
@@ -25,6 +26,20 @@ export default function ACECommunitySectionClient() {
   const closeModal = () => setIsModalOpen(false);
 
   const handleWriteClick = () => {
+    setEditData(undefined);
+    setShowWriteModal(true);
+  };
+
+  const handleEditPost = (item: GalleryItem) => {
+    setEditData({
+      id: item.id!,
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      tags: item.tags,
+      thumbnail: item.thumbnail,
+      attachments: item.attachments,
+    });
     setShowWriteModal(true);
   };
 
@@ -36,16 +51,15 @@ export default function ACECommunitySectionClient() {
         onCardClick={openModal}
       />
 
-      {/* 글쓰기 모달 */}
       {showWriteModal && (
         <WritePost
-          onClose={() => setShowWriteModal(false)}
+          onClose={() => { setShowWriteModal(false); setEditData(undefined); }}
           section="activity"
-          onPublished={() => setRefreshKey((k) => k + 1)}
+          onPublished={() => { setRefreshKey((k) => k + 1); setEditData(undefined); }}
+          editData={editData}
         />
       )}
 
-      {/* 갤러리 모달 */}
       <GalleryModal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -53,6 +67,8 @@ export default function ACECommunitySectionClient() {
         currentIndex={currentModalIndex}
         onNavigate={setCurrentModalIndex}
         section="activity"
+        onDelete={() => { setIsModalOpen(false); setRefreshKey((k) => k + 1); }}
+        onEdit={handleEditPost}
       />
     </>
   );

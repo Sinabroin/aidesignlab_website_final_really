@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
   ssr: false,
-  loading: () => <div className="min-h-[240px] border border-gray-300 flex items-center justify-center text-gray-400">에디터 로딩 중\u2026</div>,
+  loading: () => <div className="min-h-[240px] border border-gray-300 flex items-center justify-center text-gray-400">에디터 로딩 중…</div>,
 });
 
 interface ContentFieldProps {
@@ -30,7 +30,7 @@ export default function ContentField({ content, onChange }: ContentFieldProps) {
         </div>
       </div>
       {mode === 'edit' ? (
-        <RichTextEditor content={content} onChange={onChange} placeholder="게시글 내용을 입력하세요\u2026" editable minHeight="240px" />
+        <RichTextEditor content={content} onChange={onChange} placeholder="게시글 내용을 입력하세요…" editable minHeight="240px" />
       ) : (
         <div className="border border-gray-300 rounded-none overflow-hidden bg-white">
           {isEmpty ? (

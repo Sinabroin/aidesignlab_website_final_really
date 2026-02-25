@@ -39,6 +39,8 @@ interface GalleryModalProps {
   section?: string;
   /** 게시글 삭제 성공 시 호출 — 부모가 모달 닫기 + 새로고침 처리 */
   onDelete?: () => void;
+  /** 게시글 수정 버튼 클릭 시 호출 — 부모가 편집 모달을 열어줌 */
+  onEdit?: (item: GalleryItem) => void;
 }
 
 /**
@@ -57,6 +59,7 @@ export default function GalleryModal({
   onNavigate,
   section,
   onDelete,
+  onEdit,
 }: GalleryModalProps) {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
@@ -75,6 +78,7 @@ export default function GalleryModal({
   );
   const isOperator = userRoles.includes('operator');
   const canDelete = (isAuthor || isOperator) && !!currentItem?.id;
+  const canEdit = (isAuthor || isOperator) && !!currentItem?.id;
 
   const handleDelete = async () => {
     if (!currentItem?.id) return;
@@ -373,6 +377,20 @@ export default function GalleryModal({
                 </svg>
                 <span className="relative z-10">저장하기</span>
               </button>
+
+              {/* 수정 버튼 — 작성자 본인 또는 운영자에게만 표시 */}
+              {canEdit && (
+                <button
+                  onClick={() => { onEdit?.(currentItem); onClose(); }}
+                  className="relative overflow-visible flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-500 text-blue-500 rounded-none hover:bg-blue-50 transition-colors font-normal tracking-tight"
+                >
+                  <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+                  <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                  <span className="relative z-10">수정하기</span>
+                </button>
+              )}
 
               {/* 삭제 버튼 — 작성자 본인 또는 운영자에게만 표시 */}
               {canDelete && (

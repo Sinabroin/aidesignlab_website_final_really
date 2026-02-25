@@ -3,6 +3,14 @@ import { NextResponse } from "next/server";
 import { getMarqueeData } from "@/lib/data/repository";
 
 export async function GET() {
-  const data = await getMarqueeData();
-  return NextResponse.json(data);
+  try {
+    const data = await getMarqueeData();
+    return NextResponse.json(data);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json(
+      { error: "MarqueeFetchFailed", message },
+      { status: 500 }
+    );
+  }
 }

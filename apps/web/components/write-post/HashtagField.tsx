@@ -39,7 +39,7 @@ export default function HashtagField({ hashtags, onAdd, onRemove }: HashtagField
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="키워드 입력 후 Enter\u2026"
+          placeholder="키워드 입력 후 Enter…"
           name="hashtag"
           autoComplete="off"
           className="flex-1 px-4 py-3 border border-gray-300 rounded-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none transition-colors"
