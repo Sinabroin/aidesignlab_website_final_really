@@ -1,10 +1,10 @@
 /** 파일 다운로드 API — 로그인 및 섹션별 권한 검사 후 파일 제공 */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getAuthToken } from "@/lib/auth/get-token";
 import { getRolesForUser } from "@/lib/auth/rbac";
 
-function buildUser(token: Awaited<ReturnType<typeof getToken>>) {
+function buildUser(token: Awaited<ReturnType<typeof getAuthToken>>) {
   if (!token || typeof token === "string") return { id: "", email: undefined };
   return {
     id: (token.sub ?? (token.email as string | undefined) ?? "") as string,
@@ -40,7 +40,7 @@ async function proxyExternalFile(fileUrl: string, fileName: string): Promise<Nex
 
 export async function GET(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getAuthToken(req);
 
     if (!token) {
       return NextResponse.json(

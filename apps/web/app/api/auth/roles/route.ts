@@ -1,12 +1,12 @@
 /** 현재 로그인 사용자의 RBAC 역할 목록을 반환하는 API */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { getAuthToken } from '@/lib/auth/get-token';
 import { getRolesForUser } from '@/lib/auth/rbac';
 
 export async function GET(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getAuthToken(req);
     if (!token || typeof token === 'string') return NextResponse.json({ roles: [] });
 
     const user = {

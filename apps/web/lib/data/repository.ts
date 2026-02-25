@@ -31,6 +31,7 @@ function formatTodayDot(): string {
 }
 
 function mapDbToGalleryItem(row: {
+  id: string;
   title: string;
   description: string;
   author: string;
@@ -43,6 +44,7 @@ function mapDbToGalleryItem(row: {
   session: number | null;
 }): GalleryItem {
   return {
+    id: row.id,
     title: row.title,
     description: row.description,
     author: row.author,
@@ -387,6 +389,25 @@ export async function getAdminContent(): Promise<
     ...interview.map((item) => ({ ...item, section: "Playbook 인터뷰" })),
     ...activity.map((item) => ({ ...item, section: "ACE 커뮤니티" })),
   ];
+}
+
+export async function getGalleryItemById(
+  id: string
+): Promise<{ id: string; author: string; section: string } | null> {
+  if (!isDatabaseConfigured()) return null;
+  return safeDb(async () => {
+    const db = getPrismaClient();
+    const row = await db.galleryItem.findUnique({
+      where: { id },
+      select: { id: true, author: true, section: true },
+    });
+    return row ?? null;
+  }, null);
+}
+
+export async function deleteGalleryItemById(id: string): Promise<void> {
+  const db = getPrismaClient();
+  await db.galleryItem.delete({ where: { id } });
 }
 
 export async function createGalleryItem(data: {

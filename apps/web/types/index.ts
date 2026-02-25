@@ -1,5 +1,6 @@
 // 공통 타입 정의
 export interface GalleryItem {
+  id?: string;
   title: string;
   description: string;
   author: string;

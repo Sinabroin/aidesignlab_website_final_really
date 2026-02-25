@@ -11,6 +11,7 @@ import PosterPreviewFrame from '@/components/editor/PosterEmbed/PosterPreviewFra
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), { ssr: false });
 
 interface GalleryItem {
+  id?: string;
   title: string;
   description: string;
   author: string;
@@ -36,6 +37,8 @@ interface GalleryModalProps {
   onNavigate: (index: number) => void;
   /** 게시글 섹션: 'playbook' | 'playday' | 'activity' — 다운로드 권한 결정에 사용 */
   section?: string;
+  /** 게시글 삭제 성공 시 호출 — 부모가 모달 닫기 + 새로고침 처리 */
+  onDelete?: () => void;
 }
 
 /**
@@ -53,16 +56,45 @@ export default function GalleryModal({
   currentIndex,
   onNavigate,
   section,
+  onDelete,
 }: GalleryModalProps) {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [showSwipeHint, setShowSwipeHint] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
-  const userRoles = useUserRoles(isAuthenticated);
+  const { roles: userRoles, isLoading: isRolesLoading } = useUserRoles(isAuthenticated);
 
   const currentItem = items[currentIndex];
   const downloadPerm = getDownloadPermission(userRoles, section);
+
+  const isAuthor = !!(
+    (session?.user?.name && currentItem?.author === session.user.name) ||
+    (session?.user?.email && currentItem?.author === session.user.email)
+  );
+  const isOperator = userRoles.includes('operator');
+  const canDelete = (isAuthor || isOperator) && !!currentItem?.id;
+
+  const handleDelete = async () => {
+    if (!currentItem?.id) return;
+    if (!confirm('이 게시글을 삭제하시겠습니까?')) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/data/posts/${currentItem.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json() as { error?: string };
+        alert(data.error || '삭제에 실패했습니다.');
+        return;
+      }
+      onDelete?.();
+      onClose();
+    } catch {
+      alert('삭제에 실패했습니다.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // #region agent log
   useEffect(() => {
@@ -162,7 +194,8 @@ export default function GalleryModal({
     >
       {/* 모달 컨텐츠 */}
       <div 
-        className="relative w-full max-w-4xl mx-4 md:mx-8"
+        className="relative w-full max-w-4xl mx-4 md:mx-8 flex flex-col"
+        style={{ maxHeight: 'calc(100vh - 120px)' }}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -179,7 +212,7 @@ export default function GalleryModal({
         </button>
 
         {/* 카드 컨텐츠 */}
-        <div className="bg-white border border-gray-200 rounded-none overflow-hidden shadow-2xl">
+        <div className="bg-white border border-gray-200 rounded-none shadow-2xl flex flex-col overflow-hidden flex-1 min-h-0">
           <ModalTopArea
             thumbnail={currentItem.thumbnail}
             description={currentItem.description}
@@ -187,8 +220,8 @@ export default function GalleryModal({
             title={currentItem.title}
           />
 
-          {/* 정보 영역 */}
-          <div className="p-8 md:p-12">
+          {/* 정보 영역 - 스크롤 가능 */}
+          <div className="p-8 md:p-12 overflow-y-auto flex-1 min-h-0">
             {/* 카테고리 배지 & 회차 정보 */}
             <div className="mb-4 flex items-center gap-3">
               <span className="px-4 py-1.5 bg-gray-900 text-white text-sm font-normal tracking-tight rounded-none">
@@ -264,13 +297,13 @@ export default function GalleryModal({
                     <button
                       key={index}
                       onClick={(e) => handleFileDownload(file.url, file.name, e)}
-                      disabled={!downloadPerm.allowed}
-                      className={`flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-none transition-all group w-full text-left ${
-                        downloadPerm.allowed
+                      disabled={!downloadPerm.allowed && !isRolesLoading}
+                      className={`relative flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-none transition-all group w-full text-left ${
+                        downloadPerm.allowed || isRolesLoading
                           ? 'hover:shadow-md cursor-pointer'
                           : 'opacity-60 cursor-not-allowed'
                       }`}
-                      title={downloadPerm.allowed ? '' : downloadPerm.message}
+                      title={downloadPerm.allowed || isRolesLoading ? '' : downloadPerm.message}
                     >
                       <div className="flex items-center gap-3">
                         {/* 파일 타입 아이콘 */}
@@ -319,7 +352,7 @@ export default function GalleryModal({
                           </svg>
                         </div>
                       </div>
-                      {!downloadPerm.allowed && (
+                      {!downloadPerm.allowed && !isRolesLoading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-none">
                           <span className="text-sm text-gray-600 font-normal">{downloadPerm.message}</span>
                         </div>
@@ -353,6 +386,21 @@ export default function GalleryModal({
                 </svg>
                 <span className="relative z-10">저장하기</span>
               </button>
+
+              {/* 삭제 버튼 — 작성자 본인 또는 운영자에게만 표시 */}
+              {canDelete && (
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="relative overflow-visible flex items-center gap-2 px-6 py-3 bg-white border-2 border-red-500 text-red-500 rounded-none hover:bg-red-50 transition-colors font-normal tracking-tight disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
+                  <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span className="relative z-10">{isDeleting ? '삭제 중...' : '삭제하기'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -424,16 +472,30 @@ export default function GalleryModal({
 }
 
 /** 현재 로그인 사용자의 역할 목록을 비동기로 가져오는 훅 */
-function useUserRoles(isAuthenticated: boolean): string[] {
+function useUserRoles(isAuthenticated: boolean): { roles: string[]; isLoading: boolean } {
   const [roles, setRoles] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
-    if (!isAuthenticated) { setRoles([]); return; }
+    if (!isAuthenticated) {
+      setRoles([]);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
     fetch('/api/auth/roles', { credentials: 'include' })
       .then((r) => r.json())
-      .then((data) => setRoles(data.roles ?? []))
-      .catch(() => setRoles([]));
+      .then((data: { roles?: string[] }) => {
+        setRoles(data.roles ?? []);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setRoles([]);
+        setIsLoading(false);
+      });
   }, [isAuthenticated]);
-  return roles;
+
+  return { roles, isLoading };
 }
 
 type DownloadPerm = { allowed: boolean; message: string };

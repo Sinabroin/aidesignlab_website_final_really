@@ -74,6 +74,11 @@ export default function PlaygroundPage() {
 
   const closeModal = () => setIsModalOpen(false);
 
+  const handleDeletePost = () => {
+    setIsModalOpen(false);
+    setRefreshKey((k) => k + 1);
+  };
+
   const handleWriteClick = (section: string) => {
     if (section === 'playbook' && !canWritePlaybookPost) {
       alert('Playbook 작성은 운영진만 가능합니다.');
@@ -221,6 +226,7 @@ export default function PlaygroundPage() {
         currentIndex={currentModalIndex}
         onNavigate={setCurrentModalIndex}
         section={modalSection}
+        onDelete={handleDeletePost}
       />
     </div>
   );

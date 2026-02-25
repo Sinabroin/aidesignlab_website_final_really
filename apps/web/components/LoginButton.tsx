@@ -1,7 +1,8 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { FormEvent, useEffect, useState } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface LoginButtonProps {
   callbackUrl: string;
@@ -27,34 +28,59 @@ function resolveCallbackUrl(callbackUrl: string): string {
 export default function LoginButton({ callbackUrl }: LoginButtonProps) {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [linkSent, setLinkSent] = useState(false);
+  const { status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.push(callbackUrl.startsWith('http') ? new URL(callbackUrl).pathname : callbackUrl);
+    }
+  }, [status, callbackUrl, router]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalized = normalizeEmail(email);
     if (!isHdecEmail(normalized)) {
-      setMessage(INVALID_DOMAIN_MESSAGE);
+      setErrorMessage(INVALID_DOMAIN_MESSAGE);
       return;
     }
     setIsSubmitting(true);
-    setMessage(null);
+    setErrorMessage(null);
     const nextUrl = resolveCallbackUrl(callbackUrl);
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"login-debug-1",hypothesisId:"L1-L4",location:"components/LoginButton.tsx:handleSubmit:start",message:"email signIn start",data:{emailDomain:normalized.split("@")[1]??null,hasCallbackUrl:!!nextUrl},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     try {
-      const result = await signIn('email', { email: normalized, callbackUrl: nextUrl, redirect: true });
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"login-debug-1",hypothesisId:"L1-L4",location:"components/LoginButton.tsx:handleSubmit:result",message:"email signIn result",data:{resultType:typeof result,isNull:result===null},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-    } catch (error) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"login-debug-1",hypothesisId:"L1-L4",location:"components/LoginButton.tsx:handleSubmit:catch",message:"email signIn threw error",data:{errorName:error instanceof Error?error.name:"unknown",errorMessage:error instanceof Error?error.message:"unknown"},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-      setMessage('로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      const result = await signIn('email', { email: normalized, callbackUrl: nextUrl, redirect: false });
+      if (result?.error) {
+        setErrorMessage('로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      } else {
+        setLinkSent(true);
+      }
+    } catch {
+      setErrorMessage('로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
     setIsSubmitting(false);
   };
+
+  if (linkSent) {
+    return (
+      <div className="text-center space-y-4">
+        <div className="text-4xl">📬</div>
+        <p className="text-gray-800 font-normal">
+          인증 링크를 <strong>{email}</strong>로 보냈습니다.
+        </p>
+        <p className="text-sm text-gray-500">
+          메일함을 확인하고 링크를 클릭하면 자동으로 로그인됩니다.
+        </p>
+        <button
+          onClick={() => { setLinkSent(false); setEmail(''); }}
+          className="text-xs text-gray-400 underline hover:text-gray-600"
+        >
+          다른 이메일로 다시 시도하기
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -74,7 +100,7 @@ export default function LoginButton({ callbackUrl }: LoginButtonProps) {
       >
         {isSubmitting ? '전송 중...' : '인증 링크 받기'}
       </button>
-      {message && <p className="text-sm text-red-600">{message}</p>}
+      {errorMessage && <p className="text-sm text-red-600">{errorMessage}</p>}
     </form>
   );
 }
