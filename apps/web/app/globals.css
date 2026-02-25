@@ -123,6 +123,20 @@
   to { transform: translateX(0); }
 }
 
+/* Worm loader */
+@keyframes worm1 {
+  0%   { stroke-dashoffset: 0; }
+  50%  { stroke-dashoffset: -418; }
+  100% { stroke-dashoffset: -836; }
+}
+@keyframes worm2 {
+  0%   { stroke-dashoffset: 0; }
+  50%  { stroke-dashoffset: 418; }
+  100% { stroke-dashoffset: 836; }
+}
+.animate-worm1 { animation: worm1 2s linear infinite; }
+.animate-worm2 { animation: worm2 2s linear infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee-left,
   .animate-marquee-right {
@@ -134,6 +148,10 @@
     animation: none;
     opacity: 1;
     transform: none;
+  }
+  .animate-worm1,
+  .animate-worm2 {
+    animation-play-state: paused;
   }
 }
 

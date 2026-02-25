@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
 import { extractPosterEmbed, buildPosterSrcDoc } from '@/lib/utils/poster-embed';
+import { WormLoader } from '@/components/common/WormLoader';
 import type { HomeBanner } from '@/types';
 
 interface BannerItem {
@@ -85,6 +86,13 @@ export default function NoticeBanner({ onNoticeClick, banners = [], loading }: N
     [go],
   );
 
+  // #region agent log
+  if (loading) {
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'NoticeBanner.tsx:render',message:'Banner is loading - showing WormLoader',data:{itemsLength:items.length},timestamp:Date.now()})}).catch(()=>{});
+  } else {
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'NoticeBanner.tsx:render',message:'Banner loaded',data:{itemsLength:items.length,loading},timestamp:Date.now()})}).catch(()=>{});
+  }
+  // #endregion
   if (loading) return <BannerSkeleton />;
   if (items.length === 0) return <BannerSkeleton empty />;
 
@@ -329,10 +337,7 @@ function BannerSkeleton({ empty }: { empty?: boolean }) {
         {empty ? (
           <p className="text-sm text-gray-400">등록된 배너가 없습니다</p>
         ) : (
-          <div className="animate-pulse flex flex-col items-center gap-3">
-            <div className="h-6 w-48 bg-gray-200 rounded" />
-            <div className="h-4 w-64 bg-gray-100 rounded" />
-          </div>
+          <WormLoader />
         )}
       </div>
     </div>
