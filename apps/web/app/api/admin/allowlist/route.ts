@@ -9,22 +9,9 @@ import {
   type AllowlistRole,
 } from "@/lib/data/allowlists.server";
 
-function logAdminRoute(
-  hypothesisId: string,
-  message: string,
-  data: Record<string, unknown>
-) {
-  // #region agent log
-  fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"admin-debug-2",hypothesisId,location:"api/admin/allowlist/route.ts",message,data,timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-}
-
 function requireOperator() {
   return async () => {
     const user = await getCurrentUser();
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"admin-debug-1",hypothesisId:"A3",location:"api/admin/allowlist/route.ts:requireOperator",message:"operator check",data:{hasUser:!!user,isOperator:user?hasRole(user,"operator"):false,hasEmail:!!user?.email,emailDomain:user?.email?.split("@")[1]??null},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     if (!user) {
       return NextResponse.json(
         { error: "Unauthorized", message: "로그인이 필요합니다." },
@@ -45,7 +32,6 @@ function requireOperator() {
  * GET: 운영진·ACE 목록 조회 (고정 운영자 포함)
  */
 export async function GET() {
-  logAdminRoute("B3", "GET allowlist entered", {});
   const err = await requireOperator()();
   if (err) return err;
 
@@ -53,10 +39,6 @@ export async function GET() {
   const operators = data.operators.includes(FIXED_OPERATOR_EMAIL)
     ? data.operators
     : [FIXED_OPERATOR_EMAIL, ...data.operators];
-  logAdminRoute("B3", "GET allowlist success", {
-    operatorsCount: operators.length,
-    communityCount: data.community.length,
-  });
   return NextResponse.json({
     operators: [...new Set(operators)],
     community: data.community,
@@ -68,7 +50,6 @@ export async function GET() {
  * body: { email: string, role: "operator" | "community" }
  */
 export async function POST(req: Request) {
-  logAdminRoute("B4", "POST allowlist entered", {});
   const err = await requireOperator()();
   if (err) return err;
 
@@ -76,9 +57,6 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"admin-debug-1",hypothesisId:"A4",location:"api/admin/allowlist/route.ts:post:bad-json",message:"invalid json body",data:{},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     return NextResponse.json(
       { error: "Bad Request", message: "JSON body가 필요합니다." },
       { status: 400 }
@@ -87,10 +65,6 @@ export async function POST(req: Request) {
 
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const role = body.role === "operator" || body.role === "community" ? body.role : null;
-  logAdminRoute("B4", "POST parsed body", {
-    hasEmail: !!email,
-    role: role ?? "invalid",
-  });
 
   if (!email) {
     return NextResponse.json(
@@ -116,18 +90,11 @@ export async function POST(req: Request) {
   try {
     await addToAllowlist(normalized, role as AllowlistRole);
   } catch (error) {
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"admin-debug-1",hypothesisId:"A4",location:"api/admin/allowlist/route.ts:post:write-failed",message:"addToAllowlist failed",data:{role,errorName:error instanceof Error?error.name:"unknown",errorMessage:error instanceof Error?error.message:"unknown"},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     return NextResponse.json(
       { error: "Internal Server Error", message: "권한 저장에 실패했습니다." },
       { status: 500 }
     );
   }
-  logAdminRoute("B4", "POST add success", {
-    emailDomain: normalized.split("@")[1] ?? null,
-    role,
-  });
   return NextResponse.json({ ok: true, email: normalized, role });
 }
 
@@ -136,7 +103,6 @@ export async function POST(req: Request) {
  * body: { email: string, role: "operator" | "community" } 또는 query
  */
 export async function DELETE(req: Request) {
-  logAdminRoute("B5", "DELETE allowlist entered", {});
   const err = await requireOperator()();
   if (err) return err;
 
@@ -170,9 +136,5 @@ export async function DELETE(req: Request) {
       { status: 403 }
     );
   }
-  logAdminRoute("B5", "DELETE remove success", {
-    emailDomain: email.toLowerCase().split("@")[1] ?? null,
-    role,
-  });
   return NextResponse.json({ ok: true });
 }

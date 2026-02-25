@@ -80,21 +80,6 @@ async function sendVerificationRequest(params: {
 }): Promise<void> {
   // 보안 스캐너 토큰 소진 방지: 중간 확인 페이지 URL로 변환
   const verifyUrl = toVerifyPageUrl(params.url);
-  const targetDomain = params.identifier.split("@")[1] ?? null;
-  const serverHost = typeof params.provider.server?.host === "string" ? params.provider.server.host : null;
-  const serverPort = typeof params.provider.server?.port === "number" ? params.provider.server.port : null;
-  const serverSecure = typeof params.provider.server?.secure === "boolean" ? params.provider.server.secure : null;
-  // #region agent log
-  console.info("[auth-email-debug] send-start", {
-    targetDomain,
-    serverHost,
-    serverPort,
-    serverSecure,
-  });
-  // #endregion
-  // #region agent log
-  fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-2",hypothesisId:"N1-N6",location:"lib/auth.ts:sendVerificationRequest:start",message:"send verification email start",data:{targetDomain,serverHost,serverPort,serverSecure},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
   const { createTransport } = require("nodemailer") as {
     createTransport: (server: unknown) => {
       sendMail: (mail: {
@@ -115,50 +100,7 @@ async function sendVerificationRequest(params: {
       text: buildVerificationText(verifyUrl),
       html: buildVerificationHtml(verifyUrl),
     });
-    // #region agent log
-    console.info("[auth-email-debug] send-success", {
-      targetDomain,
-      serverPort,
-    });
-    // #endregion
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-2",hypothesisId:"N1",location:"lib/auth.ts:sendVerificationRequest:success",message:"send verification email success",data:{targetDomain,serverPort},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
   } catch (error) {
-    const e = error as {
-      name?: string;
-      message?: string;
-      code?: string;
-      command?: string;
-      responseCode?: number;
-      response?: string;
-    };
-    const canRetryWithStartTls =
-      serverHost === "smtp.gmail.com" &&
-      serverPort === 465 &&
-      e.code === "ESOCKET";
-    // #region agent log
-    console.error("[auth-email-debug] send-failure", {
-      targetDomain,
-      serverHost,
-      serverPort,
-      serverSecure,
-      errorName: e.name ?? "unknown",
-      errorMessage: e.message ?? "unknown",
-      errorCode: e.code ?? null,
-      errorCommand: e.command ?? null,
-      responseCode: e.responseCode ?? null,
-      canRetryWithStartTls,
-    });
-    // #endregion
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-2",hypothesisId:"N1-N6",location:"lib/auth.ts:sendVerificationRequest:failure",message:"send verification email failure",data:{targetDomain,serverHost,serverPort,serverSecure,errorName:e.name??"unknown",errorMessage:e.message??"unknown",errorCode:e.code??null,errorCommand:e.command??null,responseCode:e.responseCode??null,responseHead:typeof e.response==="string"?e.response.slice(0,120):null,canRetryWithStartTls},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    if (canRetryWithStartTls) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-2",hypothesisId:"N6",location:"lib/auth.ts:sendVerificationRequest:retry-disabled",message:"starttls retry disabled after rejection",data:{targetDomain},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-    }
     throw error;
   }
 }
@@ -197,29 +139,14 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(getPrismaClient()),
   providers: [getEmailProvider()],
   logger: {
-    error(code, metadata) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-1",hypothesisId:"N1-N3",location:"lib/auth.ts:logger:error",message:"nextauth logger error",data:{code,hasMetadata:!!metadata},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-    },
-    warn(code) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-1",hypothesisId:"N1-N3",location:"lib/auth.ts:logger:warn",message:"nextauth logger warn",data:{code},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-    },
-    debug(code, metadata) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-1",hypothesisId:"N1-N3",location:"lib/auth.ts:logger:debug",message:"nextauth logger debug",data:{code,hasMetadata:!!metadata},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-    },
+    error() {},
+    warn() {},
+    debug() {},
   },
   callbacks: {
     async signIn({ user, email }) {
       const isVerificationRequest = email?.verificationRequest === true;
       const targetEmail = resolveSignInEmail(user?.email, email);
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({runId:"auth-email-debug-1",hypothesisId:"N2-N4",location:"lib/auth.ts:signIn",message:"signIn callback for email provider",data:{isVerificationRequest,hasTargetEmail:!!targetEmail,targetDomain:targetEmail?.split("@")[1]??null},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       if (!isVerificationRequest) return true;
       if (isAllowedEmailDomain(targetEmail)) return true;
       return "/login?error=InvalidDomain";

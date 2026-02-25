@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
 import Link from 'next/link';
 import {
@@ -164,6 +164,11 @@ export default function PlaygroundPage() {
                 권한 필요
               </span>
             </Link>
+
+            {/* 로그인/로그아웃 — 우측 정렬 */}
+            <div className="ml-auto flex-shrink-0">
+              <AuthButton status={status} userEmail={session?.user?.email} />
+            </div>
           </div>
         </div>
       </nav>
@@ -229,5 +234,38 @@ export default function PlaygroundPage() {
         onDelete={handleDeletePost}
       />
     </div>
+  );
+}
+
+function AuthButton({ status, userEmail }: { status: string; userEmail?: string | null }) {
+  if (status === 'loading') return null;
+
+  if (status === 'authenticated') {
+    return (
+      <button
+        onClick={() => signOut({ callbackUrl: '/playground' })}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs md:text-sm text-muted hover:text-ink transition-colors whitespace-nowrap"
+      >
+        <span className="hidden sm:inline text-xs text-gray-400 truncate max-w-[120px]">
+          {userEmail}
+        </span>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        <span>로그아웃</span>
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href="/login?callbackUrl=/playground"
+      className="flex items-center gap-1.5 px-4 py-1.5 bg-gray-900 text-white text-xs md:text-sm rounded-none hover:bg-gray-800 transition-colors whitespace-nowrap"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+      </svg>
+      <span>로그인</span>
+    </Link>
   );
 }

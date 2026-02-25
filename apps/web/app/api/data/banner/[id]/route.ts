@@ -8,13 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'banner/[id]/route.ts:GET',message:'getBannerById called',data:{id},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
     const banner = await getHomeBannerById(id);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'banner/[id]/route.ts:GET',message:'getBannerById result',data:{found:!!banner,title:banner?.title},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
     if (!banner) {
       return NextResponse.json({ error: "NotFound" }, { status: 404 });
     }

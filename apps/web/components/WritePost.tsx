@@ -26,6 +26,33 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+const THUMB_MAX_W = 800;
+const THUMB_MAX_H = 600;
+const THUMB_QUALITY = 0.8;
+
+function resizeImageToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > THUMB_MAX_W || height > THUMB_MAX_H) {
+        const ratio = Math.min(THUMB_MAX_W / width, THUMB_MAX_H / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('Canvas not supported')); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', THUMB_QUALITY));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 function formatFileSize(bytes: number): string {
   const mb = bytes / 1024 / 1024;
   return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
@@ -104,28 +131,25 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
   async function submitPost() {
     setIsPublishing(true);
     try {
-      const thumbnailBase64 = thumbnail ? await fileToBase64(thumbnail) : undefined;
+      const thumbnailBase64 = thumbnail ? await resizeImageToBase64(thumbnail) : undefined;
       const attachments = files.length > 0 ? await convertFilesToAttachments(files) : undefined;
+      const payload = JSON.stringify({ section, category, title: title.trim(), description: content, tags: hashtags, thumbnailBase64, attachments });
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WritePost.tsx:submitPost',message:'submitting post with attachments',data:{filesCount:files.length,attachmentsCount:attachments?.length??0,fileNames:files.map(f=>f.name),fileSizes:files.map(f=>f.size)},timestamp:Date.now(),hypothesisId:'H-B'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'thumb-debug',hypothesisId:'H1',location:'WritePost.tsx:submitPost',message:'payload size',data:{payloadBytes:payload.length,hasThumbnail:!!thumbnailBase64,thumbnailLen:thumbnailBase64?.length??0},timestamp:Date.now()})}).catch(()=>{});
       // #endregion
       const res = await fetch('/api/data/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section, category, title: title.trim(), description: content, tags: hashtags, thumbnailBase64, attachments }),
+        body: payload,
       });
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'thumb-debug',hypothesisId:'H1-H2',location:'WritePost.tsx:submitPost:response',message:'API response',data:{status:res.status,ok:res.ok},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WritePost.tsx:submitPost-error',message:'post API error',data:{status:res.status,error:err},timestamp:Date.now(),hypothesisId:'H-B'})}).catch(()=>{});
-        // #endregion
         alert(err.error ?? '게시글 저장에 실패했습니다. 다시 시도해주세요.');
         return;
       }
-      const createdItem = await res.clone().json().catch(() => ({}));
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WritePost.tsx:submitPost-success',message:'post created',data:{attachmentsInResponse:createdItem?.attachments?.length??0},timestamp:Date.now(),hypothesisId:'H-C'})}).catch(()=>{});
-      // #endregion
       alert('게시글이 등록되었습니다!');
       onPublished?.();
       onClose();

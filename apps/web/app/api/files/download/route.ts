@@ -51,9 +51,6 @@ export async function GET(req: NextRequest) {
     }
 
     const roles = getRolesForUser(user);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'session-fix',hypothesisId:'D2',location:'api/files/download/route.ts',message:'download auth via getServerSession',data:{userId:user.id,roles,section,allowed:canDownloadSection(roles,section)},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     if (!canDownloadSection(roles, section)) {
       return NextResponse.json(
         { error: "Forbidden", message: getDeniedMessage(section) },

@@ -10,9 +10,6 @@ export async function GET() {
     if (!user) return NextResponse.json({ roles: [] });
 
     const roles = getRolesForUser(user);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'session-fix',hypothesisId:'D1',location:'api/auth/roles/route.ts',message:'roles resolved via getServerSession',data:{userId:user.id,roles},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     return NextResponse.json({ roles });
   } catch {
     return NextResponse.json({ roles: [] });

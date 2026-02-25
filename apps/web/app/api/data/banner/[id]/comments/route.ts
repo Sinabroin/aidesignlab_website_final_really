@@ -34,17 +34,11 @@ export async function POST(
       return NextResponse.json({ error: "ContentRequired" }, { status: 400 });
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'banner/[id]/comments/route.ts:POST',message:'createComment attempt',data:{bannerId:id,author:user.name??user.email,contentLen:content.length},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
     const comment = await createBannerComment({
       bannerId: id,
       author: user.name ?? user.email ?? "익명",
       content,
     });
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'banner/[id]/comments/route.ts:POST',message:'createComment success',data:{commentId:comment.id},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
     return NextResponse.json(comment, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

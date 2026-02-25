@@ -21,9 +21,6 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'build-type-fix',hypothesisId:'H2',location:'app/api/data/posts/[id]/route.ts:DELETE',message:'delete route invoked',data:{hasId:!!id},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     if (!process.env.DATABASE_URL) {
       return NextResponse.json({ error: "DB not configured" }, { status: 400 });
     }

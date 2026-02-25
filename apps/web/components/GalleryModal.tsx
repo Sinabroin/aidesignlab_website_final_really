@@ -96,19 +96,6 @@ export default function GalleryModal({
     }
   };
 
-  // #region agent log
-  useEffect(() => {
-    if (isOpen && currentItem) {
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'GalleryModal.tsx:open',message:'modal opened - perm state at render',data:{title:currentItem.title,section,isAuthenticated,userRoles,downloadPermAllowed:downloadPerm.allowed,downloadPermMsg:downloadPerm.message},timestamp:Date.now(),hypothesisId:'H-B',runId:'login-check'})}).catch(()=>{});
-    }
-  }, [isOpen, currentIndex]);
-  useEffect(() => {
-    if (isOpen) {
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'GalleryModal.tsx:roles-update',message:'roles changed',data:{userRoles,downloadPermAllowed:downloadPerm.allowed,isAuthenticated},timestamp:Date.now(),hypothesisId:'H-B-C',runId:'login-check'})}).catch(()=>{});
-    }
-  }, [userRoles]);
-  // #endregion
-
   const handleFileDownload = async (fileUrl: string, fileName: string, e: React.MouseEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -549,9 +536,15 @@ function ModalTopArea({ thumbnail, description, category, title }: ModalTopAreaP
   }, [description, thumbnail]);
 
   if (thumbnail) {
+    const isDataUrl = thumbnail.startsWith('data:');
     return (
       <div className="aspect-video relative overflow-hidden border-b-2 border-gray-200">
-        <Image alt={title} src={thumbnail} fill className="object-cover" />
+        {isDataUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img alt={title} src={thumbnail} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <Image alt={title} src={thumbnail} fill className="object-cover" />
+        )}
       </div>
     );
   }
