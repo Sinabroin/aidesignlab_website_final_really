@@ -58,8 +58,13 @@ function CardImageArea({ title, category, description, thumbnail, imageUrl }: Ca
   const [posterEmbed, setPosterEmbed] = useState<PosterEmbedData | null>(null);
 
   useEffect(() => {
+    const t0 = Date.now();
     if (!thumbnail && !imageUrl) {
-      setPosterEmbed(extractPosterEmbed(description));
+      const result = extractPosterEmbed(description);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'GalleryCard.tsx:CardImageArea',message:'poster extract',data:{hasPoster:!!result,parseMs:Date.now()-t0,title},hypothesisId:'H-C/H-D',timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      setPosterEmbed(result);
     } else {
       setPosterEmbed(null);
     }
@@ -107,6 +112,9 @@ export default function GalleryCard({
   onClick,
 }: GalleryCardProps) {
   const handleClick = () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'GalleryCard.tsx:handleClick',message:'card click fired',data:{title,hasOnClick:!!onClick},hypothesisId:'H-A',timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     if (onClick) onClick();
     else if (readMoreLink && readMoreLink !== "#") window.location.href = readMoreLink;
   };

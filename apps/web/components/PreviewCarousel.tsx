@@ -70,6 +70,10 @@ export default function PreviewCarousel({
     PLACEHOLDER_IMAGES[currentItem.category] ||
     PLACEHOLDER_IMAGES.Workshop;
 
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PreviewCarousel.tsx:render',message:'imageSrc resolved',data:{thumbnail:currentItem.thumbnail,category:currentItem.category,imageSrc,hasDescription:!!currentItem.description,descSnippet:(currentItem.description||'').slice(0,80)},hypothesisId:'H-B',timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
   const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.touches[0].clientX);
   const handleTouchEnd = () => {
