@@ -27,6 +27,8 @@ type FormState = {
   bannerHref: string;
   bannerThumbnail: string;
   noticeTitle: string;
+  noticeDescription: string;
+  noticeContent: string;
   noticeBadge: string;
   guideTitle: string;
   guideDescription: string;
@@ -39,6 +41,8 @@ const initialFormState: FormState = {
   bannerHref: '',
   bannerThumbnail: '',
   noticeTitle: '',
+  noticeDescription: '',
+  noticeContent: '',
   noticeBadge: '공지',
   guideTitle: '',
   guideDescription: '',
@@ -123,9 +127,16 @@ export default function HomeContentManagementTab() {
       } else if (contentType === 'notice') {
         await createAdminHomeContent('notice', {
           title: form.noticeTitle,
+          description: form.noticeDescription,
+          content: form.noticeContent,
           badge: form.noticeBadge,
         });
-        setForm((prev) => ({ ...prev, noticeTitle: '' }));
+        setForm((prev) => ({
+          ...prev,
+          noticeTitle: '',
+          noticeDescription: '',
+          noticeContent: '',
+        }));
       } else {
         await createAdminHomeContent('playday-guide', {
           title: form.guideTitle,
@@ -181,6 +192,7 @@ export default function HomeContentManagementTab() {
         <NoticeForm
           form={form}
           updateField={updateField}
+          onContentChange={(html) => updateField('noticeContent', html)}
           onSubmit={() => handleCreate('notice')}
           submitting={submitting === 'notice'}
         />
@@ -601,36 +613,34 @@ function BannerList({
 function NoticeForm({
   form,
   updateField,
+  onContentChange,
   onSubmit,
   submitting,
 }: {
   form: FormState;
   updateField: (k: keyof FormState, v: string) => void;
+  onContentChange: (html: string) => void;
   onSubmit: () => void;
   submitting: boolean;
 }) {
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <input
-          value={form.noticeTitle}
-          onChange={(e) => updateField('noticeTitle', e.target.value)}
-          placeholder="공지 제목…"
-          name="noticeTitle"
-          autoComplete="off"
-          aria-label="공지 제목"
-          className="px-3 py-2 border border-gray-300 md:col-span-2 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
-        />
-        <input
-          value={form.noticeBadge}
-          onChange={(e) => updateField('noticeBadge', e.target.value)}
-          placeholder="배지(예: 공지, 이벤트)…"
-          name="noticeBadge"
-          autoComplete="off"
-          aria-label="공지 배지"
-          className="px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
+      <NoticeMetaInputs form={form} updateField={updateField} />
+
+      <div>
+        <label className="block text-sm text-gray-600 mb-1">
+          공지 본문 (이미지·영상·텍스트 자유 입력)
+        </label>
+        <RichTextEditor
+          content={form.noticeContent}
+          onChange={onContentChange}
+          placeholder="이미지, 영상, 텍스트를 자유롭게 입력하세요…"
+          editable
+          minHeight="160px"
+          showSourceToggle
         />
       </div>
+
       <button
         onClick={onSubmit}
         disabled={submitting}
@@ -642,6 +652,46 @@ function NoticeForm({
   );
 }
 
+function NoticeMetaInputs({
+  form,
+  updateField,
+}: {
+  form: FormState;
+  updateField: (k: keyof FormState, v: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <input
+        value={form.noticeTitle}
+        onChange={(e) => updateField('noticeTitle', e.target.value)}
+        placeholder="공지 제목…"
+        name="noticeTitle"
+        autoComplete="off"
+        aria-label="공지 제목"
+        className="px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
+      />
+      <input
+        value={form.noticeDescription}
+        onChange={(e) => updateField('noticeDescription', e.target.value)}
+        placeholder="짧은 설명 (선택)…"
+        name="noticeDescription"
+        autoComplete="off"
+        aria-label="공지 짧은 설명"
+        className="px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
+      />
+      <input
+        value={form.noticeBadge}
+        onChange={(e) => updateField('noticeBadge', e.target.value)}
+        placeholder="배지 (예: 공지, 이벤트)…"
+        name="noticeBadge"
+        autoComplete="off"
+        aria-label="공지 배지"
+        className="px-3 py-2 border border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none"
+      />
+    </div>
+  );
+}
+
 function NoticeList({
   notices,
   onDelete,
@@ -649,23 +699,42 @@ function NoticeList({
   notices: AdminHomeContentResponse['notices'];
   onDelete: (id: string) => void;
 }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
   return (
     <ul className="divide-y border border-gray-200">
       {notices.map((item) => (
-        <li key={item.id} className="px-4 py-3 flex items-center justify-between">
-          <div>
-            <p className="font-semibold text-gray-900">{item.title}</p>
-            <p className="text-sm text-gray-600">
-              {item.date} · {item.badge}
-            </p>
+        <li key={item.id} className="px-4 py-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-gray-900">{item.title}</p>
+              <p className="text-sm text-gray-600">
+                {item.date} · {item.badge}
+                {item.description && ` · ${item.description}`}
+              </p>
+              {item.content ? (
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                  className="text-sm text-blue-600 hover:text-blue-800 mt-1"
+                >
+                  {expandedId === item.id ? '\u25BC 미리보기 닫기' : '\u25B6 미리보기 열기'}
+                </button>
+              ) : null}
+            </div>
+            <button
+              onClick={() => onDelete(item.id)}
+              aria-label={`공지 "${item.title}" 삭제`}
+              className="text-red-600 text-sm hover:text-red-800 transition-colors shrink-0"
+            >
+              삭제
+            </button>
           </div>
-          <button
-            onClick={() => onDelete(item.id)}
-            aria-label={`공지 "${item.title}" 삭제`}
-            className="text-red-600 text-sm hover:text-red-800 transition-colors"
-          >
-            삭제
-          </button>
+          {expandedId === item.id && item.content && (
+            <div className="mt-2">
+              <HtmlPreviewFrame html={item.content} />
+            </div>
+          )}
         </li>
       ))}
     </ul>

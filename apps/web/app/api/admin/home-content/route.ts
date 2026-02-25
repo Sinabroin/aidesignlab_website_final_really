@@ -81,9 +81,11 @@ async function handleCreateByType(
   }
   if (contentType === "notice") {
     const title = String(body.title ?? "").trim();
+    const description = String(body.description ?? "").trim();
+    const content = String(body.content ?? "").trim();
     const badge = String(body.badge ?? "").trim() || "공지";
     if (!title) return badRequest("공지 제목은 필수입니다.");
-    const item = await createNotice({ title, badge });
+    const item = await createNotice({ title, description, content, badge });
     return NextResponse.json({ ok: true, item }, { status: 201 });
   }
   const title = String(body.title ?? "").trim();

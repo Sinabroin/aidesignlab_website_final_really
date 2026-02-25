@@ -176,48 +176,64 @@ export const activityData: GalleryItem[] = [
 export const notices = [
   {
     title: "[중요] AI 디자인랩 이용 안내",
+    description: "AI 디자인랩을 이용하시기 전에 반드시 읽어주세요.",
+    content: "",
     date: "2024.02.09",
     badge: "필독",
     badgeColor: "bg-gray-900"
   },
   {
     title: "PlayDay 3월 일정 공지",
+    description: "3월 PlayDay 일정이 확정되었습니다. 많은 참여 부탁드립니다.",
+    content: "",
     date: "2024.02.08",
     badge: "공지",
     badgeColor: "bg-gray-700"
   },
   {
     title: "ACE 2기 모집 안내",
+    description: "ACE 2기 멤버를 모집합니다. 관심 있으신 분들은 신청해주세요.",
+    content: "",
     date: "2024.02.07",
     badge: "모집",
     badgeColor: "bg-gray-600"
   },
   {
     title: "AI 윤리 가이드라인 업데이트",
+    description: "",
+    content: "",
     date: "2024.02.05",
     badge: "공지",
     badgeColor: "bg-gray-700"
   },
   {
     title: "새로운 AI 도구 추가 안내",
+    description: "",
+    content: "",
     date: "2024.02.03",
     badge: "공지",
     badgeColor: "bg-gray-700"
   },
   {
     title: "2월 정기 점검 일정 안내",
+    description: "",
+    content: "",
     date: "2024.02.01",
     badge: "공지",
     badgeColor: "bg-gray-700"
   },
   {
     title: "AI 프롬프트 경진대회 개최",
+    description: "AI 프롬프트 경진대회에 참가하여 상금을 받아보세요.",
+    content: "",
     date: "2024.01.28",
     badge: "이벤트",
     badgeColor: "bg-gray-600"
   },
   {
     title: "1월 우수 활용 사례 선정 결과",
+    description: "",
+    content: "",
     date: "2024.01.25",
     badge: "공지",
     badgeColor: "bg-gray-700"

@@ -76,6 +76,8 @@ export async function getNotices(): Promise<Notice[]> {
       const rows = await db.notice.findMany({ orderBy: { date: "desc" } });
       return rows.map((r) => ({
         title: r.title,
+        description: r.description,
+        content: r.content,
         date: r.date,
         badge: r.badge,
         badgeColor: r.badgeColor,
@@ -96,6 +98,8 @@ export async function getAdminNotices(): Promise<AdminNoticeItem[]> {
       return rows.map((r) => ({
         id: r.id,
         title: r.title,
+        description: r.description,
+        content: r.content,
         date: r.date,
         badge: r.badge,
         badgeColor: r.badgeColor,
@@ -311,6 +315,8 @@ export async function createHomePlaydayGuide(data: {
 
 export async function createNotice(data: {
   title: string;
+  description?: string;
+  content?: string;
   badge: string;
   badgeColor?: string;
 }): Promise<Notice> {
@@ -318,6 +324,8 @@ export async function createNotice(data: {
   const row = await db.notice.create({
     data: {
       title: data.title,
+      description: data.description ?? "",
+      content: data.content ?? "",
       date: formatTodayDot(),
       badge: data.badge,
       badgeColor: data.badgeColor ?? "bg-gray-700",
@@ -325,6 +333,8 @@ export async function createNotice(data: {
   });
   return {
     title: row.title,
+    description: row.description,
+    content: row.content,
     date: row.date,
     badge: row.badge,
     badgeColor: row.badgeColor,
@@ -408,13 +418,13 @@ export async function getAdminContent(): Promise<
 
 export async function getGalleryItemById(
   id: string
-): Promise<{ id: string; author: string; section: string } | null> {
+): Promise<{ id: string; title: string; author: string; section: string } | null> {
   if (!isDatabaseConfigured()) return null;
   return safeDb(async () => {
     const db = getPrismaClient();
     const row = await db.galleryItem.findUnique({
       where: { id },
-      select: { id: true, author: true, section: true },
+      select: { id: true, title: true, author: true, section: true },
     });
     return row ?? null;
   }, null);

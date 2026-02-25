@@ -59,6 +59,8 @@ export interface PlaybookResponse {
 
 export interface Notice {
   title: string;
+  description: string;
+  content: string;
   date: string;
   badge: string;
   badgeColor: string;
@@ -87,6 +89,8 @@ export interface AdminHomeBanner {
 export interface AdminHomeNotice {
   id: string;
   title: string;
+  description: string;
+  content: string;
   date: string;
   badge: string;
   badgeColor: string;

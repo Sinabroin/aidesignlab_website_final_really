@@ -20,6 +20,8 @@ export interface GalleryItem {
 
 export interface Notice {
   title: string;
+  description: string;
+  content: string;
   date: string;
   badge: string;
   badgeColor: string;

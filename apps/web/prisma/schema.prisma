@@ -88,13 +88,15 @@ model GalleryItem {
 
 // 공지사항
 model Notice {
-  id         String   @id @default(cuid())
-  title      String
-  date       String
-  badge      String
-  badgeColor String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  title       String
+  description String   @default("")
+  content     String   @default("")
+  date        String
+  badge       String
+  badgeColor  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("notices")
 }
