@@ -71,6 +71,13 @@ function BannerHeader({ title, description, createdAt }: { title: string; descri
   );
 }
 
+function syncIframeHeight(iframe: HTMLIFrameElement) {
+  try {
+    const h = iframe.contentDocument?.documentElement?.scrollHeight;
+    if (h && h > 100) iframe.style.height = `${h + 40}px`;
+  } catch { /* cross-origin fallback */ }
+}
+
 function BannerBody({ content, title }: { content?: string; title: string }) {
   const [posterData, setPosterData] = useState<{ html: string; css: string } | null>(null);
 
@@ -78,35 +85,44 @@ function BannerBody({ content, title }: { content?: string; title: string }) {
     setPosterData(extractPosterEmbed(content));
   }, [content]);
 
+  const handleIframeLoad = useCallback((e: React.SyntheticEvent<HTMLIFrameElement>) => {
+    const iframe = e.currentTarget;
+    syncIframeHeight(iframe);
+
+    try {
+      const images = iframe.contentDocument?.querySelectorAll('img') ?? [];
+      let pending = images.length;
+      if (pending === 0) return;
+      const onImg = () => { pending--; if (pending <= 0) syncIframeHeight(iframe); };
+      images.forEach((img) => {
+        if (img.complete) { pending--; return; }
+        img.addEventListener('load', onImg, { once: true });
+        img.addEventListener('error', onImg, { once: true });
+      });
+      if (pending <= 0) syncIframeHeight(iframe);
+    } catch { /* cross-origin fallback */ }
+  }, []);
+
   if (!content) {
     return <div className="px-6 py-12 text-center text-gray-400">콘텐츠가 없습니다</div>;
   }
 
-  if (posterData) {
-    const srcDoc = buildPosterSrcDoc(posterData.html, posterData.css);
-    return (
-      <div className="w-full">
-        <iframe
-          srcDoc={srcDoc}
-          title={title}
-          sandbox="allow-same-origin allow-popups allow-top-navigation"
-          className="w-full border-0 bg-white"
-          style={{ minHeight: 600 }}
-          scrolling="no"
-          onLoad={(e) => {
-            const iframe = e.target as HTMLIFrameElement;
-            try {
-              const h = iframe.contentDocument?.documentElement?.scrollHeight;
-              if (h) iframe.style.height = `${h + 20}px`;
-            } catch { /* cross-origin fallback */ }
-          }}
-        />
-      </div>
-    );
-  }
+  const srcDoc = posterData
+    ? buildPosterSrcDoc(posterData.html, posterData.css)
+    : buildPosterSrcDoc(content, '');
 
   return (
-    <div className="px-6 py-6 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
+    <div className="w-full">
+      <iframe
+        srcDoc={srcDoc}
+        title={title}
+        sandbox="allow-same-origin allow-popups allow-top-navigation"
+        className="w-full border-0 bg-white"
+        style={{ minHeight: 600 }}
+        scrolling="no"
+        onLoad={handleIframeLoad}
+      />
+    </div>
   );
 }
 

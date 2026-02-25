@@ -60,7 +60,7 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
     setCurrentIndex((prev) => (prev + 1) % resolvedBanners.length);
   };
 
-  const containerHeight = hasAnyPoster ? 'h-[480px] md:h-[560px]' : 'h-48 md:h-56';
+  const containerHeight = hasAnyPoster ? 'h-[640px] md:h-[780px]' : 'h-48 md:h-56';
 
   return (
     <div className="relative w-full rounded-none overflow-hidden border border-[#D9D6D3] bg-white">
@@ -118,6 +118,11 @@ function NavArrow({ direction, onClick }: { direction: 'left' | 'right'; onClick
   );
 }
 
+function hasRichMedia(content?: string): boolean {
+  if (!content) return false;
+  return /<img\s|<video\s|<iframe\s|<table\s/.test(content);
+}
+
 function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeClick?: (i: number) => void }) {
   const [posterData, setPosterData] = useState<{ html: string; css: string } | null>(null);
 
@@ -126,16 +131,19 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
   }, [banner.content]);
 
   if (posterData) {
-    return <PosterBannerSlide bannerId={banner.id} html={posterData.html} css={posterData.css} title={banner.title} />;
+    return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(posterData.html, posterData.css)} title={banner.title} />;
+  }
+
+  if (hasRichMedia(banner.content)) {
+    const srcDoc = buildPosterSrcDoc(banner.content!, '');
+    return <RichBannerSlide bannerId={banner.id} srcDoc={srcDoc} title={banner.title} />;
   }
 
   return <TextBannerSlide banner={banner} onNoticeClick={onNoticeClick} />;
 }
 
-function PosterBannerSlide({ bannerId, html, css, title }: { bannerId: string | number; html: string; css: string; title: string }) {
+function RichBannerSlide({ bannerId, srcDoc, title }: { bannerId: string | number; srcDoc: string; title: string }) {
   const router = useRouter();
-  const srcDoc = buildPosterSrcDoc(html, css);
-
   return (
     <div className="relative w-full h-full cursor-pointer group" onClick={() => router.push(`/banner/${bannerId}`)}>
       <iframe
@@ -156,8 +164,7 @@ function PosterBannerSlide({ bannerId, html, css, title }: { bannerId: string | 
 
 function TextBannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeClick?: (i: number) => void }) {
   const router = useRouter();
-  const hasRichContent = !!banner.content && banner.content !== '<p></p>';
-  const hasBannerContent = !!banner.content;
+  const hasBannerContent = !!banner.content && banner.content !== '<p></p>';
 
   const handleClick = () => {
     if (hasBannerContent) { router.push(`/banner/${banner.id}`); return; }
@@ -175,8 +182,8 @@ function TextBannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoti
       <h2 className="text-2xl md:text-3xl font-light tracking-[0.08em] text-[#111] mb-3">
         {banner.title}
       </h2>
-      {hasRichContent ? (
-        <div className="text-sm md:text-base text-[#6B6B6B] prose prose-sm max-w-2xl max-h-32 overflow-hidden" dangerouslySetInnerHTML={{ __html: banner.content! }} />
+      {hasBannerContent ? (
+        <div className="text-sm md:text-base text-[#6B6B6B] prose prose-sm max-w-2xl" dangerouslySetInnerHTML={{ __html: banner.content! }} />
       ) : (
         <p className="text-sm md:text-base text-[#6B6B6B]">{banner.description}</p>
       )}
