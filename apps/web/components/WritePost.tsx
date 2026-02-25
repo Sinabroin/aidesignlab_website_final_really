@@ -133,18 +133,11 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
     try {
       const thumbnailBase64 = thumbnail ? await resizeImageToBase64(thumbnail) : undefined;
       const attachments = files.length > 0 ? await convertFilesToAttachments(files) : undefined;
-      const payload = JSON.stringify({ section, category, title: title.trim(), description: content, tags: hashtags, thumbnailBase64, attachments });
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'thumb-debug',hypothesisId:'H1',location:'WritePost.tsx:submitPost',message:'payload size',data:{payloadBytes:payload.length,hasThumbnail:!!thumbnailBase64,thumbnailLen:thumbnailBase64?.length??0},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       const res = await fetch('/api/data/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: payload,
+        body: JSON.stringify({ section, category, title: title.trim(), description: content, tags: hashtags, thumbnailBase64, attachments }),
       });
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'thumb-debug',hypothesisId:'H1-H2',location:'WritePost.tsx:submitPost:response',message:'API response',data:{status:res.status,ok:res.ok},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         alert(err.error ?? '게시글 저장에 실패했습니다. 다시 시도해주세요.');
