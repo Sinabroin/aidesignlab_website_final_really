@@ -42,8 +42,8 @@ function stripHtml(html: string): string {
 }
 
 function getPlaceholderImage(category: string): string {
-  const key = category.toLowerCase();
-  return PLACEHOLDER_IMAGES[key] ?? PLACEHOLDER_IMAGES.workshop;
+  const primary = category.split(',')[0]?.trim().toLowerCase() ?? '';
+  return PLACEHOLDER_IMAGES[primary] ?? PLACEHOLDER_IMAGES.workshop;
 }
 
 interface CardImageAreaProps {
@@ -67,9 +67,13 @@ function CardImageArea({ title, category, description, thumbnail, imageUrl }: Ca
   }, [description, thumbnail, imageUrl]);
 
   const categoryBadge = (
-    <span className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-[#111] rounded-none">
-      #{category}
-    </span>
+    <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-1">
+      {category.split(',').filter(Boolean).map((cat) => (
+        <span key={cat} className="bg-white/90 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-[#111] rounded-none">
+          #{cat.trim()}
+        </span>
+      ))}
+    </div>
   );
 
   if (posterEmbed) {

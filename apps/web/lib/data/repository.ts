@@ -360,22 +360,15 @@ export async function getAllPlaybook(): Promise<GalleryItem[]> {
 export async function getPlaybookByCategory(
   category: PlaybookCategory
 ): Promise<GalleryItem[]> {
-  switch (category) {
-    case "usecase":
-      return getPlaybookUsecases();
-    case "trend":
-      return getPlaybookTrends();
-    case "prompt":
-      return getPlaybookPrompts();
-    case "hai":
-      return getPlaybookHAI();
-    case "teams":
-      return getPlaybookTeams();
-    case "interview":
-      return getPlaybookInterview();
-    default:
-      return [];
+  if (!isDatabaseConfigured()) {
+    const fallbacks: Record<PlaybookCategory, GalleryItem[]> = {
+      usecase: playbookUsecases, trend: playbookTrends, prompt: playbookPrompts,
+      hai: playbookHAI, teams: playbookTeams, interview: playbookInterview,
+    };
+    return fallbacks[category] ?? [];
   }
+  const all = await getAllPlaybook();
+  return all.filter((item) => item.category.split(",").includes(category));
 }
 
 /** 운영자 콘텐츠 관리용 통합 데이터 */

@@ -22,8 +22,9 @@ const PLAYBOOK_CATEGORIES = new Set([
 ]);
 
 function resolveSection(section: string, category: string): string {
-  if (section === "playbook" && PLAYBOOK_CATEGORIES.has(category)) {
-    return `playbook_${category}`;
+  const primary = category.split(",")[0];
+  if (section === "playbook" && primary && PLAYBOOK_CATEGORIES.has(primary)) {
+    return `playbook_${primary}`;
   }
   return section;
 }

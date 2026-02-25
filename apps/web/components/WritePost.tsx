@@ -128,7 +128,7 @@ export default function WritePost({ onClose, section, onPublished, editData }: W
 
   function validateForm(): boolean {
     if (!title.trim()) { alert('제목을 입력해주세요.'); return false; }
-    if (!category) { alert('카테고리를 선택해주세요.'); return false; }
+    if (!category || category.split(',').filter(Boolean).length === 0) { alert('카테고리를 하나 이상 선택해주세요.'); return false; }
     const hasText = content.replace(/<[^>]*>/g, '').trim().length > 0;
     const hasEmbed = content.includes('data-type=');
     const hasMedia = !!thumbnail || images.length > 0 || videos.length > 0 || files.length > 0;

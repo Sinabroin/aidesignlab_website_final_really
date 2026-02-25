@@ -38,7 +38,8 @@ export default function ACECommunitySection({ onWriteClick, onCardClick }: ACECo
           'AI System': 'ai',
           'Design': 'design',
         };
-        return categoryMap[item.category.toLowerCase()] === category;
+        const cats = item.category.split(',');
+        return cats.some(c => categoryMap[c.trim().toLowerCase()] === category || categoryMap[c.trim()] === category);
       });
 
   if (error) {

@@ -8,12 +8,15 @@ import { extractPosterEmbed, buildPosterSrcDoc } from '@/lib/utils/poster-embed'
 import { WormLoader } from '@/components/common/WormLoader';
 import type { HomeBanner } from '@/types';
 
+type BannerAttachment = { name: string; type: string; size: number; data: string };
+
 interface BannerItem {
   id: number | string;
   title: string;
   description: string;
   content?: string;
   href?: string;
+  attachments?: BannerAttachment[];
 }
 
 interface NoticeBannerProps {
@@ -72,6 +75,7 @@ export default function NoticeBanner({ onNoticeClick, banners = [], loading }: N
         description: b.description,
         content: b.content,
         href: b.href,
+        attachments: b.attachments,
       })),
     [banners],
   );
@@ -157,6 +161,15 @@ function SlideTrack({ items, current, onNoticeClick }: { items: BannerItem[]; cu
   );
 }
 
+/* ── Utilities (attachments) ── */
+
+function getImageAttachments(attachments?: BannerAttachment[]): string[] {
+  if (!attachments?.length) return [];
+  return attachments
+    .filter((a) => a.type.startsWith('image/'))
+    .map((a) => `data:${a.type};base64,${a.data}`);
+}
+
 /* ── Slide Router — 콘텐츠 유형별 렌더러 분기 ── */
 
 function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeClick?: (i: number) => void }) {
@@ -171,11 +184,19 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
     [banner.content, posterData],
   );
 
+  const attachmentImages = useMemo(
+    () => getImageAttachments(banner.attachments),
+    [banner.attachments],
+  );
+
   if (posterData) {
     return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(posterData.html, posterData.css, { fit: true })} title={banner.title} />;
   }
   if (imageSrc) {
     return <BannerMedia bannerId={banner.id} src={imageSrc} title={banner.title} />;
+  }
+  if (attachmentImages.length > 0) {
+    return <BannerMedia bannerId={banner.id} src={attachmentImages[0]} title={banner.title} />;
   }
   if (hasRichMedia(banner.content)) {
     return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(banner.content!, '', { fit: true })} title={banner.title} />;

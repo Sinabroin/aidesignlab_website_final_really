@@ -214,10 +214,12 @@ export default function GalleryModal({
           {/* 정보 영역 - 스크롤 가능 */}
           <div className="p-8 md:p-12 overflow-y-auto flex-1 min-h-0">
             {/* 카테고리 배지 & 회차 정보 */}
-            <div className="mb-4 flex items-center gap-3">
-              <span className="px-4 py-1.5 bg-gray-900 text-white text-sm font-normal tracking-tight rounded-none">
-                {currentItem.category}
-              </span>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              {currentItem.category.split(',').filter(Boolean).map((cat) => (
+                <span key={cat} className="px-4 py-1.5 bg-gray-900 text-white text-sm font-normal tracking-tight rounded-none">
+                  {cat.trim()}
+                </span>
+              ))}
               {currentItem.session && (
                 <span className="px-4 py-1.5 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-sm font-normal tracking-tight rounded-none flex items-center gap-1">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
