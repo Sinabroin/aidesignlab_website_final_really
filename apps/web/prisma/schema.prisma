@@ -121,18 +121,32 @@ model QuickLink {
 
 // 홈 메인 배너
 model HomeBanner {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   title       String
-  description String   @db.NVarChar(Max)
-  content     String?  @db.NVarChar(Max)
+  description String          @db.NVarChar(Max)
+  content     String?         @db.NVarChar(Max)
   href        String?
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean         @default(true)
+  sortOrder   Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  comments    BannerComment[]
 
   @@index([isActive, sortOrder])
   @@map("home_banners")
+}
+
+// 배너 댓글
+model BannerComment {
+  id        String   @id @default(cuid())
+  bannerId  String
+  author    String
+  content   String   @db.NVarChar(Max)
+  createdAt DateTime @default(now())
+  banner    HomeBanner @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+
+  @@index([bannerId, createdAt])
+  @@map("banner_comments")
 }
 
 // 홈 PlayDay 안내

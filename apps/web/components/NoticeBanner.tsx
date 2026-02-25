@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
+import { extractPosterEmbed, buildPosterSrcDoc } from '@/lib/utils/poster-embed';
 import type { HomeBanner } from '@/types';
 
 interface BannerItem {
@@ -26,21 +27,6 @@ const FALLBACK_BANNERS: BannerItem[] = [
   { id: 3, title: 'ACE 2기 모집 중', description: '2월 28일까지 지원하세요! 선착순 20명', noticeIndex: 2 },
   { id: 4, title: 'AI 활용 우수 사례 공모전', description: '최우수상 100만원! 3월 31일까지', noticeIndex: 6 },
 ];
-
-function extractPosterEmbed(content: string | undefined): { html: string; css: string } | null {
-  if (!content?.includes('data-type="poster-embed"')) return null;
-  if (typeof DOMParser === 'undefined') return null;
-  try {
-    const doc = new DOMParser().parseFromString(content, 'text/html');
-    const el = doc.querySelector('[data-type="poster-embed"]');
-    if (!el) return null;
-    const html = el.getAttribute('data-html') ?? '';
-    const css = el.getAttribute('data-css') ?? '';
-    return (html || css) ? { html, css } : null;
-  } catch {
-    return null;
-  }
-}
 
 export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -140,31 +126,41 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
   }, [banner.content]);
 
   if (posterData) {
-    return <PosterBannerSlide html={posterData.html} css={posterData.css} title={banner.title} />;
+    return <PosterBannerSlide bannerId={banner.id} html={posterData.html} css={posterData.css} title={banner.title} />;
   }
 
   return <TextBannerSlide banner={banner} onNoticeClick={onNoticeClick} />;
 }
 
-function PosterBannerSlide({ html, css, title }: { html: string; css: string; title: string }) {
-  const srcDoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>html,body{margin:0;padding:0;overflow:hidden;}${css}</style></head><body>${html}</body></html>`;
+function PosterBannerSlide({ bannerId, html, css, title }: { bannerId: string | number; html: string; css: string; title: string }) {
+  const router = useRouter();
+  const srcDoc = buildPosterSrcDoc(html, css);
 
   return (
-    <iframe
-      srcDoc={srcDoc}
-      sandbox="allow-same-origin allow-popups allow-top-navigation"
-      title={title}
-      className="w-full h-full border-0 bg-white"
-      scrolling="no"
-    />
+    <div className="relative w-full h-full cursor-pointer group" onClick={() => router.push(`/banner/${bannerId}`)}>
+      <iframe
+        srcDoc={srcDoc}
+        sandbox="allow-same-origin"
+        title={title}
+        className="w-full h-full border-0 bg-white pointer-events-none"
+        scrolling="no"
+      />
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-end justify-center pb-8">
+        <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-sm text-sm text-gray-700 px-4 py-2 rounded-full shadow-sm">
+          자세히 보기
+        </span>
+      </div>
+    </div>
   );
 }
 
 function TextBannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeClick?: (i: number) => void }) {
   const router = useRouter();
   const hasRichContent = !!banner.content && banner.content !== '<p></p>';
+  const hasBannerContent = !!banner.content;
 
   const handleClick = () => {
+    if (hasBannerContent) { router.push(`/banner/${banner.id}`); return; }
     if (banner.href) { router.push(banner.href); return; }
     if (banner.noticeIndex !== undefined) onNoticeClick?.(banner.noticeIndex);
   };

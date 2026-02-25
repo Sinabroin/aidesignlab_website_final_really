@@ -1,7 +1,7 @@
 /** This component displays operator-only home content management UI. */
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import {
   ApiError,
@@ -481,12 +481,25 @@ function GuideList({
 /* ── Preview ── */
 
 function HtmlPreviewFrame({ html }: { html: string }) {
-  const isFullPage =
-    html.trim().toLowerCase().startsWith('<!doctype') ||
-    html.trim().toLowerCase().startsWith('<html');
-  const srcDoc = isFullPage
-    ? html
-    : `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>body{margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style></head><body>${html}</body></html>`;
+  const [posterData, setPosterData] = useState<{ html: string; css: string } | null>(null);
+
+  useEffect(() => {
+    const { extractPosterEmbed } = require('@/lib/utils/poster-embed');
+    setPosterData(extractPosterEmbed(html));
+  }, [html]);
+
+  const srcDoc = useMemo(() => {
+    if (posterData) {
+      const { buildPosterSrcDoc } = require('@/lib/utils/poster-embed');
+      return buildPosterSrcDoc(posterData.html, posterData.css) as string;
+    }
+    const isFullPage =
+      html.trim().toLowerCase().startsWith('<!doctype') ||
+      html.trim().toLowerCase().startsWith('<html');
+    return isFullPage
+      ? html
+      : `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>body{margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style></head><body>${html}</body></html>`;
+  }, [html, posterData]);
 
   return (
     <iframe
@@ -494,7 +507,7 @@ function HtmlPreviewFrame({ html }: { html: string }) {
       title="배너 미리보기"
       sandbox="allow-same-origin"
       className="w-full border-t border-gray-200 bg-white"
-      style={{ minHeight: 200, height: 360 }}
+      style={{ minHeight: 200, height: posterData ? 500 : 360 }}
     />
   );
 }

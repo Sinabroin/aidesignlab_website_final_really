@@ -184,6 +184,7 @@ export type HomeBannerItem = {
   href?: string;
   isActive: boolean;
   sortOrder: number;
+  createdAt?: string;
 };
 
 export type HomePlaydayGuideItem = {
@@ -202,6 +203,7 @@ function mapHomeBanner(row: {
   href: string | null;
   isActive: boolean;
   sortOrder: number;
+  createdAt: Date;
 }): HomeBannerItem {
   return {
     id: row.id,
@@ -211,6 +213,7 @@ function mapHomeBanner(row: {
     href: row.href ?? undefined,
     isActive: row.isActive,
     sortOrder: row.sortOrder,
+    createdAt: row.createdAt.toISOString(),
   };
 }
 
@@ -399,6 +402,57 @@ export async function createGalleryItem(data: {
     },
   });
   return mapDbToGalleryItem(row);
+}
+
+export type BannerCommentItem = {
+  id: string;
+  bannerId: string;
+  author: string;
+  content: string;
+  createdAt: string;
+};
+
+export async function getHomeBannerById(id: string): Promise<HomeBannerItem | null> {
+  if (!isDatabaseConfigured()) return null;
+  return safeDb(async () => {
+    const db = getPrismaClient();
+    const row = await db.homeBanner.findUnique({ where: { id } });
+    return row ? mapHomeBanner(row) : null;
+  }, null);
+}
+
+export async function getBannerComments(bannerId: string): Promise<BannerCommentItem[]> {
+  if (!isDatabaseConfigured()) return [];
+  return safeDb(async () => {
+    const db = getPrismaClient();
+    const rows = await db.bannerComment.findMany({
+      where: { bannerId },
+      orderBy: { createdAt: "asc" },
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      bannerId: r.bannerId,
+      author: r.author,
+      content: r.content,
+      createdAt: r.createdAt.toISOString(),
+    }));
+  }, []);
+}
+
+export async function createBannerComment(data: {
+  bannerId: string;
+  author: string;
+  content: string;
+}): Promise<BannerCommentItem> {
+  const db = getPrismaClient();
+  const row = await db.bannerComment.create({ data });
+  return {
+    id: row.id,
+    bannerId: row.bannerId,
+    author: row.author,
+    content: row.content,
+    createdAt: row.createdAt.toISOString(),
+  };
 }
 
 /** 마키 쇼케이스용 통합 데이터 */
