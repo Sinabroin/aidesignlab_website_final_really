@@ -148,11 +148,11 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
   }, [banner.content]);
 
   if (posterData) {
-    return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(posterData.html, posterData.css)} title={banner.title} />;
+    return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(posterData.html, posterData.css, { fit: true })} title={banner.title} />;
   }
 
   if (hasRichMedia(banner.content)) {
-    return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(banner.content!, '')} title={banner.title} />;
+    return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(banner.content!, '', { fit: true })} title={banner.title} />;
   }
 
   return <TextBannerSlide banner={banner} onNoticeClick={onNoticeClick} />;
@@ -164,7 +164,7 @@ function RichBannerSlide({ bannerId, srcDoc, title }: { bannerId: string | numbe
     <div className="relative w-full h-full cursor-pointer group" onClick={() => router.push(`/banner/${bannerId}`)}>
       <iframe
         srcDoc={srcDoc}
-        sandbox="allow-same-origin"
+        sandbox="allow-same-origin allow-scripts"
         title={title}
         className="w-full h-full border-0 bg-white pointer-events-none"
         scrolling="no"
