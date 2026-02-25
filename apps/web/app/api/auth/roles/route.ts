@@ -7,10 +7,10 @@ import { getRolesForUser } from '@/lib/auth/rbac';
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) return NextResponse.json({ roles: [] });
+    if (!token || typeof token === 'string') return NextResponse.json({ roles: [] });
 
     const user = {
-      id: (token.sub ?? token.email ?? '') as string,
+      id: (token.sub ?? (token.email as string | undefined) ?? '') as string,
       email: token.email as string | undefined,
       name: token.name as string | undefined,
     };

@@ -5,9 +5,10 @@ import { getToken } from "next-auth/jwt";
 import { getRolesForUser } from "@/lib/auth/rbac";
 
 function buildUser(token: Awaited<ReturnType<typeof getToken>>) {
+  if (!token || typeof token === "string") return { id: "", email: undefined };
   return {
-    id: (token?.sub ?? token?.email ?? "") as string,
-    email: token?.email as string | undefined,
+    id: (token.sub ?? (token.email as string | undefined) ?? "") as string,
+    email: token.email as string | undefined,
   };
 }
 
