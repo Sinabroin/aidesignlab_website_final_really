@@ -80,7 +80,7 @@ function CardImageArea({ title, category, description, thumbnail, imageUrl }: Ca
     return (
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         {categoryBadge}
-        <PosterPreviewFrame html={posterEmbed.html} css={posterEmbed.css} />
+        <PosterPreviewFrame html={posterEmbed.html} css={posterEmbed.css} clickThrough />
       </div>
     );
   }

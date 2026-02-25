@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import type { GalleryItem } from '@/types';
+import { extractPosterEmbed, type PosterEmbedData } from '@/lib/utils/poster-embed';
+import PosterPreviewFrame from '@/components/editor/PosterEmbed/PosterPreviewFrame';
 
 const PLACEHOLDER_IMAGES: Record<string, string> = {
   Workshop: 'https://res.cloudinary.com/dcxm3ccir/image/upload/v1741613286/h1.jpg',
@@ -25,6 +27,64 @@ interface PreviewCarouselProps {
   currentIndex: number;
   onNavigate: (index: number) => void;
   onDetailClick: (index: number) => void;
+}
+
+interface CarouselImageAreaProps {
+  thumbnail?: string;
+  description: string;
+  category: string;
+  title: string;
+}
+
+function CarouselImageArea({ thumbnail, description, category, title }: CarouselImageAreaProps) {
+  const [posterEmbed, setPosterEmbed] = useState<PosterEmbedData | null>(null);
+
+  useEffect(() => {
+    if (!thumbnail) setPosterEmbed(extractPosterEmbed(description));
+    else setPosterEmbed(null);
+  }, [description, thumbnail]);
+
+  const categoryBadge = (
+    <span className="absolute top-4 left-4 z-10 bg-white/90 px-3 py-1 text-xs font-medium uppercase tracking-wider text-black backdrop-blur-sm">
+      #{category}
+    </span>
+  );
+
+  if (thumbnail) {
+    return (
+      <div className="relative aspect-[16/10] w-full overflow-hidden">
+        <Image alt={title} className="object-cover" fill sizes="(max-width: 768px) 90vw, 768px" src={thumbnail} priority />
+        {categoryBadge}
+      </div>
+    );
+  }
+
+  if (posterEmbed) {
+    return (
+      <div className="relative aspect-[16/10] w-full overflow-hidden">
+        {categoryBadge}
+        <PosterPreviewFrame html={posterEmbed.html} css={posterEmbed.css} clickThrough />
+      </div>
+    );
+  }
+
+  const plainText = description.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  if (plainText) {
+    return (
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-white flex items-start p-8">
+        {categoryBadge}
+        <p className="text-gray-800 text-base leading-relaxed line-clamp-[7] mt-6">{plainText}</p>
+      </div>
+    );
+  }
+
+  const imageSrc = PLACEHOLDER_IMAGES[category] || PLACEHOLDER_IMAGES.Workshop;
+  return (
+    <div className="relative aspect-[16/10] w-full overflow-hidden">
+      <Image alt={title} className="object-cover" fill sizes="(max-width: 768px) 90vw, 768px" src={imageSrc} priority />
+      {categoryBadge}
+    </div>
+  );
 }
 
 export default function PreviewCarousel({
@@ -65,13 +125,8 @@ export default function PreviewCarousel({
 
   if (!isOpen || !currentItem) return null;
 
-  const imageSrc =
-    currentItem.thumbnail ||
-    PLACEHOLDER_IMAGES[currentItem.category] ||
-    PLACEHOLDER_IMAGES.Workshop;
-
   // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PreviewCarousel.tsx:render',message:'imageSrc resolved',data:{thumbnail:currentItem.thumbnail,category:currentItem.category,imageSrc,hasDescription:!!currentItem.description,descSnippet:(currentItem.description||'').slice(0,80)},hypothesisId:'H-B',timestamp:Date.now()})}).catch(()=>{});
+  fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PreviewCarousel.tsx:render',message:'imageSrc resolved',data:{thumbnail:currentItem.thumbnail,category:currentItem.category,hasDescription:!!currentItem.description,descSnippet:(currentItem.description||'').slice(0,80)},hypothesisId:'H-B-postfix',timestamp:Date.now()})}).catch(()=>{});
   // #endregion
 
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
@@ -86,84 +141,53 @@ export default function PreviewCarousel({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-6 right-6 z-50 text-white/70 hover:text-white transition-colors"
-      >
+      <button onClick={onClose} className="absolute top-6 right-6 z-50 text-white/70 hover:text-white transition-colors">
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
-      {/* Page indicator */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 text-white/70 text-sm font-normal tracking-tight">
         {currentIndex + 1} / {items.length}
       </div>
 
-      {/* Left arrow */}
       {items.length > 1 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); goPrev(); }}
-          className="absolute left-4 md:left-8 z-50 p-3 text-white/60 hover:text-white transition-colors"
-        >
+        <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 md:left-8 z-50 p-3 text-white/60 hover:text-white transition-colors">
           <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
       )}
 
-      {/* Right arrow */}
       {items.length > 1 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); goNext(); }}
-          className="absolute right-4 md:right-8 z-50 p-3 text-white/60 hover:text-white transition-colors"
-        >
+        <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 md:right-8 z-50 p-3 text-white/60 hover:text-white transition-colors">
           <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
       )}
 
-      {/* Preview Card */}
       <div
         className="relative w-[90%] max-w-3xl cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDetailClick(currentIndex);
-        }}
+        onClick={(e) => { e.stopPropagation(); onDetailClick(currentIndex); }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <div className="bg-white rounded-none overflow-hidden shadow-2xl">
-          {/* Image */}
-          <div className="relative aspect-[16/10] w-full overflow-hidden">
-            <Image
-              alt={currentItem.title}
-              className="object-cover"
-              fill
-              sizes="(max-width: 768px) 90vw, 768px"
-              src={imageSrc}
-              priority
-            />
-            <span className="absolute top-4 left-4 bg-white/90 px-3 py-1 text-xs font-medium uppercase tracking-wider text-black backdrop-blur-sm">
-              #{currentItem.category}
-            </span>
-          </div>
-
-          {/* Info */}
+          <CarouselImageArea
+            thumbnail={currentItem.thumbnail}
+            description={currentItem.description}
+            category={currentItem.category}
+            title={currentItem.title}
+          />
           <div className="px-6 py-5">
-            <h2 className="text-xl md:text-2xl font-normal tracking-tight text-gray-900 mb-2">
-              {currentItem.title}
-            </h2>
+            <h2 className="text-xl md:text-2xl font-normal tracking-tight text-gray-900 mb-2">{currentItem.title}</h2>
             <p className="text-sm text-gray-500 mb-3">
               {currentItem.description.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() || '내용 없음'}
             </p>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">
-                {currentItem.author} · {currentItem.date}
-              </span>
+              <span className="text-xs text-gray-400">{currentItem.author} · {currentItem.date}</span>
               <span className="text-xs text-gray-400 flex items-center gap-1">
                 클릭하여 상세보기
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
