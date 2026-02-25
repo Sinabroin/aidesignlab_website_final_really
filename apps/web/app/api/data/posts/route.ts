@@ -62,6 +62,7 @@ export async function POST(req: Request) {
       description: string;
       tags?: string[];
       thumbnailBase64?: string;
+      attachments?: { name: string; url: string; size: string; type: string }[];
     };
     if (!validatePayload(body)) {
       return NextResponse.json(
@@ -91,6 +92,7 @@ export async function POST(req: Request) {
       category: body.category,
       tags: body.tags,
       thumbnail: body.thumbnailBase64,
+      attachments: body.attachments,
     });
     return NextResponse.json(item, { status: 201 });
   } catch (err) {

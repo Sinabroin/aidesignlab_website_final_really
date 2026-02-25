@@ -397,6 +397,7 @@ export async function createGalleryItem(data: {
   category: string;
   tags?: string[];
   thumbnail?: string;
+  attachments?: { name: string; url: string; size: string; type: string }[];
 }): Promise<GalleryItem> {
   const db = getPrismaClient();
   const today = formatTodayDot();
@@ -410,6 +411,7 @@ export async function createGalleryItem(data: {
       category: data.category,
       tags: data.tags && data.tags.length > 0 ? JSON.stringify(data.tags) : null,
       thumbnail: data.thumbnail ?? null,
+      attachments: data.attachments && data.attachments.length > 0 ? JSON.stringify(data.attachments) : null,
     },
   });
   return mapDbToGalleryItem(row);

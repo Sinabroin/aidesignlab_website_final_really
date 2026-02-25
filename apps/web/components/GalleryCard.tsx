@@ -85,17 +85,27 @@ function CardImageArea({ title, category, description, thumbnail, imageUrl }: Ca
     );
   }
 
-  const imageSrc = thumbnail || imageUrl || getPlaceholderImage(category);
+  if (thumbnail || imageUrl) {
+    const imageSrc = thumbnail || imageUrl!;
+    return (
+      <div className="relative aspect-[4/3] w-full overflow-hidden">
+        <Image alt={title} className="object-cover transition-transform duration-500 group-hover:scale-105" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={imageSrc} />
+        {categoryBadge}
+      </div>
+    );
+  }
+
+  // 포스터 embed가 description에 있지만 아직 useEffect 미실행 → 잠시 빈 배경
+  if (description.includes('data-type="poster-embed"')) {
+    return <div className="relative aspect-[4/3] w-full bg-gray-50 overflow-hidden">{categoryBadge}</div>;
+  }
+
+  // 텍스트 전용: 흰 배경 + 글 미리보기
+  const plainText = description.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
   return (
-    <div className="relative aspect-[4/3] w-full overflow-hidden">
-      <Image
-        alt={title}
-        className="object-cover transition-transform duration-500 group-hover:scale-105"
-        fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        src={imageSrc}
-      />
+    <div className="relative aspect-[4/3] w-full overflow-hidden bg-white flex items-start p-5">
       {categoryBadge}
+      <p className="text-gray-700 text-sm leading-relaxed line-clamp-[6] mt-7">{plainText}</p>
     </div>
   );
 }

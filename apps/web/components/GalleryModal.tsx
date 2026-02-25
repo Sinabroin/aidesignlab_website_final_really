@@ -34,6 +34,8 @@ interface GalleryModalProps {
   items: GalleryItem[];
   currentIndex: number;
   onNavigate: (index: number) => void;
+  /** 게시글 섹션: 'playbook' | 'playday' | 'activity' — 다운로드 권한 결정에 사용 */
+  section?: string;
 }
 
 /**
@@ -49,38 +51,31 @@ export default function GalleryModal({
   onClose,
   items,
   currentIndex,
-  onNavigate
+  onNavigate,
+  section,
 }: GalleryModalProps) {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [showSwipeHint, setShowSwipeHint] = useState(true);
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
+  const userRoles = useUserRoles(isAuthenticated);
 
   const currentItem = items[currentIndex];
+  const downloadPerm = getDownloadPermission(userRoles, section);
 
-  // 파일 다운로드 핸들러
   const handleFileDownload = async (fileUrl: string, fileName: string, e: React.MouseEvent) => {
     e.preventDefault();
-    
     if (!isAuthenticated) {
-      alert('파일 다운로드는 로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      alert('파일 다운로드는 로그인이 필요합니다.');
       window.location.href = '/login?callbackUrl=' + encodeURIComponent(window.location.pathname);
       return;
     }
-
-    try {
-      const downloadUrl = `/api/files/download?url=${encodeURIComponent(fileUrl)}`;
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('File download error:', error);
-      alert('파일 다운로드 중 오류가 발생했습니다.');
+    if (!downloadPerm.allowed) {
+      alert(downloadPerm.message);
+      return;
     }
+    triggerDownload(fileUrl, fileName, section);
   };
 
   // 스와이프 힌트 숨기기
@@ -256,13 +251,13 @@ export default function GalleryModal({
                     <button
                       key={index}
                       onClick={(e) => handleFileDownload(file.url, file.name, e)}
-                      disabled={!isAuthenticated}
+                      disabled={!downloadPerm.allowed}
                       className={`flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-none transition-all group w-full text-left ${
-                        isAuthenticated 
-                          ? 'hover:shadow-md cursor-pointer' 
+                        downloadPerm.allowed
+                          ? 'hover:shadow-md cursor-pointer'
                           : 'opacity-60 cursor-not-allowed'
                       }`}
-                      title={!isAuthenticated ? '파일 다운로드는 로그인이 필요합니다' : ''}
+                      title={downloadPerm.allowed ? '' : downloadPerm.message}
                     >
                       <div className="flex items-center gap-3">
                         {/* 파일 타입 아이콘 */}
@@ -311,9 +306,9 @@ export default function GalleryModal({
                           </svg>
                         </div>
                       </div>
-                      {!isAuthenticated && (
+                      {!downloadPerm.allowed && (
                         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-none">
-                          <span className="text-sm text-gray-600 font-normal">로그인 필요</span>
+                          <span className="text-sm text-gray-600 font-normal">{downloadPerm.message}</span>
                         </div>
                       )}
                     </button>
@@ -415,6 +410,47 @@ export default function GalleryModal({
   );
 }
 
+/** 현재 로그인 사용자의 역할 목록을 비동기로 가져오는 훅 */
+function useUserRoles(isAuthenticated: boolean): string[] {
+  const [roles, setRoles] = useState<string[]>([]);
+  useEffect(() => {
+    if (!isAuthenticated) { setRoles([]); return; }
+    fetch('/api/auth/roles', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data) => setRoles(data.roles ?? []))
+      .catch(() => setRoles([]));
+  }, [isAuthenticated]);
+  return roles;
+}
+
+type DownloadPerm = { allowed: boolean; message: string };
+
+function getDownloadPermission(roles: string[], section?: string): DownloadPerm {
+  if (!roles.length) return { allowed: false, message: '로그인 필요' };
+  if (roles.includes('operator') || roles.includes('community')) return { allowed: true, message: '' };
+  if (section === 'activity') return { allowed: false, message: 'ACE 멤버 및 운영진만 다운로드 가능' };
+  return { allowed: true, message: '' };
+}
+
+function triggerDownload(fileUrl: string, fileName: string, section?: string) {
+  if (fileUrl.startsWith('data:')) {
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return;
+  }
+  const params = new URLSearchParams({ url: fileUrl, name: fileName, section: section ?? '' });
+  const link = document.createElement('a');
+  link.href = `/api/files/download?${params}`;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 const CATEGORY_EMOJI: Record<string, string> = {
   Workshop: '🎨', Seminar: '💡', Contest: '🏆', Networking: '🤝',
   Safety: '🛡️', Planning: '📊', 'AI System': '🤖', Design: '✨',
@@ -452,14 +488,6 @@ function ModalTopArea({ thumbnail, description, category, title }: ModalTopAreaP
     );
   }
 
-  const emoji = CATEGORY_EMOJI[category] ?? '✨';
-  return (
-    <div className="aspect-video bg-white flex items-center justify-center relative overflow-hidden border-b-2 border-gray-200">
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-gray-300 rounded-none blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-40 h-40 bg-gray-200 rounded-none blur-3xl" />
-      </div>
-      <div className="text-8xl md:text-9xl relative z-10 drop-shadow-sm">{emoji}</div>
-    </div>
-  );
+  // 썸네일도 포스터도 없으면 상단 영역 미표시
+  return null;
 }

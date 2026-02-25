@@ -1,21 +1,45 @@
-/** File download API with authentication check */
+/** 파일 다운로드 API — 로그인 및 섹션별 권한 검사 후 파일 제공 */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { getRolesForUser } from "@/lib/auth/rbac";
 
-/**
- * 파일 다운로드 API
- * 
- * 인증된 사용자만 파일 다운로드 가능
- * 비로그인 사용자는 401 반환
- */
+function buildUser(token: Awaited<ReturnType<typeof getToken>>) {
+  return {
+    id: (token?.sub ?? token?.email ?? "") as string,
+    email: token?.email as string | undefined,
+  };
+}
+
+function canDownloadSection(roles: string[], section: string): boolean {
+  if (roles.includes("operator") || roles.includes("community")) return true;
+  return section !== "activity";
+}
+
+function getDeniedMessage(section: string): string {
+  if (section === "activity") return "ACE 커뮤니티 첨부파일은 ACE 멤버 및 운영진만 다운로드 가능합니다.";
+  return "다운로드 권한이 없습니다.";
+}
+
+async function proxyExternalFile(fileUrl: string, fileName: string): Promise<NextResponse> {
+  const response = await fetch(fileUrl);
+  if (!response.ok) {
+    return NextResponse.json({ error: "파일을 찾을 수 없습니다." }, { status: 404 });
+  }
+  const fileBuffer = await response.arrayBuffer();
+  const contentType = response.headers.get("content-type") ?? "application/octet-stream";
+  const safeFileName = encodeURIComponent(fileName);
+  return new NextResponse(fileBuffer, {
+    headers: {
+      "Content-Type": contentType,
+      "Content-Disposition": `attachment; filename*=UTF-8''${safeFileName}`,
+    },
+  });
+}
+
 export async function GET(req: NextRequest) {
   try {
-    // 인증 확인
-    const token = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
     if (!token) {
       return NextResponse.json(
@@ -24,42 +48,26 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const searchParams = req.nextUrl.searchParams;
+    const { searchParams } = req.nextUrl;
     const fileUrl = searchParams.get("url");
+    const section = searchParams.get("section") ?? "";
+    const fileName = searchParams.get("name") ?? "download";
 
     if (!fileUrl) {
+      return NextResponse.json({ error: "파일 URL이 필요합니다." }, { status: 400 });
+    }
+
+    const roles = getRolesForUser(buildUser(token));
+    if (!canDownloadSection(roles, section)) {
       return NextResponse.json(
-        { error: "Bad Request", message: "파일 URL이 필요합니다." },
-        { status: 400 }
+        { error: "Forbidden", message: getDeniedMessage(section) },
+        { status: 403 }
       );
     }
 
-    // 외부 URL에서 파일 다운로드
-    const response = await fetch(fileUrl);
-    
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: "File Not Found", message: "파일을 찾을 수 없습니다." },
-        { status: 404 }
-      );
-    }
-
-    const fileBuffer = await response.arrayBuffer();
-    const contentType = response.headers.get("content-type") || "application/octet-stream";
-    const contentDisposition = response.headers.get("content-disposition") || 
-      `attachment; filename="${fileUrl.split('/').pop()}"`;
-
-    return new NextResponse(fileBuffer, {
-      headers: {
-        "Content-Type": contentType,
-        "Content-Disposition": contentDisposition,
-      },
-    });
+    return await proxyExternalFile(fileUrl, fileName);
   } catch (error) {
     console.error("File download error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error", message: "파일 다운로드 중 오류가 발생했습니다." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "파일 다운로드 중 오류가 발생했습니다." }, { status: 500 });
   }
 }

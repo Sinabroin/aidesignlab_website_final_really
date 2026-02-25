@@ -15,6 +15,8 @@ interface WritePostProps {
   onPublished?: () => void;
 }
 
+const MAX_ATTACHMENT_MB = 3;
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -22,6 +24,21 @@ function fileToBase64(file: File): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+function formatFileSize(bytes: number): string {
+  const mb = bytes / 1024 / 1024;
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
+}
+
+async function convertFilesToAttachments(files: File[]) {
+  return Promise.all(
+    files.map(async (file) => {
+      const base64 = await fileToBase64(file);
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? 'file';
+      return { name: file.name, url: base64, size: formatFileSize(file.size), type: ext };
+    })
+  );
 }
 
 export default function WritePost({ onClose, section, onPublished }: WritePostProps) {
@@ -76,6 +93,11 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
     const hasText = content.replace(/<[^>]*>/g, '').trim().length > 0;
     const hasEmbed = content.includes('data-type=');
     if (!hasText && !hasEmbed) { alert('내용을 입력해주세요.'); return false; }
+    const oversized = files.filter((f) => f.size > MAX_ATTACHMENT_MB * 1024 * 1024);
+    if (oversized.length > 0) {
+      alert(`첨부파일 크기 제한 초과 (최대 ${MAX_ATTACHMENT_MB}MB):\n${oversized.map((f) => f.name).join('\n')}`);
+      return false;
+    }
     return true;
   }
 
@@ -83,10 +105,11 @@ export default function WritePost({ onClose, section, onPublished }: WritePostPr
     setIsPublishing(true);
     try {
       const thumbnailBase64 = thumbnail ? await fileToBase64(thumbnail) : undefined;
+      const attachments = files.length > 0 ? await convertFilesToAttachments(files) : undefined;
       const res = await fetch('/api/data/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section, category, title: title.trim(), description: content, tags: hashtags, thumbnailBase64 }),
+        body: JSON.stringify({ section, category, title: title.trim(), description: content, tags: hashtags, thumbnailBase64, attachments }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

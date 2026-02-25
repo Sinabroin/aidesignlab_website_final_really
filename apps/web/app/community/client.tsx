@@ -52,6 +52,7 @@ export default function ACECommunitySectionClient() {
         items={modalItems}
         currentIndex={currentModalIndex}
         onNavigate={setCurrentModalIndex}
+        section="activity"
       />
     </>
   );

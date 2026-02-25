@@ -56,11 +56,13 @@ export default function PlaygroundPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalItems, setModalItems] = useState<GalleryItem[]>([]);
   const [currentModalIndex, setCurrentModalIndex] = useState(0);
+  const [modalSection, setModalSection] = useState<string>('playbook');
 
   const openPreview = (items: GalleryItem[], index: number) => {
     setPreviewItems(items);
     setCurrentPreviewIndex(index);
     setIsPreviewOpen(true);
+    setModalSection(activeTab === 'playday' ? 'playday' : 'playbook');
   };
 
   const openDetailFromPreview = (index: number) => {
@@ -218,6 +220,7 @@ export default function PlaygroundPage() {
         items={modalItems}
         currentIndex={currentModalIndex}
         onNavigate={setCurrentModalIndex}
+        section={modalSection}
       />
     </div>
   );
