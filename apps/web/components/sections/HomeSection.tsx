@@ -10,7 +10,7 @@ interface HomeSectionProps {
 }
 
 export default function HomeSection({ onNavigate }: HomeSectionProps) {
-  const { banners, notices, playdayGuides } = useHomeContent();
+  const { banners, notices, playdayGuides, isLoading } = useHomeContent();
   const { data: schedules } = useSchedules();
   const { data: quickLinks } = useQuickLinks();
   const guideSubtitle = playdayGuides[0]?.description ?? '최근 PlayDay 안내를 확인해보세요';
@@ -43,7 +43,7 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
   return (
     <div className="space-y-12">
       {/* 배너 */}
-      <NoticeBanner onNoticeClick={handleBannerClick} banners={banners} />
+      <NoticeBanner onNoticeClick={handleBannerClick} banners={banners} loading={isLoading} />
 
       {/* 마키 쇼케이스 */}
       <MarqueeShowcase />

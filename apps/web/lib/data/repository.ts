@@ -176,12 +176,15 @@ export async function getQuickLinks(): Promise<{ text: string; href: string }[]>
   );
 }
 
+export type BannerAttachment = { name: string; type: string; size: number; data: string };
+
 export type HomeBannerItem = {
   id: string;
   title: string;
   description: string;
   content?: string;
   href?: string;
+  attachments?: BannerAttachment[];
   isActive: boolean;
   sortOrder: number;
   createdAt?: string;
@@ -201,16 +204,22 @@ function mapHomeBanner(row: {
   description: string;
   content: string | null;
   href: string | null;
+  attachments: string | null;
   isActive: boolean;
   sortOrder: number;
   createdAt: Date;
 }): HomeBannerItem {
+  let parsedAttachments: BannerAttachment[] | undefined;
+  try {
+    if (row.attachments) parsedAttachments = JSON.parse(row.attachments) as BannerAttachment[];
+  } catch { /* ignore parse errors */ }
   return {
     id: row.id,
     title: row.title,
     description: row.description,
     content: row.content ?? undefined,
     href: row.href ?? undefined,
+    attachments: parsedAttachments,
     isActive: row.isActive,
     sortOrder: row.sortOrder,
     createdAt: row.createdAt.toISOString(),
@@ -267,6 +276,7 @@ export async function createHomeBanner(data: {
   description: string;
   content?: string;
   href?: string;
+  attachments?: BannerAttachment[];
 }): Promise<HomeBannerItem> {
   const db = getPrismaClient();
   const row = await db.homeBanner.create({
@@ -275,6 +285,7 @@ export async function createHomeBanner(data: {
       description: data.description,
       content: data.content?.trim() || null,
       href: data.href?.trim() || null,
+      attachments: data.attachments?.length ? JSON.stringify(data.attachments) : null,
     },
   });
   return mapHomeBanner(row);

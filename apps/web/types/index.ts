@@ -30,6 +30,7 @@ export interface HomeBanner {
   description: string;
   content?: string;
   href?: string;
+  attachments?: { name: string; type: string; size: number; data: string }[];
   isActive: boolean;
   sortOrder: number;
 }

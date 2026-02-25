@@ -126,6 +126,7 @@ model HomeBanner {
   description String          @db.NVarChar(Max)
   content     String?         @db.NVarChar(Max)
   href        String?
+  attachments String?         @db.NVarChar(Max)
   isActive    Boolean         @default(true)
   sortOrder   Int             @default(0)
   createdAt   DateTime        @default(now())

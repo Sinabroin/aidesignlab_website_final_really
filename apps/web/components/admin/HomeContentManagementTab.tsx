@@ -57,12 +57,15 @@ function SectionCard({ title, children }: { title: string; children: React.React
   );
 }
 
+type FileAttachment = { name: string; type: string; size: number; data: string };
+
 export default function HomeContentManagementTab() {
   const [data, setData] = useState<AdminHomeContentResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState<HomeContentType | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(initialFormState);
+  const [bannerFiles, setBannerFiles] = useState<FileAttachment[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -101,6 +104,7 @@ export default function HomeContentManagementTab() {
           description: form.bannerDescription,
           content: form.bannerContent,
           href: form.bannerHref,
+          attachments: bannerFiles.length > 0 ? bannerFiles : undefined,
         });
         setForm((prev) => ({
           ...prev,
@@ -109,6 +113,7 @@ export default function HomeContentManagementTab() {
           bannerContent: '',
           bannerHref: '',
         }));
+        setBannerFiles([]);
       } else if (contentType === 'notice') {
         await createAdminHomeContent('notice', {
           title: form.noticeTitle,
@@ -160,6 +165,8 @@ export default function HomeContentManagementTab() {
           onContentChange={(html) => updateField('bannerContent', html)}
           onSubmit={() => handleCreate('banner')}
           submitting={submitting === 'banner'}
+          files={bannerFiles}
+          onFilesChange={setBannerFiles}
         />
         <BannerList
           banners={data?.banners ?? []}
@@ -198,19 +205,55 @@ export default function HomeContentManagementTab() {
 
 /* ── Banner ── */
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
 function BannerForm({
   form,
   updateField,
   onContentChange,
   onSubmit,
   submitting,
+  files,
+  onFilesChange,
 }: {
   form: FormState;
   updateField: (key: keyof FormState, value: string) => void;
   onContentChange: (html: string) => void;
   onSubmit: () => void;
   submitting: boolean;
+  files: FileAttachment[];
+  onFilesChange: (files: FileAttachment[]) => void;
 }) {
+  const handleFileAdd = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files;
+    if (!selected) return;
+    const newFiles: FileAttachment[] = [];
+    for (const file of Array.from(selected)) {
+      if (file.size > 10 * 1024 * 1024) { alert(`${file.name}: 10MB 초과`); continue; }
+      const data = await fileToBase64(file);
+      newFiles.push({ name: file.name, type: file.type, size: file.size, data });
+    }
+    onFilesChange([...files, ...newFiles]);
+    e.target.value = '';
+  };
+
+  const removeFile = (idx: number) => {
+    onFilesChange(files.filter((_, i) => i !== idx));
+  };
+
   return (
     <div className="space-y-3">
       <BannerMetaInputs form={form} updateField={updateField} />
@@ -227,6 +270,29 @@ function BannerForm({
           minHeight="160px"
           showSourceToggle
         />
+      </div>
+
+      <div>
+        <label className="block text-sm text-gray-600 mb-1">첨부파일 (최대 10MB/파일)</label>
+        <input
+          type="file"
+          multiple
+          onChange={handleFileAdd}
+          className="text-sm file:mr-3 file:py-1.5 file:px-3 file:border file:border-gray-300 file:bg-white file:text-gray-700 file:cursor-pointer hover:file:bg-gray-50"
+        />
+        {files.length > 0 && (
+          <ul className="mt-2 space-y-1">
+            {files.map((f, i) => (
+              <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                <span>{f.name} ({formatFileSize(f.size)})</span>
+                <button onClick={() => removeFile(i)} className="text-red-500 text-xs hover:underline">삭제</button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <button

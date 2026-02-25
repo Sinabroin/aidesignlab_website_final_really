@@ -1,15 +1,23 @@
 /** 배너 상세 페이지 - 포스터 렌더링 + 댓글 */
 'use client';
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { extractPosterEmbed, buildPosterSrcDoc } from '@/lib/utils/poster-embed';
+
+interface BannerAttachment {
+  name: string;
+  type: string;
+  size: number;
+  data: string;
+}
 
 interface Banner {
   id: string;
   title: string;
   description: string;
   content?: string;
+  attachments?: BannerAttachment[];
   createdAt?: string;
 }
 
@@ -49,6 +57,9 @@ export default function BannerDetailPage({ params }: { params: Promise<{ id: str
         <article className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
           <BannerHeader title={banner.title} description={banner.description} createdAt={banner.createdAt} />
           <BannerBody content={banner.content} title={banner.title} />
+          {banner.attachments && banner.attachments.length > 0 && (
+            <AttachmentsSection attachments={banner.attachments} />
+          )}
         </article>
 
         <CommentsSection bannerId={id} />
@@ -71,36 +82,23 @@ function BannerHeader({ title, description, createdAt }: { title: string; descri
   );
 }
 
-function syncIframeHeight(iframe: HTMLIFrameElement) {
-  try {
-    const h = iframe.contentDocument?.documentElement?.scrollHeight;
-    if (h && h > 100) iframe.style.height = `${h + 40}px`;
-  } catch { /* cross-origin fallback */ }
-}
-
 function BannerBody({ content, title }: { content?: string; title: string }) {
   const [posterData, setPosterData] = useState<{ html: string; css: string } | null>(null);
+  const [iframeHeight, setIframeHeight] = useState(600);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     setPosterData(extractPosterEmbed(content));
   }, [content]);
 
-  const handleIframeLoad = useCallback((e: React.SyntheticEvent<HTMLIFrameElement>) => {
-    const iframe = e.currentTarget;
-    syncIframeHeight(iframe);
-
-    try {
-      const images = iframe.contentDocument?.querySelectorAll('img') ?? [];
-      let pending = images.length;
-      if (pending === 0) return;
-      const onImg = () => { pending--; if (pending <= 0) syncIframeHeight(iframe); };
-      images.forEach((img) => {
-        if (img.complete) { pending--; return; }
-        img.addEventListener('load', onImg, { once: true });
-        img.addEventListener('error', onImg, { once: true });
-      });
-      if (pending <= 0) syncIframeHeight(iframe);
-    } catch { /* cross-origin fallback */ }
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === 'iframe-resize' && typeof e.data.height === 'number') {
+        setIframeHeight((prev) => Math.max(prev, e.data.height + 40));
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
   }, []);
 
   if (!content) {
@@ -108,20 +106,63 @@ function BannerBody({ content, title }: { content?: string; title: string }) {
   }
 
   const srcDoc = posterData
-    ? buildPosterSrcDoc(posterData.html, posterData.css)
-    : buildPosterSrcDoc(content, '');
+    ? buildPosterSrcDoc(posterData.html, posterData.css, { resize: true })
+    : buildPosterSrcDoc(content, '', { resize: true });
 
   return (
     <div className="w-full">
       <iframe
+        ref={iframeRef}
         srcDoc={srcDoc}
         title={title}
-        sandbox="allow-same-origin allow-popups allow-top-navigation"
+        sandbox="allow-same-origin allow-popups allow-top-navigation allow-scripts"
         className="w-full border-0 bg-white"
-        style={{ minHeight: 600 }}
+        style={{ height: iframeHeight }}
         scrolling="no"
-        onLoad={handleIframeLoad}
       />
+    </div>
+  );
+}
+
+function downloadBase64File(attachment: BannerAttachment) {
+  const byteChars = atob(attachment.data);
+  const byteArray = new Uint8Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+  const blob = new Blob([byteArray], { type: attachment.type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = attachment.name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+function AttachmentsSection({ attachments }: { attachments: BannerAttachment[] }) {
+  return (
+    <div className="px-6 py-4 border-t border-gray-200">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">첨부파일 ({attachments.length})</h3>
+      <ul className="space-y-2">
+        {attachments.map((att, i) => (
+          <li key={i} className="flex items-center gap-3">
+            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <button
+              onClick={() => downloadBase64File(att)}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              {att.name}
+            </button>
+            <span className="text-xs text-gray-400">{formatSize(att.size)}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

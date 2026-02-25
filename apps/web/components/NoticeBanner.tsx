@@ -19,33 +19,27 @@ interface BannerItem {
 interface NoticeBannerProps {
   onNoticeClick?: (noticeIndex: number) => void;
   banners?: HomeBanner[];
+  loading?: boolean;
 }
 
-const FALLBACK_BANNERS: BannerItem[] = [
-  { id: 1, title: 'AI 디자인랩 정식 오픈!', description: '현대건설 임직원 여러분의 AI 활용을 지원합니다', noticeIndex: 0 },
-  { id: 2, title: 'PlayDay 3월 일정 안내', description: '3월 15일 (금) 14:00 \u2014 AI 트렌드 세미나', noticeIndex: 1 },
-  { id: 3, title: 'ACE 2기 모집 중', description: '2월 28일까지 지원하세요! 선착순 20명', noticeIndex: 2 },
-  { id: 4, title: 'AI 활용 우수 사례 공모전', description: '최우수상 100만원! 3월 31일까지', noticeIndex: 6 },
-];
-
-export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBannerProps) {
+export default function NoticeBanner({ onNoticeClick, banners = [], loading }: NoticeBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const resolvedBanners = useMemo<BannerItem[]>(
-    () =>
-      banners.length > 0
-        ? banners.map((item) => ({ id: item.id, title: item.title, description: item.description, content: item.content, href: item.href }))
-        : FALLBACK_BANNERS,
+    () => banners.map((item) => ({
+      id: item.id, title: item.title, description: item.description,
+      content: item.content, href: item.href,
+    })),
     [banners]
   );
 
-  const hasAnyPoster = useMemo(
-    () => resolvedBanners.some((b) => b.content?.includes('data-type="poster-embed"')),
+  const hasRichBanner = useMemo(
+    () => resolvedBanners.some((b) => b.content && b.content !== '<p></p>'),
     [resolvedBanners]
   );
 
   useEffect(() => {
-    if (resolvedBanners.length === 0) return;
+    if (resolvedBanners.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % resolvedBanners.length);
     }, 5000);
@@ -55,12 +49,14 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev - 1 + resolvedBanners.length) % resolvedBanners.length);
   };
-
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % resolvedBanners.length);
   };
 
-  const containerHeight = hasAnyPoster ? 'h-[640px] md:h-[780px]' : 'h-48 md:h-56';
+  if (loading) return <BannerSkeleton />;
+  if (resolvedBanners.length === 0) return <BannerSkeleton empty />;
+
+  const containerHeight = hasRichBanner ? 'h-[640px] md:h-[780px]' : 'h-48 md:h-56';
 
   return (
     <div className="relative w-full rounded-none overflow-hidden border border-[#D9D6D3] bg-white">
@@ -81,8 +77,12 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
         ))}
       </div>
 
-      <NavArrow direction="left" onClick={goToPrevious} />
-      <NavArrow direction="right" onClick={goToNext} />
+      {resolvedBanners.length > 1 && (
+        <>
+          <NavArrow direction="left" onClick={goToPrevious} />
+          <NavArrow direction="right" onClick={goToNext} />
+        </>
+      )}
 
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
         {resolvedBanners.map((_, index) => (
@@ -97,6 +97,23 @@ export default function NoticeBanner({ onNoticeClick, banners = [] }: NoticeBann
             }`}
           />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function BannerSkeleton({ empty }: { empty?: boolean }) {
+  return (
+    <div className="relative w-full rounded-none overflow-hidden border border-[#D9D6D3] bg-white">
+      <div className="h-48 md:h-56 flex items-center justify-center">
+        {empty ? (
+          <p className="text-sm text-gray-400">등록된 배너가 없습니다</p>
+        ) : (
+          <div className="animate-pulse flex flex-col items-center gap-3">
+            <div className="h-6 w-48 bg-gray-200 rounded" />
+            <div className="h-4 w-64 bg-gray-100 rounded" />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -135,8 +152,7 @@ function BannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeCl
   }
 
   if (hasRichMedia(banner.content)) {
-    const srcDoc = buildPosterSrcDoc(banner.content!, '');
-    return <RichBannerSlide bannerId={banner.id} srcDoc={srcDoc} title={banner.title} />;
+    return <RichBannerSlide bannerId={banner.id} srcDoc={buildPosterSrcDoc(banner.content!, '')} title={banner.title} />;
   }
 
   return <TextBannerSlide banner={banner} onNoticeClick={onNoticeClick} />;
