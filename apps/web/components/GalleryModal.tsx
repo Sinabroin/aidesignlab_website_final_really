@@ -204,6 +204,12 @@ export default function GalleryModal({
 
         {/* 카드 컨텐츠 */}
         <div className="bg-white border border-gray-200 rounded-none shadow-2xl flex flex-col overflow-hidden flex-1 min-h-0">
+          <ModalTopArea
+            thumbnail={currentItem.thumbnail}
+            description={currentItem.description}
+            category={currentItem.category}
+            title={currentItem.title}
+          />
           {/* 정보 영역 - 스크롤 가능 */}
           <div className="p-6 md:p-10 overflow-y-auto flex-1 min-h-0">
             {/* 카테고리 배지 & 회차 정보 */}
@@ -551,7 +557,7 @@ function ModalTopArea({ thumbnail, description, category, title }: ModalTopAreaP
   if (thumbnail) {
     const isDataUrl = thumbnail.startsWith('data:');
     return (
-      <div className="aspect-video relative overflow-hidden border-b-2 border-gray-200">
+      <div className="aspect-[16/5] relative overflow-hidden border-b-2 border-gray-200">
         {isDataUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img alt={title} src={thumbnail} className="absolute inset-0 w-full h-full object-cover" />
@@ -564,12 +570,16 @@ function ModalTopArea({ thumbnail, description, category, title }: ModalTopAreaP
 
   if (posterEmbed) {
     return (
-      <div className="aspect-video border-b-2 border-gray-200 overflow-hidden">
+      <div className="aspect-[16/5] border-b-2 border-gray-200 overflow-hidden">
         <PosterPreviewFrame html={posterEmbed.html} css={posterEmbed.css} />
       </div>
     );
   }
 
-  // 썸네일도 포스터도 없으면 상단 영역 미표시
-  return null;
+  // 썸네일도 포스터도 없으면 빈 상단 영역 표시 (빨간색 영역)
+  return (
+    <div className="aspect-[16/5] border-b-2 border-gray-200 overflow-hidden bg-black/5">
+      {/* 빈 상단 영역 */}
+    </div>
+  );
 }
