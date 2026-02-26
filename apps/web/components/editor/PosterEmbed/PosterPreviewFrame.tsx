@@ -18,14 +18,23 @@ export default function PosterPreviewFrame({
   const doc = `<!DOCTYPE html><html><head><style>${css}</style></head><body>${html}</body></html>`;
   const sandbox = allowScripts ? 'allow-same-origin allow-scripts' : 'allow-same-origin';
 
+  const style: React.CSSProperties = {
+    ...(clickThrough ? { pointerEvents: 'none' } : {}),
+    display: 'block',
+    width: '100%',
+    height: '100%',
+    minHeight: '300px',
+    border: 'none',
+    background: 'white',
+  };
+
   return (
     <iframe
       srcDoc={doc}
       sandbox={sandbox}
       loading="lazy"
       title="포스터 프리뷰"
-      className="w-full h-full min-h-[200px] border-0 bg-white"
-      style={clickThrough ? { pointerEvents: 'none' } : undefined}
+      style={style}
     />
   );
 }

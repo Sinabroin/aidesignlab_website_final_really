@@ -17,6 +17,8 @@ interface RichTextEditorProps {
   editable?: boolean;
   minHeight?: string;
   showSourceToggle?: boolean;
+  /** 부모 높이를 꽉 채우는 모드 (읽기 전용 모달 전용) */
+  fillHeight?: boolean;
 }
 
 export default function RichTextEditor({
@@ -26,6 +28,7 @@ export default function RichTextEditor({
   editable = true,
   minHeight = '200px',
   showSourceToggle = false,
+  fillHeight = false,
 }: RichTextEditorProps) {
   const [showSource, setShowSource] = useState(false);
   const [htmlSource, setHtmlSource] = useState('');
@@ -66,8 +69,16 @@ export default function RichTextEditor({
     [onChange]
   );
 
+  const outerClass = fillHeight
+    ? 'border border-gray-300 rounded-none overflow-hidden bg-white flex flex-col h-full fill-height-editor'
+    : 'border border-gray-300 rounded-none overflow-hidden bg-white flex flex-col';
+
+  const innerStyle: React.CSSProperties = fillHeight
+    ? { flex: 1, minHeight: 0 }
+    : { minHeight: editable ? minHeight : '400px' };
+
   return (
-    <div className="border border-gray-300 rounded-none overflow-hidden bg-white flex flex-col h-full">
+    <div className={outerClass}>
       {editable && (
         <EditorToolbar
           editor={editor}
@@ -83,8 +94,8 @@ export default function RichTextEditor({
           minHeight={minHeight}
         />
       ) : (
-        <div className="p-4 text-base md:text-lg flex-1" style={{ minHeight: editable ? minHeight : '800px' }}>
-          <EditorContent editor={editor} />
+        <div className="p-4 text-base md:text-lg flex flex-col" style={innerStyle}>
+          <EditorContent editor={editor} className={fillHeight ? 'flex-1' : ''} />
         </div>
       )}
     </div>
