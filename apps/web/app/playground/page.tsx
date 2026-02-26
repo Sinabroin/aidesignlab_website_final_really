@@ -35,6 +35,7 @@ export default function PlaygroundPage() {
   const [writeSection, setWriteSection] = useState<string>('');
   const [editData, setEditData] = useState<EditPostData | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedNoticeTitle, setSelectedNoticeTitle] = useState<string | null>(null);
 
   const currentUser: User | null = session?.user?.email
     ? {
@@ -206,7 +207,15 @@ export default function PlaygroundPage() {
 
       {/* 컨텐츠 영역 */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-16">
-        {activeTab === 'home' && <HomeSection onNavigate={(tab) => setActiveTab(tab as Tab)} />}
+        {activeTab === 'home' && (
+          <HomeSection
+            onNavigate={(tab) => setActiveTab(tab as Tab)}
+            onNoticeClick={(title) => {
+              setSelectedNoticeTitle(title);
+              setActiveTab('notices');
+            }}
+          />
+        )}
         {activeTab === 'playbook' && (
           <PlayBookSection
             key={`playbook-${refreshKey}`}
@@ -223,7 +232,12 @@ export default function PlaygroundPage() {
             showWriteButton={canWritePlaydayPost}
           />
         )}
-        {activeTab === 'notices' && <NoticesSection />}
+        {activeTab === 'notices' && (
+          <NoticesSection
+            initialExpandedTitle={selectedNoticeTitle}
+            onExpandHandled={() => setSelectedNoticeTitle(null)}
+          />
+        )}
       </div>
 
       {/* 푸터 */}

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { GlowingEffect } from '@/components/common/GlowingEffect';
 import { extractPosterEmbed, buildPosterSrcDoc } from '@/lib/utils/poster-embed';
 import { WormLoader } from '@/components/common/WormLoader';
@@ -136,7 +136,7 @@ function SlideTrack({ items, current, onNoticeClick }: { items: BannerItem[]; cu
   return (
     <div
       className="relative w-full aspect-[4/5] md:aspect-[16/9] overflow-hidden"
-      style={{ maxHeight: 'min(80vh, 700px)' }}
+      style={{ maxHeight: 'min(90vh, 800px)' }} // Adjusted height to make the blue section larger
     >
       {items.map((banner, idx) => {
         if (!visible.has(idx)) return null;
@@ -254,11 +254,23 @@ function RichBannerSlide({ bannerId, srcDoc, title }: { bannerId: string | numbe
 
 function TextBannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoticeClick?: (i: number) => void }) {
   const router = useRouter();
+  const pathname = usePathname(); // Get the current path
   const hasContent = !!banner.content && banner.content !== '<p></p>';
 
   const handleClick = () => {
-    if (hasContent) { router.push(`/banner/${banner.id}`); return; }
-    if (banner.href) { router.push(banner.href); return; }
+    // Prevent duplicate navigation
+    if (hasContent) {
+      if (pathname !== `/banner/${banner.id}`) {
+        router.push(`/banner/${banner.id}`);
+      }
+      return;
+    }
+    if (banner.href) {
+      if (pathname !== banner.href) {
+        router.push(banner.href);
+      }
+      return;
+    }
     onNoticeClick?.(0);
   };
 
@@ -268,6 +280,7 @@ function TextBannerSlide({ banner, onNoticeClick }: { banner: BannerItem; onNoti
       className="h-full w-full flex flex-col justify-center items-center text-center cursor-pointer transition-colors hover:bg-[#FAFBFC] px-8 border-none"
       style={{ background: 'linear-gradient(135deg, #FFFFFF, #EEF4FF)' }}
       onClick={handleClick}
+      onTouchStart={(e) => e.stopPropagation()} // Debugging for touch devices
     >
       <h2 className="text-2xl md:text-3xl font-light tracking-[0.08em] text-[#111] mb-3">{banner.title}</h2>
       {hasContent ? (

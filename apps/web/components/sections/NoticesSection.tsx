@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNotices } from '@/hooks/useData';
 import type { Notice } from '@/types';
 
@@ -13,13 +13,33 @@ function NoticeDescription({ notice }: { notice: Notice }) {
   return null;
 }
 
-function NoticeCard({ notice, index }: { notice: Notice; index: number }) {
+interface NoticeCardProps {
+  notice: Notice;
+  index: number;
+  forceExpanded?: boolean;
+  onExpandHandled?: () => void;
+}
+
+function NoticeCard({ notice, index, forceExpanded, onExpandHandled }: NoticeCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const hasContent = !!notice.content && notice.content !== '<p></p>';
+
+  useEffect(() => {
+    if (!forceExpanded) return;
+    setExpanded(true);
+    setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    onExpandHandled?.();
+  }, [forceExpanded, onExpandHandled]);
 
   return (
     <div
-      className="bg-white border border-[#D9D6D3] rounded-none p-5 transition-all duration-200 hover:border-[#6B6B6B] hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
+      ref={cardRef}
+      className={`bg-white border rounded-none p-5 transition-all duration-200 hover:border-[#6B6B6B] hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] ${
+        forceExpanded ? 'border-[#0057FF] shadow-[0_4px_20px_rgba(0,87,255,0.08)]' : 'border-[#D9D6D3]'
+      }`}
     >
       <div
         className={`flex items-start justify-between ${hasContent ? 'cursor-pointer' : ''}`}
@@ -58,7 +78,12 @@ function NoticeCard({ notice, index }: { notice: Notice; index: number }) {
   );
 }
 
-export default function NoticesSection() {
+interface NoticesSectionProps {
+  initialExpandedTitle?: string | null;
+  onExpandHandled?: () => void;
+}
+
+export default function NoticesSection({ initialExpandedTitle, onExpandHandled }: NoticesSectionProps) {
   const { data: notices, isLoading, error } = useNotices();
 
   if (error) {
@@ -83,7 +108,13 @@ export default function NoticesSection() {
           <div className="py-12 text-center text-[#6B6B6B]">로딩 중...</div>
         ) : (
           notices.map((notice, index) => (
-            <NoticeCard key={index} notice={notice} index={index} />
+            <NoticeCard
+              key={index}
+              notice={notice}
+              index={index}
+              forceExpanded={initialExpandedTitle === notice.title}
+              onExpandHandled={onExpandHandled}
+            />
           ))
         )}
       </div>

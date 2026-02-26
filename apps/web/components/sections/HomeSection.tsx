@@ -7,9 +7,10 @@ import { useHomeContent, useSchedules, useQuickLinks } from '@/hooks/useData';
 
 interface HomeSectionProps {
   onNavigate: (tab: string) => void;
+  onNoticeClick?: (noticeTitle: string) => void;
 }
 
-export default function HomeSection({ onNavigate }: HomeSectionProps) {
+export default function HomeSection({ onNavigate, onNoticeClick }: HomeSectionProps) {
   const { banners, notices, playdayGuides, isLoading } = useHomeContent();
   const { data: schedules } = useSchedules();
   const { data: quickLinks } = useQuickLinks();
@@ -55,9 +56,11 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
         </div>
         <div className="divide-y divide-[#D9D6D3]">
           {notices.slice(0, 5).map((notice, index) => (
-            <div
+            <button
+              type="button"
               key={index}
-              className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-[#FAFBFC]"
+              className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-[#FAFBFC] w-full text-left cursor-pointer"
+              onClick={() => onNoticeClick?.(notice.title)}
             >
               <div className="flex items-center gap-3 flex-1">
                 <span className="text-[10px] text-white px-2.5 py-0.5 rounded-none bg-[#111] shrink-0">
@@ -66,7 +69,7 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
                 <h3 className="text-sm font-normal text-[#111]">{notice.title}</h3>
               </div>
               <span className="text-xs text-[#6B6B6B] shrink-0 ml-4">{notice.date}</span>
-            </div>
+            </button>
           ))}
         </div>
         <div className="flex justify-end px-6 py-3 border-t border-[#D9D6D3]">
