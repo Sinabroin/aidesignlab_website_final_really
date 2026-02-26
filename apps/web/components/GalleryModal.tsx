@@ -186,7 +186,7 @@ export default function GalleryModal({
       {/* 모달 컨텐츠 */}
       <div 
         className="relative w-full max-w-4xl mx-4 md:mx-8 flex flex-col"
-        style={{ maxHeight: 'calc(100vh - 120px)' }}
+        style={{ maxHeight: 'calc(100vh - 80px)' }}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -204,17 +204,10 @@ export default function GalleryModal({
 
         {/* 카드 컨텐츠 */}
         <div className="bg-white border border-gray-200 rounded-none shadow-2xl flex flex-col overflow-hidden flex-1 min-h-0">
-          <ModalTopArea
-            thumbnail={currentItem.thumbnail}
-            description={currentItem.description}
-            category={currentItem.category}
-            title={currentItem.title}
-          />
-
           {/* 정보 영역 - 스크롤 가능 */}
-          <div className="p-8 md:p-12 overflow-y-auto flex-1 min-h-0">
+          <div className="p-6 md:p-10 overflow-y-auto flex-1 min-h-0">
             {/* 카테고리 배지 & 회차 정보 */}
-            <div className="mb-4 flex flex-wrap items-center gap-2">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               {currentItem.category.split(',').filter(Boolean).map((cat) => (
                 <span key={cat} className="px-4 py-1.5 bg-gray-900 text-white text-sm font-normal tracking-tight rounded-none">
                   {cat.trim()}
@@ -231,32 +224,32 @@ export default function GalleryModal({
             </div>
 
             {/* 타이틀 */}
-            <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-gray-900 mb-3">
               {currentItem.title}
             </h2>
 
             {/* 작성자 & 날짜 */}
-            <div className="flex items-center gap-4 mb-6 text-gray-600">
+            <div className="flex items-center gap-4 mb-5 text-gray-600">
               <span className="font-normal tracking-tight">작성자: {currentItem.author}</span>
               <span className="w-1 h-1 rounded-none bg-gray-400"></span>
               <span>{currentItem.date}</span>
             </div>
 
             {/* 설명 */}
-            <div className="mb-6">
+            <div className="mb-5">
               <RichTextEditor content={currentItem.description} editable={false} />
             </div>
 
             {/* 상세 설명 */}
             {currentItem.fullDescription && (
-              <div className="text-base text-gray-600 leading-relaxed mb-6">
+              <div className="text-base text-gray-600 leading-relaxed mb-5">
                 <RichTextEditor content={currentItem.fullDescription} editable={false} />
               </div>
             )}
 
             {/* 해시태그 + 키워드 */}
             {currentItem.tags && currentItem.tags.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-5">
                 <h4 className="text-sm font-normal tracking-tight text-gray-700 mb-3 flex items-center gap-2">
                   <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
@@ -279,7 +272,7 @@ export default function GalleryModal({
             {/* 첨부파일 다운로드 */}
             {currentItem.attachments && currentItem.attachments.length > 0 && (
               <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-normal tracking-tight text-gray-900 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-normal tracking-tight text-gray-900 mb-3 flex items-center gap-2">
                   <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
@@ -357,7 +350,7 @@ export default function GalleryModal({
             )}
 
             {/* 액션 버튼 */}
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <button className="relative overflow-visible flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-900 text-gray-900 rounded-none hover:bg-gray-50 transition-colors font-normal tracking-tight">
                 <GlowingEffect disabled={false} spread={18} movementDuration={1.5} inactiveZone={0.35} borderWidth={2} proximity={12} />
                 <svg className="w-5 h-5 relative z-10" fill="currentColor" viewBox="0 0 20 20">
