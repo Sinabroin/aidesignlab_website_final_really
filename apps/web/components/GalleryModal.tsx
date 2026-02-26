@@ -204,12 +204,6 @@ export default function GalleryModal({
 
         {/* 카드 컨텐츠 */}
         <div className="bg-white border border-gray-200 rounded-none shadow-2xl flex flex-col overflow-hidden flex-1 min-h-0">
-          <ModalTopArea
-            thumbnail={currentItem.thumbnail}
-            description={currentItem.description}
-            category={currentItem.category}
-            title={currentItem.title}
-          />
           {/* 정보 영역 - 스크롤 가능 */}
           <div className="p-6 md:p-10 overflow-y-auto flex-1 min-h-0">
             {/* 카테고리 배지 & 회차 정보 */}
