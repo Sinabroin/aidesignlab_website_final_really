@@ -83,7 +83,7 @@ export default function RichTextEditor({
           minHeight={minHeight}
         />
       ) : (
-        <div className="p-4" style={{ minHeight }}>
+        <div className="p-4" style={{ minHeight: editable ? minHeight : '400px' }}>
           <EditorContent editor={editor} />
         </div>
       )}

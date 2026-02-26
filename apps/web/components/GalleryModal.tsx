@@ -185,8 +185,8 @@ export default function GalleryModal({
     >
       {/* 모달 컨텐츠 */}
       <div 
-        className="relative w-full max-w-4xl mx-4 md:mx-8 flex flex-col"
-        style={{ maxHeight: 'calc(100vh - 80px)' }}
+        className="relative w-full max-w-5xl mx-4 md:mx-8 flex flex-col"
+        style={{ maxHeight: 'calc(100vh - 60px)' }}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -205,9 +205,9 @@ export default function GalleryModal({
         {/* 카드 컨텐츠 */}
         <div className="bg-white border border-gray-200 rounded-none shadow-2xl flex flex-col overflow-hidden flex-1 min-h-0">
           {/* 정보 영역 - 스크롤 가능 */}
-          <div className="p-6 md:p-10 overflow-y-auto flex-1 min-h-0">
+          <div className="p-5 md:p-8 overflow-y-auto flex-1 min-h-0">
             {/* 카테고리 배지 & 회차 정보 */}
-            <div className="mb-3 flex flex-wrap items-center gap-2">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
               {currentItem.category.split(',').filter(Boolean).map((cat) => (
                 <span key={cat} className="px-4 py-1.5 bg-gray-900 text-white text-sm font-normal tracking-tight rounded-none">
                   {cat.trim()}
@@ -224,12 +224,12 @@ export default function GalleryModal({
             </div>
 
             {/* 타이틀 */}
-            <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-gray-900 mb-3">
+            <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-gray-900 mb-2">
               {currentItem.title}
             </h2>
 
             {/* 작성자 & 날짜 */}
-            <div className="flex items-center gap-4 mb-5 text-gray-600">
+            <div className="flex items-center gap-4 mb-3 text-gray-600">
               <span className="font-normal tracking-tight">작성자: {currentItem.author}</span>
               <span className="w-1 h-1 rounded-none bg-gray-400"></span>
               <span>{currentItem.date}</span>
@@ -237,7 +237,7 @@ export default function GalleryModal({
 
             {/* 설명 */}
             <div className="mb-5">
-              <RichTextEditor content={currentItem.description} editable={false} />
+              <RichTextEditor content={currentItem.description} editable={false} minHeight="400px" />
             </div>
 
             {/* 상세 설명 */}
