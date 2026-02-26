@@ -46,3 +46,4 @@ apps/api/.pytest_cache/
 apps/api/.coverage
 apps/api/htmlcov/
  
+.vercel

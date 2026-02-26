@@ -63,7 +63,8 @@ export async function POST(req: Request) {
       title: string;
       description: string;
       tags?: string[];
-      thumbnailBase64?: string;
+      /** Vercel Blob URL (구 thumbnailBase64 대체) */
+      thumbnail?: string;
       attachments?: { name: string; url: string; size: string; type: string }[];
     };
     if (!validatePayload(body)) {
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
       author: user.name ?? user.email ?? user.id,
       category: body.category,
       tags: body.tags,
-      thumbnail: body.thumbnailBase64,
+      thumbnail: body.thumbnail,
       attachments: body.attachments,
     });
     return NextResponse.json(item, { status: 201 });

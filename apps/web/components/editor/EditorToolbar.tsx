@@ -8,6 +8,7 @@ import PosterInsertModal from './PosterEmbed/PosterInsertModal';
 import { generatePosterId } from './PosterEmbed';
 import { isAdvancedUser } from '@/lib/auth/rbac';
 import type { User } from '@/lib/auth/rbac';
+import { uploadToBlob } from '@/lib/utils/upload';
 
 type EditorInstance = NonNullable<ReturnType<typeof useEditor>>;
 
@@ -16,6 +17,8 @@ interface EditorToolbarProps {
   showSource?: boolean;
   onSourceToggle?: () => void;
   showSourceButton?: boolean;
+  onUploadStart?: () => void;
+  onUploadEnd?: () => void;
 }
 
 function ToolbarButton({
@@ -50,19 +53,35 @@ function Divider() {
   return <div className="w-px h-6 bg-gray-300 mx-1 self-center" />;
 }
 
-function ImageUploadButton({ editor }: { editor: EditorInstance }) {
+function ImageUploadButton({
+  editor,
+  onUploadStart,
+  onUploadEnd,
+}: {
+  editor: EditorInstance;
+  onUploadStart?: () => void;
+  onUploadEnd?: () => void;
+}) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileSelect = useCallback(() => {
+  const handleFileSelect = useCallback(async () => {
     const file = fileRef.current?.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      editor.chain().focus().setImage({ src: reader.result as string }).run();
-    };
-    reader.readAsDataURL(file);
-    if (fileRef.current) fileRef.current.value = '';
-  }, [editor]);
+
+    setIsUploading(true);
+    onUploadStart?.();
+    try {
+      const url = await uploadToBlob(file, 'editor-images');
+      editor.chain().focus().setImage({ src: url }).run();
+    } catch {
+      alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsUploading(false);
+      onUploadEnd?.();
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }, [editor, onUploadStart, onUploadEnd]);
 
   return (
     <>
@@ -76,11 +95,19 @@ function ImageUploadButton({ editor }: { editor: EditorInstance }) {
       />
       <ToolbarButton
         onClick={() => fileRef.current?.click()}
-        title="이미지 삽입"
+        title={isUploading ? '업로드 중…' : '이미지 삽입'}
+        disabled={isUploading}
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
+        {isUploading ? (
+          <svg className="w-4 h-4 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        ) : (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        )}
       </ToolbarButton>
     </>
   );
@@ -147,6 +174,8 @@ export default function EditorToolbar({
   showSource,
   onSourceToggle,
   showSourceButton = false,
+  onUploadStart,
+  onUploadEnd,
 }: EditorToolbarProps) {
   const { data: session } = useSession();
   const user: User | null = session?.user
@@ -210,7 +239,7 @@ export default function EditorToolbar({
 
         <Divider />
 
-        <ImageUploadButton editor={editor} />
+        <ImageUploadButton editor={editor} onUploadStart={onUploadStart} onUploadEnd={onUploadEnd} />
         <VideoEmbedButton editor={editor} />
 
         {showSourceButton && onSourceToggle && (

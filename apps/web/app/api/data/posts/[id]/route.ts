@@ -50,7 +50,8 @@ export async function PUT(
       description?: string;
       category?: string;
       tags?: string[];
-      thumbnailBase64?: string;
+      /** Vercel Blob URL (구 thumbnailBase64 대체) */
+      thumbnail?: string;
       attachments?: { name: string; url: string; size: string; type: string }[];
     };
 
@@ -59,7 +60,7 @@ export async function PUT(
       description: body.description,
       category: body.category,
       tags: body.tags,
-      thumbnail: body.thumbnailBase64,
+      thumbnail: body.thumbnail,
       attachments: body.attachments,
     });
 

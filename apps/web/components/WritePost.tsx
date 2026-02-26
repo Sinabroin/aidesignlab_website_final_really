@@ -1,12 +1,12 @@
-/** 게시글 작성 모달 — 서브컴포넌트 합성 */
+/** 게시글 작성/수정 모달 — Vercel Blob URL 기반 */
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import WritePostHeader from '@/components/write-post/WritePostHeader';
 import WritePostFooter from '@/components/write-post/WritePostFooter';
 import ContentField from '@/components/write-post/ContentField';
 import HashtagField from '@/components/write-post/HashtagField';
-import MediaSection from '@/components/write-post/MediaSection';
+import MediaSection, { type AttachmentItem } from '@/components/write-post/MediaSection';
 import CategorySelect from '@/components/write-post/CategorySelect';
 
 export interface EditPostData {
@@ -16,7 +16,7 @@ export interface EditPostData {
   category: string;
   tags?: string[];
   thumbnail?: string;
-  attachments?: { name: string; url: string; size: string; type: string }[];
+  attachments?: AttachmentItem[];
 }
 
 interface WritePostProps {
@@ -26,71 +26,29 @@ interface WritePostProps {
   editData?: EditPostData;
 }
 
-const MAX_ATTACHMENT_MB = 3;
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-const THUMB_MAX_W = 800;
-const THUMB_MAX_H = 600;
-const THUMB_QUALITY = 0.8;
-
-function resizeImageToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => {
-      let { width, height } = img;
-      if (width > THUMB_MAX_W || height > THUMB_MAX_H) {
-        const ratio = Math.min(THUMB_MAX_W / width, THUMB_MAX_H / height);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) { reject(new Error('Canvas not supported')); return; }
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', THUMB_QUALITY));
-    };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-function formatFileSize(bytes: number): string {
-  const mb = bytes / 1024 / 1024;
-  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
-}
-
-async function convertFilesToAttachments(files: File[]) {
-  return Promise.all(
-    files.map(async (file) => {
-      const base64 = await fileToBase64(file);
-      const ext = file.name.split('.').pop()?.toLowerCase() ?? 'file';
-      return { name: file.name, url: base64, size: formatFileSize(file.size), type: ext };
-    })
-  );
-}
-
 export default function WritePost({ onClose, section, onPublished, editData }: WritePostProps) {
   const isEditMode = !!editData;
+
+  /* 텍스트 필드 */
   const [title, setTitle] = useState(editData?.title ?? '');
   const [content, setContent] = useState(editData?.description ?? '');
   const [category, setCategory] = useState(editData?.category ?? '');
   const [hashtags, setHashtags] = useState<string[]>(editData?.tags ?? []);
-  const [thumbnail, setThumbnail] = useState<File | null>(null);
-  const [images, setImages] = useState<File[]>([]);
-  const [videos, setVideos] = useState<File[]>([]);
-  const [files, setFiles] = useState<File[]>([]);
+
+  /* 미디어 — 이제 모두 Blob URL 기반 */
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(editData?.thumbnail ?? null);
+  const [attachments, setAttachments] = useState<AttachmentItem[]>(editData?.attachments ?? []);
+
+  /* 업로드 진행 카운터 — 동시 업로드 여러 개 지원 */
+  const [uploadCount, setUploadCount] = useState(0);
+  const isUploading = uploadCount > 0;
+
+  const handleUploadStart = useCallback(() => setUploadCount((c) => c + 1), []);
+  const handleUploadEnd = useCallback(() => setUploadCount((c) => Math.max(0, c - 1)), []);
+
   const [isPublishing, setIsPublishing] = useState(false);
 
+  /* ── 이벤트 핸들러 ── */
   const handleDraftSave = (e: React.FormEvent) => {
     e.preventDefault();
     alert('임시저장되었습니다.');
@@ -98,6 +56,10 @@ export default function WritePost({ onClose, section, onPublished, editData }: W
 
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploading) {
+      alert('파일 업로드가 진행 중입니다. 완료 후 다시 시도해주세요.');
+      return;
+    }
     if (!validateForm()) return;
     await submitPost();
   };
@@ -113,41 +75,53 @@ export default function WritePost({ onClose, section, onPublished, editData }: W
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <TitleField value={title} onChange={setTitle} />
             <CategorySelect section={section} value={category} onChange={setCategory} />
-            <ContentField content={content} onChange={setContent} />
+            <ContentField
+              content={content}
+              onChange={setContent}
+              onUploadStart={handleUploadStart}
+              onUploadEnd={handleUploadEnd}
+            />
             <MediaSection
-              thumbnail={thumbnail} images={images} videos={videos} files={files}
-              onThumbnailChange={setThumbnail} onImagesChange={setImages} onVideosChange={setVideos} onFilesChange={setFiles}
+              thumbnailUrl={thumbnailUrl}
+              attachments={attachments}
+              onThumbnailChange={setThumbnailUrl}
+              onAttachmentsChange={setAttachments}
+              onUploadStart={handleUploadStart}
+              onUploadEnd={handleUploadEnd}
             />
             <HashtagField hashtags={hashtags} onAdd={addHashtag} onRemove={removeHashtag} />
           </div>
-          <WritePostFooter onClose={onClose} onPublish={handlePublish} isPublishing={isPublishing} isEditMode={isEditMode} />
+          <WritePostFooter
+            onClose={onClose}
+            onPublish={handlePublish}
+            isPublishing={isPublishing}
+            isEditMode={isEditMode}
+            isUploading={isUploading}
+          />
         </form>
       </div>
     </div>
   );
 
+  /* ── 유효성 검사 ── */
   function validateForm(): boolean {
     if (!title.trim()) { alert('제목을 입력해주세요.'); return false; }
-    if (!category || category.split(',').filter(Boolean).length === 0) { alert('카테고리를 하나 이상 선택해주세요.'); return false; }
+    if (!category || category.split(',').filter(Boolean).length === 0) {
+      alert('카테고리를 하나 이상 선택해주세요.'); return false;
+    }
     const hasText = content.replace(/<[^>]*>/g, '').trim().length > 0;
     const hasEmbed = content.includes('data-type=');
-    const hasMedia = !!thumbnail || images.length > 0 || videos.length > 0 || files.length > 0;
-    if (!hasText && !hasEmbed && !hasMedia) { alert('내용, 이미지, 또는 첨부파일 중 하나 이상을 추가해주세요.'); return false; }
-    const oversized = files.filter((f) => f.size > MAX_ATTACHMENT_MB * 1024 * 1024);
-    if (oversized.length > 0) {
-      alert(`첨부파일 크기 제한 초과 (최대 ${MAX_ATTACHMENT_MB}MB):\n${oversized.map((f) => f.name).join('\n')}`);
-      return false;
+    const hasMedia = !!thumbnailUrl || attachments.length > 0;
+    if (!hasText && !hasEmbed && !hasMedia) {
+      alert('내용, 이미지, 또는 첨부파일 중 하나 이상을 추가해주세요.'); return false;
     }
     return true;
   }
 
+  /* ── API 전송 — payload는 URL만 포함 (base64 없음) ── */
   async function submitPost() {
     setIsPublishing(true);
     try {
-      const thumbnailBase64 = thumbnail ? await resizeImageToBase64(thumbnail) : (isEditMode ? editData?.thumbnail : undefined);
-      const newAttachments = files.length > 0 ? await convertFilesToAttachments(files) : undefined;
-      const mergedAttachments = newAttachments ?? (isEditMode ? editData?.attachments : undefined);
-
       const url = isEditMode ? `/api/data/posts/${editData!.id}` : '/api/data/posts';
       const method = isEditMode ? 'PUT' : 'POST';
 
@@ -160,15 +134,17 @@ export default function WritePost({ onClose, section, onPublished, editData }: W
           title: title.trim(),
           description: content,
           tags: hashtags,
-          thumbnailBase64: thumbnailBase64,
-          attachments: mergedAttachments,
+          thumbnail: thumbnailUrl ?? undefined,
+          attachments: attachments.length > 0 ? attachments : undefined,
         }),
       });
+
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        alert(err.error ?? (isEditMode ? '게시글 수정에 실패했습니다.' : '게시글 저장에 실패했습니다. 다시 시도해주세요.'));
+        const err = await res.json().catch(() => ({})) as { error?: string };
+        alert(err.error ?? (isEditMode ? '게시글 수정에 실패했습니다.' : '게시글 저장에 실패했습니다.'));
         return;
       }
+
       alert(isEditMode ? '게시글이 수정되었습니다!' : '게시글이 등록되었습니다!');
       onPublished?.();
       onClose();

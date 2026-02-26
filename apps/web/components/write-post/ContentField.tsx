@@ -12,9 +12,11 @@ const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'
 interface ContentFieldProps {
   content: string;
   onChange: (value: string) => void;
+  onUploadStart?: () => void;
+  onUploadEnd?: () => void;
 }
 
-export default function ContentField({ content, onChange }: ContentFieldProps) {
+export default function ContentField({ content, onChange, onUploadStart, onUploadEnd }: ContentFieldProps) {
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   const isEmpty = !content || (content.replace(/<[^>]*>/g, '').trim() === '' && !content.includes('data-type='));
 
@@ -30,7 +32,15 @@ export default function ContentField({ content, onChange }: ContentFieldProps) {
         </div>
       </div>
       {mode === 'edit' ? (
-        <RichTextEditor content={content} onChange={onChange} placeholder="게시글 내용을 입력하세요…" editable minHeight="240px" />
+        <RichTextEditor
+          content={content}
+          onChange={onChange}
+          placeholder="게시글 내용을 입력하세요…"
+          editable
+          minHeight="240px"
+          onUploadStart={onUploadStart}
+          onUploadEnd={onUploadEnd}
+        />
       ) : (
         <div className="border border-gray-300 rounded-none overflow-hidden bg-white">
           {isEmpty ? (
