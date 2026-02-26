@@ -39,7 +39,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         };
       },
       onUploadCompleted: async ({ blob }) => {
-        console.log('[Blob] 업로드 완료:', blob.url, `(${(blob.size / 1024).toFixed(0)}KB)`);
+        console.log('[Blob] 업로드 완료:', blob.url);
       },
     });
 
