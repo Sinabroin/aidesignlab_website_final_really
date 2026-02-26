@@ -67,7 +67,7 @@ export default function RichTextEditor({
   );
 
   return (
-    <div className="border border-gray-300 rounded-none overflow-hidden bg-white">
+    <div className="border border-gray-300 rounded-none overflow-hidden bg-white flex flex-col h-full">
       {editable && (
         <EditorToolbar
           editor={editor}
@@ -83,7 +83,7 @@ export default function RichTextEditor({
           minHeight={minHeight}
         />
       ) : (
-        <div className="p-4 text-base md:text-lg" style={{ minHeight: editable ? minHeight : '600px' }}>
+        <div className="p-4 text-base md:text-lg flex-1" style={{ minHeight: editable ? minHeight : '800px' }}>
           <EditorContent editor={editor} />
         </div>
       )}
