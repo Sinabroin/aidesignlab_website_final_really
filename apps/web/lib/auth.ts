@@ -20,12 +20,8 @@ function buildCredentialsProvider() {
 export const authOptions: NextAuthOptions = {
   providers: [buildCredentialsProvider()],
   logger: {
-    error(code, metadata) {
-      console.error("[NextAuth]", code, metadata);
-    },
-    warn(code) {
-      console.warn("[NextAuth]", code);
-    },
+    error(code, metadata) { console.error("[NextAuth]", code, metadata); },
+    warn() {},
     debug() {},
   },
   callbacks: {

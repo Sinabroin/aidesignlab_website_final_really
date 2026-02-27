@@ -35,9 +35,6 @@ async function sendEmail(to: string, url: string): Promise<void> {
   const { createTransport } = await import("nodemailer") as typeof import("nodemailer");
   const port = Number(process.env.EMAIL_SERVER_PORT ?? 587);
   const isSecurePort = port === 465;
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'magic/send:smtp-config',message:'SMTP config',data:{host:process.env.EMAIL_SERVER_HOST,port,secure:isSecurePort,user:process.env.EMAIL_SERVER_USER},timestamp:Date.now(),hypothesisId:'I',runId:'post-fix2'})}).catch(()=>{});
-  // #endregion
   const transport = createTransport({
     host: process.env.EMAIL_SERVER_HOST,
     port,
@@ -60,38 +57,28 @@ async function sendEmail(to: string, url: string): Promise<void> {
 }
 
 export async function POST(req: NextRequest) {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'magic/send:entry',message:'POST /api/auth/magic/send called',data:{},timestamp:Date.now(),hypothesisId:'verify',runId:'post-fix'})}).catch(()=>{});
-  // #endregion
   try {
     const body = await req.json() as { email?: string; callbackUrl?: string };
     const email = body.email?.trim().toLowerCase();
     const callbackUrl = body.callbackUrl ?? "/";
 
     if (!email || !isAllowedEmail(email)) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'magic/send:validate',message:'Email domain rejected',data:{email},timestamp:Date.now(),hypothesisId:'verify',runId:'post-fix'})}).catch(()=>{});
-      // #endregion
       return NextResponse.json({ error: "허용되지 않은 이메일 도메인입니다." }, { status: 400 });
     }
 
     const token = createMagicToken(email);
     const baseUrl = getBaseUrl(req);
     const verifyUrl = `${baseUrl}/auth/verify?token=${token}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'magic/send:sending',message:'Sending email',data:{email,verifyUrl},timestamp:Date.now(),hypothesisId:'verify',runId:'post-fix'})}).catch(()=>{});
-    // #endregion
+
+    // 개발 환경: SMTP 대신 인증 URL을 응답에 포함해 즉시 이동 (사내망 SMTP 차단 우회)
+    if (process.env.NODE_ENV === "development") {
+      console.log("\n🔗 [Dev Mode] 매직링크 인증 URL:\n", verifyUrl, "\n");
+      return NextResponse.json({ ok: true, devUrl: verifyUrl });
+    }
 
     await sendEmail(email, verifyUrl);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'magic/send:success',message:'Email sent OK',data:{email},timestamp:Date.now(),hypothesisId:'I',runId:'post-fix2'})}).catch(()=>{});
-    // #endregion
     return NextResponse.json({ ok: true });
   } catch (error) {
-    const errObj = error as Record<string, unknown>;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'magic/send:error',message:'Send failed',data:{error:error instanceof Error ? error.message : String(error),code:errObj?.code,command:errObj?.command,responseCode:errObj?.responseCode,response:errObj?.response},timestamp:Date.now(),hypothesisId:'I',runId:'post-fix2'})}).catch(()=>{});
-    // #endregion
     console.error("[Magic Send]", error);
     return NextResponse.json({ error: "이메일 전송 중 오류가 발생했습니다." }, { status: 500 });
   }

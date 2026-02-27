@@ -26,17 +26,15 @@ function resolveCallbackUrl(callbackUrl: string): string {
   return `${window.location.origin}${suffix}`;
 }
 
-async function sendMagicLink(email: string, callbackUrl: string): Promise<{ ok: boolean; error?: string }> {
+async function sendMagicLink(email: string, callbackUrl: string): Promise<{ ok: boolean; error?: string; devUrl?: string }> {
   const res = await fetch('/api/auth/magic/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, callbackUrl }),
   });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({})) as { error?: string };
-    return { ok: false, error: data.error };
-  }
-  return { ok: true };
+  const data = await res.json().catch(() => ({})) as { error?: string; devUrl?: string };
+  if (!res.ok) return { ok: false, error: data.error };
+  return { ok: true, devUrl: data.devUrl };
 }
 
 export default function LoginButton({ callbackUrl }: LoginButtonProps) {
@@ -71,6 +69,9 @@ export default function LoginButton({ callbackUrl }: LoginButtonProps) {
       const result = await sendMagicLink(normalized, nextUrl);
       if (!result.ok) {
         setErrorMessage(result.error ?? '로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      } else if (result.devUrl) {
+        // 개발 환경: SMTP 우회, 인증 링크로 바로 이동
+        window.location.href = result.devUrl;
       } else {
         setLinkSent(true);
       }
