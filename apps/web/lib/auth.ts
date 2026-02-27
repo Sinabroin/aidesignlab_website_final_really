@@ -78,6 +78,11 @@ async function sendVerificationRequest(params: {
   url: string;
   provider: { server: Record<string, unknown> };
 }): Promise<void> {
+  // #region agent log
+  if (typeof fetch !== 'undefined') {
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth.ts:82',message:'sendVerificationRequest called',data:{identifier:params.identifier,url:params.url,serverConfig:params.provider.server},timestamp:Date.now(),hypothesisId:'B',runId:'initial'})}).catch(()=>{});
+  }
+  // #endregion
   // 보안 스캐너 토큰 소진 방지: 중간 확인 페이지 URL로 변환
   const verifyUrl = toVerifyPageUrl(params.url);
   const { createTransport } = require("nodemailer") as {
@@ -91,8 +96,18 @@ async function sendVerificationRequest(params: {
       }) => Promise<unknown>;
     };
   };
+  // #region agent log
+  if (typeof fetch !== 'undefined') {
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth.ts:102',message:'creating transport',data:{verifyUrl},timestamp:Date.now(),hypothesisId:'C',runId:'initial'})}).catch(()=>{});
+  }
+  // #endregion
   const transport = createTransport(params.provider.server);
   try {
+    // #region agent log
+    if (typeof fetch !== 'undefined') {
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth.ts:110',message:'calling sendMail',data:{to:params.identifier,from:EMAIL_FROM},timestamp:Date.now(),hypothesisId:'D',runId:'initial'})}).catch(()=>{});
+    }
+    // #endregion
     await transport.sendMail({
       to: params.identifier,
       from: EMAIL_FROM,
@@ -100,7 +115,17 @@ async function sendVerificationRequest(params: {
       text: buildVerificationText(verifyUrl),
       html: buildVerificationHtml(verifyUrl),
     });
+    // #region agent log
+    if (typeof fetch !== 'undefined') {
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth.ts:120',message:'sendMail success',data:{},timestamp:Date.now(),hypothesisId:'D',runId:'initial'})}).catch(()=>{});
+    }
+    // #endregion
   } catch (error) {
+    // #region agent log
+    if (typeof fetch !== 'undefined') {
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth.ts:127',message:'sendMail error',data:{errorMsg:error instanceof Error ? error.message : String(error),errorStack:error instanceof Error ? error.stack : undefined},timestamp:Date.now(),hypothesisId:'E',runId:'initial'})}).catch(()=>{});
+    }
+    // #endregion
     throw error;
   }
 }
@@ -149,6 +174,11 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, email }) {
+      // #region agent log
+      if (typeof fetch !== 'undefined') {
+        fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth.ts:166',message:'signIn callback',data:{userEmail:user?.email,verificationRequest:email?.verificationRequest},timestamp:Date.now(),hypothesisId:'B',runId:'initial'})}).catch(()=>{});
+      }
+      // #endregion
       const isVerificationRequest = email?.verificationRequest === true;
       const targetEmail = resolveSignInEmail(user?.email, email);
       if (!isVerificationRequest) return true;

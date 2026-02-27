@@ -67,14 +67,23 @@ export default function LoginButton({ callbackUrl }: LoginButtonProps) {
     setIsSubmitting(true);
     setErrorMessage(null);
     const nextUrl = resolveCallbackUrl(callbackUrl);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginButton.tsx:71',message:'signIn called',data:{email:normalized,callbackUrl:nextUrl},timestamp:Date.now(),hypothesisId:'A',runId:'initial'})}).catch(()=>{});
+    // #endregion
     try {
       const result = await signIn('email', { email: normalized, callbackUrl: nextUrl, redirect: false });
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginButton.tsx:75',message:'signIn result',data:{error:result?.error,ok:result?.ok,status:result?.status,url:result?.url},timestamp:Date.now(),hypothesisId:'A',runId:'initial'})}).catch(()=>{});
+      // #endregion
       if (result?.error) {
         setErrorMessage('로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       } else {
         setLinkSent(true);
       }
-    } catch {
+    } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginButton.tsx:84',message:'signIn exception',data:{errorMsg:error instanceof Error ? error.message : String(error)},timestamp:Date.now(),hypothesisId:'A',runId:'initial'})}).catch(()=>{});
+      // #endregion
       setErrorMessage('로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
     setIsSubmitting(false);
