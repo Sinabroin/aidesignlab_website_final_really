@@ -31,11 +31,18 @@ function buildHtml(url: string): string {
   </div>`;
 }
 
-async function sendEmail(to: string, url: string): Promise<void> {
-  const { createTransport } = await import("nodemailer") as typeof import("nodemailer");
+type MailTransporter = {
+  sendMail: (mail: { to: string; from: string; subject: string; text: string; html: string }) => Promise<unknown>;
+};
+
+function createMailTransporter(): MailTransporter {
   const port = Number(process.env.EMAIL_SERVER_PORT ?? 587);
   const isSecurePort = port === 465;
-  const transport = createTransport({
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createTransport } = require("nodemailer") as {
+    createTransport: (config: Record<string, unknown>) => MailTransporter;
+  };
+  return createTransport({
     host: process.env.EMAIL_SERVER_HOST,
     port,
     auth: { user: process.env.EMAIL_SERVER_USER, pass: process.env.EMAIL_SERVER_PASSWORD },
@@ -46,6 +53,10 @@ async function sendEmail(to: string, url: string): Promise<void> {
     greetingTimeout: 10000,
     socketTimeout: 15000,
   });
+}
+
+async function sendEmail(to: string, url: string): Promise<void> {
+  const transport = createMailTransporter();
   const localPart = to.split("@")[0] ?? "고객";
   await transport.sendMail({
     to,
