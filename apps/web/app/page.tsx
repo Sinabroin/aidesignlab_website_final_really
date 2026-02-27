@@ -78,13 +78,13 @@ export default function Home() {
                 {currentPhase === 2 && (
                   <div className="space-y-8 animate-fade-in">
                     <h1 className="text-6xl md:text-[5.625rem] leading-tight font-normal tracking-tight text-gray-900">
-                      PLAY GROUND
+                      PlayGround
                     </h1>
                     <p className="text-xl md:text-2xl text-gray-700 font-normal tracking-tight">
                       현대건설 워크이노베이션센터 AI Design Lab
                     </p>
                     <p className="text-base md:text-lg text-gray-600 font-normal tracking-tight max-w-2xl mx-auto">
-                      PLAY GROUND는 누구나 AI를 편하게 사용해보고,
+                      PlayGround는 누구나 AI를 편하게 사용해보고,
                       <br />
                       경험과 아이디어를 함께 공유하는 열린 실험 공간입니다.
                     </p>
