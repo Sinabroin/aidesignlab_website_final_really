@@ -139,8 +139,12 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(getPrismaClient()),
   providers: [getEmailProvider()],
   logger: {
-    error() {},
-    warn() {},
+    error(code, metadata) {
+      console.error("[NextAuth]", code, metadata);
+    },
+    warn(code) {
+      console.warn("[NextAuth]", code);
+    },
     debug() {},
   },
   callbacks: {
@@ -156,12 +160,10 @@ export const authOptions: NextAuthOptions = {
       if (user?.name) token.name = user.name;
       return token;
     },
-    async session({ session, user }) {
+    async session({ session, token }) {
       if (!session.user) return session;
-      const fallbackEmail = (session as unknown as { token?: { email?: string } }).token?.email;
-      const fallbackName = (session as unknown as { token?: { name?: string } }).token?.name;
-      session.user.name = user?.name ?? fallbackName ?? session.user.name;
-      session.user.email = user?.email ?? fallbackEmail ?? session.user.email;
+      session.user.name = token.name ?? session.user.name;
+      session.user.email = token.email ?? session.user.email;
       return session;
     },
   },
