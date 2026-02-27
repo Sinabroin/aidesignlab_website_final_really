@@ -1,57 +1,84 @@
-/** 매직 링크 중간 확인 페이지 — 보안 스캐너 토큰 소진 방지 */
+/** 매직링크 인증 완료 페이지 — 토큰 검증 후 NextAuth 세션 생성 */
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+
+type VerifyStatus = 'verifying' | 'success' | 'error';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
-  const token = searchParams.get('token') ?? '';
-  const email = searchParams.get('email') ?? '';
-  const callbackUrl = searchParams.get('callbackUrl') ?? '/';
-  const [callbackHref, setCallbackHref] = useState('');
+  const router = useRouter();
+  const [status, setStatus] = useState<VerifyStatus>('verifying');
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    // JavaScript로 URL을 조합해야 보안 스캐너가 토큰 소진 불가
-    const url = new URL('/api/auth/callback/email', window.location.origin);
-    if (token) url.searchParams.set('token', token);
-    if (email) url.searchParams.set('email', email);
-    url.searchParams.set('callbackUrl', callbackUrl);
-    setCallbackHref(url.toString());
-  }, [token, email, callbackUrl]);
+    const token = searchParams.get('token');
+    const callbackUrl = searchParams.get('callbackUrl') ?? '/';
 
-  const handleVerify = () => {
-    if (callbackHref) window.location.href = callbackHref;
-  };
+    if (!token) {
+      setStatus('error');
+      setErrorMsg('유효하지 않은 링크입니다.');
+      return;
+    }
+
+    verifyToken(token, callbackUrl);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function verifyToken(token: string, callbackUrl: string) {
+    try {
+      const result = await signIn('magic-link', {
+        token,
+        redirect: false,
+        callbackUrl,
+      });
+
+      if (result?.ok && !result.error) {
+        setStatus('success');
+        router.replace(callbackUrl);
+      } else {
+        setStatus('error');
+        setErrorMsg('인증에 실패했습니다. 링크가 만료되었거나 이미 사용된 링크입니다.');
+      }
+    } catch {
+      setStatus('error');
+      setErrorMsg('인증 처리 중 오류가 발생했습니다.');
+    }
+  }
+
+  if (status === 'verifying') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white p-10 max-w-md w-full text-center shadow-lg">
+          <div className="animate-spin w-10 h-10 border-4 border-gray-900 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">인증 처리 중입니다...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white p-10 max-w-md w-full text-center shadow-lg">
+          <div className="text-4xl mb-4">❌</div>
+          <h1 className="text-xl font-normal text-gray-900 mb-2">인증 실패</h1>
+          <p className="text-sm text-gray-500 mb-6">{errorMsg}</p>
+          <a href="/login" className="inline-block px-6 py-3 bg-gray-900 text-white text-sm hover:bg-gray-800 transition-colors">
+            로그인 페이지로 돌아가기
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-none shadow-lg p-10 max-w-md w-full text-center">
-        <div className="mb-6">
-          <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-normal tracking-tight text-gray-900 mb-2">AI 디자인랩 로그인</h1>
-          <p className="text-sm text-gray-500">
-            {email ? (
-              <><span className="font-medium text-gray-700">{email}</span>으로<br />인증 요청이 확인되었습니다.</>
-            ) : '인증 요청이 확인되었습니다.'}
-          </p>
-        </div>
-
-        <button
-          onClick={handleVerify}
-          disabled={!callbackHref}
-          className="w-full py-3 px-6 bg-gray-900 text-white font-normal tracking-tight rounded-none hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {callbackHref ? '본인 인증 완료하기' : '준비 중...'}
-        </button>
-
-        <p className="mt-4 text-xs text-gray-400">
-          본인이 요청하지 않은 경우 이 페이지를 닫아주세요.
-        </p>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="bg-white p-10 max-w-md w-full text-center shadow-lg">
+        <div className="text-4xl mb-4">✅</div>
+        <p className="text-gray-600">로그인 성공! 이동 중...</p>
       </div>
     </div>
   );

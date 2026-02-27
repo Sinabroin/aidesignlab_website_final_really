@@ -1,7 +1,8 @@
+/** 로그인 폼 컴포넌트 — 매직링크 이메일 발송 후 세션 폴링 */
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { signIn, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 interface LoginButtonProps {
@@ -25,6 +26,19 @@ function resolveCallbackUrl(callbackUrl: string): string {
   return `${window.location.origin}${suffix}`;
 }
 
+async function sendMagicLink(email: string, callbackUrl: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch('/api/auth/magic/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, callbackUrl }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string };
+    return { ok: false, error: data.error };
+  }
+  return { ok: true };
+}
+
 export default function LoginButton({ callbackUrl }: LoginButtonProps) {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,20 +57,6 @@ export default function LoginButton({ callbackUrl }: LoginButtonProps) {
     }
   }, [status, targetPath, router]);
 
-  useEffect(() => {
-    if (!linkSent) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch('/api/auth/session');
-        const data = (await res.json()) as { user?: unknown };
-        if (data?.user) {
-          router.push(targetPath);
-        }
-      } catch { /* ignore */ }
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [linkSent, targetPath, router]);
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalized = normalizeEmail(email);
@@ -67,23 +67,14 @@ export default function LoginButton({ callbackUrl }: LoginButtonProps) {
     setIsSubmitting(true);
     setErrorMessage(null);
     const nextUrl = resolveCallbackUrl(callbackUrl);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginButton.tsx:71',message:'signIn called',data:{email:normalized,callbackUrl:nextUrl},timestamp:Date.now(),hypothesisId:'A',runId:'initial'})}).catch(()=>{});
-    // #endregion
     try {
-      const result = await signIn('email', { email: normalized, callbackUrl: nextUrl, redirect: false });
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginButton.tsx:75',message:'signIn result',data:{error:result?.error,ok:result?.ok,status:result?.status,url:result?.url},timestamp:Date.now(),hypothesisId:'A',runId:'initial'})}).catch(()=>{});
-      // #endregion
-      if (result?.error) {
-        setErrorMessage('로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      const result = await sendMagicLink(normalized, nextUrl);
+      if (!result.ok) {
+        setErrorMessage(result.error ?? '로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       } else {
         setLinkSent(true);
       }
-    } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0870979-13d6-454e-aa79-007419c9500b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginButton.tsx:84',message:'signIn exception',data:{errorMsg:error instanceof Error ? error.message : String(error)},timestamp:Date.now(),hypothesisId:'A',runId:'initial'})}).catch(()=>{});
-      // #endregion
+    } catch {
       setErrorMessage('로그인 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
     setIsSubmitting(false);
